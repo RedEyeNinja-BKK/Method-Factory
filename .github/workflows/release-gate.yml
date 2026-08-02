@@ -1,0 +1,57 @@
+name: release-gate
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # Full history: the release seal validates that the bundle's recorded
+          # evidence commit (e.g. 9062b07) exists in git history. A shallow
+          # depth-1 clone only has the tip commit, which fails that check.
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install deps
+        run: pip install pyyaml
+
+      - name: Release integrity gate (structural + committed-evidence replay)
+        # PE_STRICT_EVALUATE=1 makes CI enforce the v1.8.2+ semantic-evidence
+        # contract: deterministic assertions are replayed from transcripts and
+        # MUST match the committed assertions.jsonl (coverage, verdicts, types,
+        # proof hashes). Judge-backed semantic re-derivation is the protected
+        # release-process step (needs PE_JUDGE_* credentials), not public CI.
+        run: PE_STRICT_EVALUATE=1 python3 scripts/validate.py --repo .
+
+      - name: Evaluator self-test
+        run: python3 scripts/evaluate_self_test.py
+
+      - name: Provenance adversarial tests
+        run: python3 scripts/test_provenance_adversarial.py
+
+      - name: Evaluator mutation tests
+        run: python3 scripts/test_evaluator_mutations.py
+
+      - name: Regeneration idempotence (drift check)
+        run: |
+          # NOTE: drafts/ is NOT committed (maintainer-private). The drift
+          # check runs against the committed generated content only: convert
+          # must be a no-op on a clean release tree.
+          set -euo pipefail
+          if [ -d ./drafts ]; then
+            python3 scripts/convert.py --repo . --drafts ./drafts
+          fi
+          if ! git diff --exit-code -- skills references templates persona.md evals; then
+            echo "::error::Generated content drift detected — regenerate and commit."
+            exit 1
+          fi

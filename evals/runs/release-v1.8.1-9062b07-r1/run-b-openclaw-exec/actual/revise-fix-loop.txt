@@ -1,0 +1,19 @@
+## Revised and brought back
+
+I fixed the review findings in the `process-engine-trial v1.8.2` draft:
+
+- **Independent evidence:** requires immutable, per-case transcripts and separate verifier judgments.
+- **Correct mirrored protocol:** Run A and Run B are both complete **with-package** executions.
+- **Baseline separation:** without-package runs are paired baselines and can no longer masquerade as mirrored Run B.
+- **Role separation:** executor and verifier identities are explicitly recorded and must differ.
+- **Instrumentation gate:** missing identity, transcript, timestamps, or telemetry makes the run `INCOMPLETE`, never PASS.
+- **Release checks:** the completeness checklist now covers role-swapped runs, paired baselines, and evidence continuity.
+
+Regression review result: **PASS on all four prior findings.**
+
+Files revised:
+
+- `evals/process-engine-trial-v1.8.2-draft.md`
+- `evals/process-engine-trial-v1.8.2-release-template.json`
+
+Both JSON files validate successfully. This is a corrected draft and review result—not a completed trial or ship approval.

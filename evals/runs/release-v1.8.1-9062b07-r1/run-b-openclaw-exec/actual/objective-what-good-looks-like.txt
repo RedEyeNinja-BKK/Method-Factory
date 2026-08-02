@@ -1,0 +1,15 @@
+I can turn this into a **store-review package** designed to produce practical, prioritized improvements—not a long audit that wastes your time.
+
+Your provisional definition of “good” is:
+
+- identifies changes likely to help you sell better;
+- separates high-impact actions from low-value polish;
+- explains *why* each recommendation matters;
+- gives you a manageable next-step list;
+- avoids unsupported marketplace or product claims.
+
+**Heads-up:** marketplace policies and product-claim rules may affect some recommendations; this is non-blocking—we proceed, and you decide what to adopt.
+
+You can give me anything useful to work from—your store link, screenshots, listings, notes, or an existing review skill. I’ll treat store links as domain context, validate and extract useful behavior rather than copy external material, and gate incorporation with you. The eventual package will include **the prompt policy as content-only with no tool_gate; the advisory judge rules will be operator-visible, reversible, never silent blockers.**
+
+One decision first: **should this be a reusable review skill, a complete store-review project/persona, or are you unsure which shape is best?**

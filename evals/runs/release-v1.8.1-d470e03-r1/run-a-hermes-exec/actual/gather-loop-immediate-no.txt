@@ -1,0 +1,5 @@
+Collection closed — no additional material provided.
+
+I’ll prepare a **release-notes writing skill**. The package will include the prompt policy, which is **content-only with no `tool_gate`**; the **advisory judge rules are operator-visible, reversible, never silent blockers**. It will go through **Pattern → Review → Trial → Ship**, with your approval required before anything ships.
+
+**What does “good” release notes look like to you?**

@@ -1,0 +1,1 @@
+I'll FETCH the linked skill, VALIDATE it, CLASSIFY fit and license, record the URL + access date + license as provenance, and author an original package from it without copying. Artifacts: intake.md, provenance.json, classification.md, package-draft.md. I'll gate with you before incorporating anything.

@@ -1,0 +1,1 @@
+Paste the draft package or link it, and I'll review it for structure, behavior, and policy fit. Which layer should I prioritize: policy, structure, or behavior?

@@ -1,0 +1,1 @@
+Please provide the draft package—upload it, paste it, or give me its workspace path. I’ll review it against the Agent Skills standard, evidence/provenance, scope honesty, acceptance criteria, governance, and the Pattern → Review → Trial → Ship gates, then return actionable findings with a **PASS**, **REVISE**, or **BLOCKED** recommendation.

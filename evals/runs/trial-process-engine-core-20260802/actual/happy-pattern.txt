@@ -1,0 +1,3 @@
+Yes — I can generate a professional package for a **release-notes writing skill**. It will extract original techniques rather than copy external material, follow the Agent Skills format, and include review and trial gates before anything ships.
+
+Want to give me anything to work from? A link, pasted release notes, a file, repository conventions, or anything else that helps. The prompt policy is content-only with no tool_gate; the advisory judge rules are operator-visible, reversible, never silent blockers.

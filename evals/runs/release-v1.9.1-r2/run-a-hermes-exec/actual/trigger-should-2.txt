@@ -1,0 +1,1 @@
+What pull-request review scope, languages, and repository conventions should the persona use?

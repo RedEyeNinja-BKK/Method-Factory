@@ -1,0 +1,1 @@
+REVISE received. I’ll diagnose the four gaps, rewrite the trial skill to make the machine-readable eval set and per-case instrumentation mandatory deliverables (with explicit `UNAVAILABLE` handling), audit it against the review’s exit criteria, and re-run the regression checks. I will not return a ship recommendation while any required case is FAIL or unrun.

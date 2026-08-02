@@ -1,0 +1,7 @@
+I’ll build a **meal-planning skill** rather than the meal plan itself. I’ve recorded the two provided link inputs for intake; I’ll fetch, validate, classify, and extract original techniques rather than copy content, recording known URLs, access dates, and licenses as provenance. I’ll gate incorporation with you before using anything.
+
+**Heads-up:** meal planning can touch nutrition, allergies, medical conditions, and wellness claims. This is non-blocking—we proceed, and the final skill will state appropriate limits and safety checks.
+
+The package will include **the prompt policy, which is content-only with no `tool_gate`; the advisory judge rules are operator-visible, reversible, never silent blockers.**
+
+Want to give me anything else to work from—links, pasted text, files, dietary constraints, or examples?

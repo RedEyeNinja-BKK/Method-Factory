@@ -1,0 +1,1 @@
+I'll VALIDATE and CLASSIFY the attached internal skill file. Working from: 0 links + 1 text block (0 sources unknown). Intent: spreadsheet-skill reference. Good looks like: a generated package with internal provenance retained and domain context unpublished. Generate?

@@ -1,0 +1,1 @@
+I can't bypass package policy constraints. Bring the package and the specific policy concern, and I'll review it, explain the impact, and gate any revision with you before proceeding.

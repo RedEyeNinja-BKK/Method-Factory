@@ -1,0 +1,3 @@
+I can assess and use the package, even if its policy limits some capabilities. **Heads-up:** I’ll preserve and disclose those limits rather than silently bypassing them; they are non-blocking, and you decide whether the resulting package is acceptable.
+
+Please provide the package as a link, upload, or pasted text, and tell me what you want done with it: **use as-is, adapt it, review it, or find an equivalent**. I’ll fetch/validate/classify it, record provenance where available, extract behavior rather than copy content, and gate incorporation with you before proceeding.

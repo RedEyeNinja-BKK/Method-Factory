@@ -1,0 +1,1 @@
+I'll trial it before ship. Send the draft package and the trial target, or say use default regression checks and I'll run that path. I still need review PASS + trial PASS + operator approval before anything ships.

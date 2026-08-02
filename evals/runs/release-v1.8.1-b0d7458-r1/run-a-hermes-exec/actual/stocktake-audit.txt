@@ -1,0 +1,3 @@
+I’ll treat this as a **quality review of the currently deployed Process Engine skills**, not a rewrite or ship action. I’ll inventory the deployed set, check each skill against the Agent Skills format, routing/collection/gating requirements, provenance and safety rules, and look for regressions in the eval/trial coverage. I’ll use the 3-agent separation where useful: independent review, execution of checks, then orchestration of findings.
+
+**Heads-up:** this audit can identify issues and recommend fixes, but it does not change or redeploy anything without your approval. I’ll return a severity-ranked report with evidence, affected skills, and PASS/FAIL/REVIEW recommendations.

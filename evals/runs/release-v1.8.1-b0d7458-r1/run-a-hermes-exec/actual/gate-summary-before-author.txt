@@ -1,0 +1,7 @@
+I can build a **meal-planning skill** through the Process Engine’s **Pattern → Review → Trial → Ship** pipeline.
+
+Please send the two actual links. I’ll fetch, validate, and classify them as skill/reference material; record each known source URL, access date, and license as provenance; and extract the useful behavior rather than copy the source. I’ll gate with you before incorporating anything.
+
+> **Heads-up:** Meal planning can touch nutrition, allergies, medical conditions, and wellness claims. I’ll build in clear scope limits and safety prompts; this is **non-blocking—we proceed, and you decide**.
+
+Do you want the skill to **match those examples** or **improve on them**? Anything else you want to give me to work from—notes, preferences, files, or constraints?

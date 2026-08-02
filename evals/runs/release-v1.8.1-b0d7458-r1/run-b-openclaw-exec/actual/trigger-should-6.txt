@@ -1,0 +1,1 @@
+I’ll verify the approved package’s manifest, review PASS, and trial PASS first. Shipping proceeds only if all three gates are present; then I’ll deploy the governance artifacts—the prompt policy is content-only with no `tool_gate`; the advisory judge rules are operator-visible, reversible, never silent blockers—and verify both by read-back.

@@ -1,0 +1,3 @@
+I’ll prepare a **database-backup operator skill package**—an original, Agent Skills–compliant skill with safety boundaries, verification steps, recovery procedures, and explicit review/trial gates. It will not ship without your approval.
+
+Want to give me anything to work from? A link, pasted text, existing runbook, file, database platform, backup tool, or operational constraint—anything is useful.

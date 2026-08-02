@@ -1,0 +1,60 @@
+Absolutely. I can help shape this into a **professional, safety-first financial guidance tool**, but we should first define what “financial advice” means here. A tool that gives personalized investment, tax, debt, or retirement recommendations may be regulated differently depending on the user’s country.
+
+## First, what should the package contain?
+
+I can prepare a complete package including:
+
+1. **Product concept and scope**
+2. **Target users and use cases**
+3. **Safety and regulatory boundaries**
+4. **System/persona instructions**
+5. **Skills or workflows**
+6. **Questionnaire and decision logic**
+7. **Evidence and source policy**
+8. **Risk disclosures and escalation rules**
+9. **Example conversations**
+10. **Trial/evaluation plan**
+11. **Repository structure and documentation**
+
+## Please provide what you already have
+
+Anything is welcome:
+
+- A rough idea or description
+- Links to tools or products you admire
+- Existing prompts, documents, or research
+- The country or jurisdictions it should serve
+- Whether it is for personal use, public release, or an open-source project
+- Whether it should cover:
+  - Budgeting
+  - Debt
+  - Saving
+  - Investing
+  - Retirement
+  - Taxes
+  - Insurance
+  - Business finance
+  - Benefits or government support
+
+## What does “good” look like?
+
+For example:
+
+> “I want an open-source companion that helps ordinary people understand their finances, make safer decisions, and know when to consult a licensed professional. It should not pretend to be a financial adviser or make unsupported investment recommendations.”
+
+Or:
+
+> “I want a tool that analyzes someone’s financial situation and gives specific portfolio recommendations.”
+
+Those lead to very different designs and safety requirements.
+
+### The most important starting questions
+
+1. **Who is it for?**
+2. **Which country or countries?**
+3. **Educational guidance or personalized recommendations?**
+4. **What financial topics are in scope?**
+5. **Should it be free/open-source, private, or commercial?**
+6. **Do you already have source material or examples to adapt from?**
+
+Once you answer those, I’ll turn the vision into a concrete package proposal before creating anything.

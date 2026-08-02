@@ -1,0 +1,1 @@
+Existing local coverage includes the xlsx skill, which supports CSV cleanup, tabular normalization, and CSV/XLSX conversion; its license is proprietary. I can SEARCH, FETCH, and VALIDATE external alternatives and return a provenance-backed shortlist. Proceed?

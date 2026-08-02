@@ -1,0 +1,23 @@
+Understood. No additional material supplied, so I’ll proceed from the intent alone.
+
+**Working from:** 0 links + 0 text blocks (0 sources unknown)  
+**Intent:** Create a database-backup operator skill package.  
+**Shape:** Agent Skill (`SKILL.md`) with supporting references, safety rules, verification procedures, and trial cases.  
+**Objective:** A reliable, database-agnostic operator skill that plans, executes, verifies, restores, and reports backups without claiming success until evidence confirms it.  
+**Good looks like:**
+
+- Supports safe backup and restore workflows across common database types.
+- Requires explicit target, retention, destination, encryption, and recovery-point details.
+- Never treats a completed command as proof of a usable backup.
+- Verifies artifacts, integrity, logs, and—where appropriate—test restores.
+- Handles failures, partial backups, secrets, destructive actions, and rollback clearly.
+- Follows the pipeline **Pattern → Review → Trial → Ship**.
+- Includes operator-visible acceptance criteria and regression trials.
+- Uses original instructions with named evidence sources rather than copying external material.
+- The prompt policy is content-only with no `tool_gate`; the advisory judge rules are operator-visible, reversible, never silent blockers.
+
+**Heads-up:** Database backup work can affect data durability and production availability. I’ll build conservative safeguards and make destructive or ambiguous actions require explicit operator confirmation; this never blocks — we proceed; you decide.
+
+The package will require your review before creation or deployment, and nothing will ship without a passing trial.
+
+**Generate this package?**

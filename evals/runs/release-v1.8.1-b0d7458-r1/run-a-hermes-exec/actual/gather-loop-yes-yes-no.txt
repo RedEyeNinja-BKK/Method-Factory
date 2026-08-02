@@ -1,0 +1,15 @@
+I’ll create a **workout-tracking skill** through the Process Engine pipeline:
+
+**Pattern → Review → Trial → Ship**
+
+I’ve recorded:
+
+- **Skill material:** the referenced link marker — no fetchable URL was included, so its source is currently unavailable.
+- **Text material:** your progressive-overload approach — recorded as **user-provided, source unknown**. I’ll extract the behavior and author original instructions rather than copy it.
+- **Collection:** complete; I won’t ask for more material.
+
+**Heads-up:** workout guidance touches wellness and injury-risk considerations. I’ll keep the skill within clearly stated limits, avoid medical claims, and include sensible safety boundaries. This is **non-blocking — we proceed; you decide**.
+
+The package will include **the prompt policy, which is content-only with no `tool_gate`; the advisory judge rules are operator-visible, reversible, never silent blockers.**
+
+What does **“good”** look like for this skill—what should it reliably help you track or decide during and between workouts?

@@ -1,0 +1,3 @@
+Please provide the package as a link, upload, or pasted text so I can intake and validate it.
+
+Heads-up: its policy limits may restrict some uses; this is non-blocking—we’ll identify the limits, extract the useful behavior rather than copy it, and proceed within them. I’ll record known provenance and gate with you before incorporating anything.

@@ -1,0 +1,1 @@
+Summary gate: this is a high-assurance database-backup operator-skill package.

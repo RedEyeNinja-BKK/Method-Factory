@@ -1,0 +1,5 @@
+Yes — I can generate a professional package for a **release-notes-writing skill**. I’ll first collect any material you want it based on, then clarify what “good” looks like, prepare the package, and take it through **Pattern → Review → Trial → Ship**; nothing ships without your approval.
+
+**Want to give me anything to work from?** Links, pasted examples, existing release-note formats, project conventions, or files are all welcome. I’ll extract and attribute useful techniques rather than copy external content, and I’ll gate incorporation with you.
+
+For governance clarity: **the prompt policy is content-only with no tool_gate; the advisory judge rules are operator-visible, reversible, never silent blockers.**

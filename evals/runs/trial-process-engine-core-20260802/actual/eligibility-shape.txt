@@ -1,0 +1,7 @@
+I’ll build a package for the shop, but first we need choose its shape:
+
+**Should the package primarily be a shop-operating persona, one or more reusable skills, or a combined package with both?**
+
+You can also provide any material you want me to work from—shop links, notes, existing prompts, examples, policies, or files. I’ll extract behaviors rather than copy content, record provenance where sources are known, and gate incorporation with you.
+
+**Heads-up:** marketplace and advertising policies may restrict some shop claims; this never blocks us—we proceed, and you decide. For any governance helpers, **the prompt policy is content-only with no tool_gate; the advisory judge rules are operator-visible, reversible, never silent blockers.**

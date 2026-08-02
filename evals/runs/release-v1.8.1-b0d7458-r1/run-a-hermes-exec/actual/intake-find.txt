@@ -1,0 +1,8 @@
+I searched the enabled skill catalog for CSV cleanup, normalization, deduplication, and tabular-data validation.
+
+**Result: no existing CSV-cleanup skill was found.** The catalog currently contains engineering, operations, Etsy, and Process Engine skills, but no data-cleaning skill.
+
+I can either:
+
+1. broaden the search to related data/table skills, if available in another registry; or  
+2. generate a new CSV-cleanup skill package for your review.

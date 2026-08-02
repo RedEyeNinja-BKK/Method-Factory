@@ -1,0 +1,40 @@
+**REVISE completed and brought back for review.**
+
+### Changes made
+
+- Updated `process-engine-trial` with:
+  - Mandatory manifest and package-hash checks.
+  - Immutable per-iteration run bundles.
+  - Explicit machine-readable run records.
+  - Strict handling of unavailable telemetry as `INCOMPLETE`.
+  - Honest baseline rules: no context-cost claim without paired measurements.
+  - Separate activation recall and precision results.
+  - Required mirrored executor/verifier role swap.
+  - Explicit transcript and judgment paths.
+  - Manifest continuity and evidence-path updates.
+  - Stronger release-gate verification checklist.
+
+- Updated the portable eval definition:
+  - `evals/evals.json`
+  - Version: `1.8.2`
+  - Added required conditions, telemetry, run-bundle, and release-protocol metadata.
+  - Confirmed valid JSON.
+
+- Added a release-run template:
+  - `evals/process-engine-trial-v1.8.2-release-template.json`
+  - Includes scenario, activation, baseline, verifier, operator-approval, and evidence fields.
+  - Confirmed valid JSON.
+
+### Verification
+
+- `evals/evals.json`: valid JSON
+- Release template: valid JSON
+- SHA-256 recorded:
+  - `evals/evals.json`: `6533285ae1548e91df75d8ddf2ab1fdba0e336ea088b3f13dad87a669d6c7fef`
+  - Release template: `e2c3e0975a01ca2ca8adcc389ac95047e3a297e11e34ed6d597b89153a1ae27d`
+
+### Current gate
+
+**Review status: ready for re-review.**  
+**Trial status: not yet rerun.**  
+**Ship status: NOT ELIGIBLE** until the revised artifact passes the complete mirrored, instrumented trial and receives operator approval.

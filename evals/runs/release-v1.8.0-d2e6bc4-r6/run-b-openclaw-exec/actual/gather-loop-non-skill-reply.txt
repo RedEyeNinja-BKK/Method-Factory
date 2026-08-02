@@ -1,0 +1,1 @@
+Working from: 1 text block (0 sources unknown). Intent: a database-backup operator skill. Good looks like: a package that defines backup cadence, verification, restore checks, and failure handling without wasting time. Artifacts: objective.md, safety-constraints.md, runbook.md, trial-plan.md, review-gate.md. Generate?

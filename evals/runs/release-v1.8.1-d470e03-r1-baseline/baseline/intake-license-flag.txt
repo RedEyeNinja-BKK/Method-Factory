@@ -1,0 +1,8 @@
+Please provide the skill’s **exact registry name** or its **link/content**. I can then:
+
+1. Inspect it before loading.
+2. Check its declared tools, permissions, and risk level.
+3. Load it for this session if appropriate.
+4. Tell you exactly what capabilities and constraints it adds.
+
+I don’t yet have enough information to identify which skill you mean from “this skill.”

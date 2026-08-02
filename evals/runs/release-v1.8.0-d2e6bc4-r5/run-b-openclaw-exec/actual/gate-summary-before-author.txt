@@ -1,0 +1,1 @@
+Wellness-adjacent: I'll fetch and validate both links, record each URL + access date + license as provenance, and use them only as source material for an original meal-planning skill. This never blocks - we proceed; you decide. Artifacts: intake.md, provenance.json, objective.md, pattern-map.md, trial-plan.md, review-gate.md. I'll gate with you before incorporating anything.

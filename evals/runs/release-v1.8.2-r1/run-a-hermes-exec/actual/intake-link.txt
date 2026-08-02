@@ -1,0 +1,5 @@
+I’ll fetch and validate the CSV Toolkit skill, classify what it contributes, record its source URL, access date, and license as provenance, and extract useful behavior rather than copy its content. I’ll gate with you before incorporating anything.
+
+What are you trying to build with it—a standalone CSV-focused skill, or should it be incorporated into another project/persona/skill package?
+
+The prompt policy is content-only with no tool_gate; the advisory judge rules are operator-visible, reversible, never silent blockers.

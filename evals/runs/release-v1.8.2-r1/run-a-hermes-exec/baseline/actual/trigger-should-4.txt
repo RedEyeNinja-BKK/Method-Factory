@@ -1,0 +1,1 @@
+I can trial the drafted skill with happy-path, gray-zone, escalation, boundary, should-trigger, and shouldn't-trigger cases, including a with-skill versus without-skill baseline. Please provide the draft package and its recorded review result; trialing should happen after review PASS and before shipping.

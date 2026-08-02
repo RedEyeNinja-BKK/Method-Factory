@@ -1,0 +1,3 @@
+I’ll create a **persona for reviewing pull requests**—a reviewer identity with clear responsibilities, review criteria, communication style, safety boundaries, and verification practices.
+
+Before I draft it: **do you want to give me anything to work from?** A link, pasted review guidelines, a repository file, or an example PR review—anything helps.

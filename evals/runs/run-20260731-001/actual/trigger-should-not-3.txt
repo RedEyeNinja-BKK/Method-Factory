@@ -1,0 +1,3 @@
+Which server configuration should I update, and what change do you want made?
+
+For example: **Docker VM**, **Turnstone**, **Hermes**, **OpenClaw**, or a specific service/config file.

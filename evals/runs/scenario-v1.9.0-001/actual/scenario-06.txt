@@ -1,0 +1,1 @@
+Working from: 1 link + 0 text blocks (2 sources unknown). Intent: production database backup skill with validation, alerting, and retention. Good looks like: a critical-system skill spec with failure handling, observability, and rollback-safe behavior. Generate? Please paste the PostgreSQL schema and the current backup script.

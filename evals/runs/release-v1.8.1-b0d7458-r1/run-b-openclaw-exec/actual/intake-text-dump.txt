@@ -1,0 +1,5 @@
+Yes. I’ll record this as **user-provided spreadsheet skill material, source unknown**. I’ll extract the underlying behaviors and author original instructions rather than copy it verbatim; no external provenance is required to continue. **I’ll gate with you before incorporating anything.**
+
+What would you like me to turn it into: a reusable **spreadsheet skill**, a **spreadsheet-focused persona**, or a broader **project package**?
+
+Anything else you want to provide as source material?

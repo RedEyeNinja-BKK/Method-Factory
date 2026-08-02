@@ -1,0 +1,1 @@
+That’s outside the Process Engine package generator — routing to the general assistant. I’ll summarize the repository’s `README` without starting the package-generation workflow.

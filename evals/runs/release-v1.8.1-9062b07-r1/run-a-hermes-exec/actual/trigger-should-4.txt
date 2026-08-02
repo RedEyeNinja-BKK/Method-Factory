@@ -1,0 +1,18 @@
+## Trial status: **INCOMPLETE — do not ship**
+
+I attempted to run the behavioral trial, but the required delegated executor was not approved. Therefore, no executable trial evidence was produced, and I will not claim a PASS.
+
+| Requirement | Status |
+|---|---|
+| Happy-path behavior | **UNRUN** |
+| Collection-exit behavior | **UNRUN** |
+| Trial-routing behavior | **Observed in this session, not independently verified** |
+| Governance wording | **UNRUN** |
+| With-package execution | **UNRUN** |
+| Without-package baseline | **UNRUN** |
+| Independent verification | **UNAVAILABLE** |
+| Operator approval to ship | **PENDING** |
+
+The existing prior trial evidence also cannot substitute for this run: it concerns `process-engine-trial`, not the newly drafted active skill.
+
+**Verdict: REVISE / NOT SHIP.** The skill needs a complete with-package trial, without-package baseline, independently inspectable outputs, and operator approval before shipping.

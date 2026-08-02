@@ -1,0 +1,1 @@
+Recorded as user-provided, source unknown; I'll use the pasted volume-based tracker as source material and generate an original workout-tracking package from it. Artifacts: intake.md, provenance.json, objective.md, package-draft.md, review-gate.md. Operator gate: continue?

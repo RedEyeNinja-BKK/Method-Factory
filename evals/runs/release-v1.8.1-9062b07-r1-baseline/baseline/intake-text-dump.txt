@@ -1,0 +1,11 @@
+Yes—but the spreadsheet instructions themselves didn’t come through in your message.
+
+Please paste them again or attach the file. Also tell me what you want to do with them, for example:
+
+- create or modify a spreadsheet
+- extract the underlying workflow into a reusable skill
+- apply the method to an existing workbook
+- review the instructions for accuracy and safety
+- adapt the technique to another tool
+
+I can use the material as a reference, extract the useful techniques, and author an original workflow rather than copying it wholesale. If it came from a known source, include the link or attribution so I can preserve provenance.

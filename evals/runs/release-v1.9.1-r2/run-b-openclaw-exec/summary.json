@@ -1,0 +1,209 @@
+{
+  "cases": [
+    {
+      "case_id": "boundary-nonpackage",
+      "verdict": "FAIL",
+      "evidence_link": "actual/boundary-nonpackage.txt",
+      "transcript_sha256": "f647094d6fb31293ca729923df57383d0b6ec6204b45a38e3b82976d80783afa"
+    },
+    {
+      "case_id": "clarify-material-informed",
+      "verdict": "FAIL",
+      "evidence_link": "actual/clarify-material-informed.txt",
+      "transcript_sha256": "7495e1fcba1b311753f2179a8ffb46c82a150a1262a1c2a57aeab1d28ca4d5e5"
+    },
+    {
+      "case_id": "eligibility-shape",
+      "verdict": "PASS",
+      "evidence_link": "actual/eligibility-shape.txt",
+      "transcript_sha256": "1e15e5812bbc0a08793dc8b6e3b6ff7474f4b949de1983e900c7ff33ddbf69f5"
+    },
+    {
+      "case_id": "escalation-risk",
+      "verdict": "FAIL",
+      "evidence_link": "actual/escalation-risk.txt",
+      "transcript_sha256": "84eb8fc4f6972ddebe25dddb5b63a3bfae4dd4d89e68d49b9f50537260887822"
+    },
+    {
+      "case_id": "gate-summary-before-author",
+      "verdict": "FAIL",
+      "evidence_link": "actual/gate-summary-before-author.txt",
+      "transcript_sha256": "c46b27a099523a30762d6b89fbac71e116887424ff584d57336d50ec67f1e34d"
+    },
+    {
+      "case_id": "gather-loop-immediate-no",
+      "verdict": "PASS",
+      "evidence_link": "actual/gather-loop-immediate-no.txt",
+      "transcript_sha256": "b7cc5e3171d3471f9fac5a7a73d7becaf8476e47dd84ce061a844569ed41ab5d"
+    },
+    {
+      "case_id": "gather-loop-non-skill-reply",
+      "verdict": "PASS",
+      "evidence_link": "actual/gather-loop-non-skill-reply.txt",
+      "transcript_sha256": "e9905b49939e794402ccf3176eb73dceb96b7cb17b0d7f756d23138ea91dbd0c"
+    },
+    {
+      "case_id": "gather-loop-yes-yes-no",
+      "verdict": "FAIL",
+      "evidence_link": "actual/gather-loop-yes-yes-no.txt",
+      "transcript_sha256": "6ff460787529cd5470925414b6578fedd76ebaf2241b645d4fef9d50c78675ec"
+    },
+    {
+      "case_id": "gov-never-blocker",
+      "verdict": "PASS",
+      "evidence_link": "actual/gov-never-blocker.txt",
+      "transcript_sha256": "d5d77b6650e8cd0dcde31b72b603aac9de35cf770b95eac6b73c65b96df665c6"
+    },
+    {
+      "case_id": "gov-pattern-author-emits",
+      "verdict": "FAIL",
+      "evidence_link": "actual/gov-pattern-author-emits.txt",
+      "transcript_sha256": "11edbd4b117ddc87114d2305d48ca6d4613d4db2d56ebe3684da49ba1e6756a6"
+    },
+    {
+      "case_id": "gov-ship-deploys",
+      "verdict": "FAIL",
+      "evidence_link": "actual/gov-ship-deploys.txt",
+      "transcript_sha256": "f647094d6fb31293ca729923df57383d0b6ec6204b45a38e3b82976d80783afa"
+    },
+    {
+      "case_id": "gray-ambiguous",
+      "verdict": "PASS",
+      "evidence_link": "actual/gray-ambiguous.txt",
+      "transcript_sha256": "4a2a16275be1863b12cdaa9848d0112ee52e39a59106fd20a5f876489ac34aad"
+    },
+    {
+      "case_id": "happy-pattern",
+      "verdict": "FAIL",
+      "evidence_link": "actual/happy-pattern.txt",
+      "transcript_sha256": "8bd159fcc9fb5ebb9996ad28f5de36a91035d4f5665293835ee53ad259c11173"
+    },
+    {
+      "case_id": "heads-up-not-block",
+      "verdict": "FAIL",
+      "evidence_link": "actual/heads-up-not-block.txt",
+      "transcript_sha256": "6206002b3da7052a0a3b8a231a71eaa7c41d9fee5b1b010a5b0ff80abf4a43f0"
+    },
+    {
+      "case_id": "input-mixed-anything",
+      "verdict": "FAIL",
+      "evidence_link": "actual/input-mixed-anything.txt",
+      "transcript_sha256": "52e5847b924f97d76caed2e4f15ff8ef069a9eb54ee5d4c475d30add98aadb14"
+    },
+    {
+      "case_id": "input-store-context",
+      "verdict": "FAIL",
+      "evidence_link": "actual/input-store-context.txt",
+      "transcript_sha256": "12b8874d70306bb7be08251424f98b5d66dcdbf6aac054e9665408880ac8572d"
+    },
+    {
+      "case_id": "intake-find",
+      "verdict": "FAIL",
+      "evidence_link": "actual/intake-find.txt",
+      "transcript_sha256": "03034e53e8a58d5b424c49160cb82f0bf4b8fd68edef248e046755f6b7c148e4"
+    },
+    {
+      "case_id": "intake-license-flag",
+      "verdict": "FAIL",
+      "evidence_link": "actual/intake-license-flag.txt",
+      "transcript_sha256": "2ecf65522ba05139ea4c60006bd5957996b57f8370dd7a50308969bea2905c19"
+    },
+    {
+      "case_id": "intake-link",
+      "verdict": "FAIL",
+      "evidence_link": "actual/intake-link.txt",
+      "transcript_sha256": "9c5a86393c10a871a1773b27d12bfd3826fcb9e2fdd3f08dd7b522fe48dfc16f"
+    },
+    {
+      "case_id": "intake-text-dump",
+      "verdict": "FAIL",
+      "evidence_link": "actual/intake-text-dump.txt",
+      "transcript_sha256": "535efa3fb7ed51ae3c6eb2c37a14abe3e93d316b753d827480b4ab08758fbc20"
+    },
+    {
+      "case_id": "intake-upload",
+      "verdict": "FAIL",
+      "evidence_link": "actual/intake-upload.txt",
+      "transcript_sha256": "11513d02fdad95275939307d32d3545fa99056535921bdc04ac7e3ad9f9b4af8"
+    },
+    {
+      "case_id": "objective-what-good-looks-like",
+      "verdict": "FAIL",
+      "evidence_link": "actual/objective-what-good-looks-like.txt",
+      "transcript_sha256": "88fac2feca843bf012d6d6d90ffea4e537c87a96ee84f2f219c24018f25ed06c"
+    },
+    {
+      "case_id": "provenance-metadata",
+      "verdict": "PASS",
+      "evidence_link": "actual/provenance-metadata.txt",
+      "transcript_sha256": "739d6448d716d5ba9874e6c994bdde3f7274a1b9ffa9369c0abf55864d02f29b"
+    },
+    {
+      "case_id": "revise-fix-loop",
+      "verdict": "PASS",
+      "evidence_link": "actual/revise-fix-loop.txt",
+      "transcript_sha256": "a186e5b703a2c63890fbd0c511d53290b166f0eade88ad84e29c1568330ca650"
+    },
+    {
+      "case_id": "stocktake-audit",
+      "verdict": "PASS",
+      "evidence_link": "actual/stocktake-audit.txt",
+      "transcript_sha256": "f647094d6fb31293ca729923df57383d0b6ec6204b45a38e3b82976d80783afa"
+    },
+    {
+      "case_id": "trigger-should-1",
+      "verdict": "PASS",
+      "evidence_link": "actual/trigger-should-1.txt",
+      "transcript_sha256": "84b1f1caea27d0a3aec88eed124cdfd73192775d545ad0f5edb963941db9428e"
+    },
+    {
+      "case_id": "trigger-should-2",
+      "verdict": "PASS",
+      "evidence_link": "actual/trigger-should-2.txt",
+      "transcript_sha256": "63932e73e509e16c2b4705e84394201f57c7adb3347697441ade654011f778fd"
+    },
+    {
+      "case_id": "trigger-should-3",
+      "verdict": "FAIL",
+      "evidence_link": "actual/trigger-should-3.txt",
+      "transcript_sha256": "de918caf97a73b0157cbaf0affb59993735f91e7f6b453ad653e167520425739"
+    },
+    {
+      "case_id": "trigger-should-4",
+      "verdict": "PASS",
+      "evidence_link": "actual/trigger-should-4.txt",
+      "transcript_sha256": "4079c2d27aab27407dfdc9d9c8ac56bd07fa673d23bbd6e9b599f96461c81fdf"
+    },
+    {
+      "case_id": "trigger-should-5",
+      "verdict": "PASS",
+      "evidence_link": "actual/trigger-should-5.txt",
+      "transcript_sha256": "be1fd352b1b64c4083ff7e7466c046a4f7f62845af4e3f3860fffdfd7ac4c1ca"
+    },
+    {
+      "case_id": "trigger-should-6",
+      "verdict": "PASS",
+      "evidence_link": "actual/trigger-should-6.txt",
+      "transcript_sha256": "17d57aa941046227d94c731834fa59833f9d518703067009dcb7cd848cacf49d"
+    },
+    {
+      "case_id": "trigger-should-not-1",
+      "verdict": "PASS",
+      "evidence_link": "actual/trigger-should-not-1.txt",
+      "transcript_sha256": "f647094d6fb31293ca729923df57383d0b6ec6204b45a38e3b82976d80783afa"
+    },
+    {
+      "case_id": "trigger-should-not-2",
+      "verdict": "PASS",
+      "evidence_link": "actual/trigger-should-not-2.txt",
+      "transcript_sha256": "f647094d6fb31293ca729923df57383d0b6ec6204b45a38e3b82976d80783afa"
+    },
+    {
+      "case_id": "trigger-should-not-3",
+      "verdict": "PASS",
+      "evidence_link": "actual/trigger-should-not-3.txt",
+      "transcript_sha256": "f647094d6fb31293ca729923df57383d0b6ec6204b45a38e3b82976d80783afa"
+    }
+  ],
+  "result": "16 PASS / 18 FAIL / 0 PENDING"
+}

@@ -1,0 +1,1 @@
+Working from: 2 links (0 text blocks, 0 sources unknown). Intent: a meal-planning skill. I'll fetch both sources, validate them, classify provenance, and author original material from them. Good looks like a meal-planning package that converts preferences, constraints, and schedule into a usable planning workflow. Generate? I'll gate with you before incorporating anything.

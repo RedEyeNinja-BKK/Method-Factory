@@ -1,0 +1,242 @@
+{
+  "cases": [
+    {
+      "case_id": "happy-pattern",
+      "verdict": "PASS",
+      "evidence_link": "actual/happy-pattern.txt",
+      "executor": "turnstone-workstream (gpt-5.6-luna)",
+      "iteration": 1
+    },
+    {
+      "case_id": "gray-ambiguous",
+      "verdict": "PASS",
+      "evidence_link": "actual/gray-ambiguous.txt",
+      "executor": "turnstone-workstream (gpt-5.6-luna)",
+      "iteration": 1
+    },
+    {
+      "case_id": "escalation-risk",
+      "verdict": "PASS",
+      "evidence_link": "actual/escalation-risk.txt",
+      "iteration": 2,
+      "executor": "openclaw-main (gpt-5.6-luna)"
+    },
+    {
+      "case_id": "boundary-nonpackage",
+      "verdict": "PASS",
+      "evidence_link": "actual/boundary-nonpackage.txt",
+      "iteration": 3,
+      "executor": "openclaw-main (gpt-5.6-luna) - after content fix"
+    },
+    {
+      "case_id": "trigger-should-1",
+      "verdict": "PASS",
+      "evidence_link": "actual/trigger-should-1.txt",
+      "executor": "turnstone-workstream (gpt-5.6-luna)",
+      "iteration": 1
+    },
+    {
+      "case_id": "trigger-should-2",
+      "verdict": "PASS",
+      "evidence_link": "actual/trigger-should-2.txt",
+      "executor": "turnstone-workstream (gpt-5.6-luna)",
+      "iteration": 1
+    },
+    {
+      "case_id": "trigger-should-3",
+      "verdict": "PASS",
+      "evidence_link": "actual/trigger-should-3.txt",
+      "executor": "turnstone-workstream (gpt-5.6-luna)",
+      "iteration": 1
+    },
+    {
+      "case_id": "trigger-should-4",
+      "verdict": "PASS",
+      "evidence_link": "actual/trigger-should-4.txt",
+      "iteration": 4,
+      "executor": "openclaw-main (gpt-5.6-luna)"
+    },
+    {
+      "case_id": "trigger-should-5",
+      "verdict": "PASS",
+      "evidence_link": "actual/trigger-should-5.txt",
+      "executor": "turnstone-workstream (gpt-5.6-luna)",
+      "iteration": 1
+    },
+    {
+      "case_id": "trigger-should-6",
+      "verdict": "PASS",
+      "evidence_link": "actual/trigger-should-6.txt",
+      "executor": "turnstone-workstream (gpt-5.6-luna)",
+      "iteration": 1
+    },
+    {
+      "case_id": "trigger-should-not-1",
+      "verdict": "PASS",
+      "evidence_link": "actual/trigger-should-not-1.txt",
+      "executor": "turnstone-workstream (gpt-5.6-luna)",
+      "iteration": 1
+    },
+    {
+      "case_id": "trigger-should-not-2",
+      "verdict": "PASS",
+      "evidence_link": "actual/trigger-should-not-2.txt",
+      "iteration": 4,
+      "executor": "openclaw-main (gpt-5.6-luna)"
+    },
+    {
+      "case_id": "trigger-should-not-3",
+      "verdict": "PASS",
+      "evidence_link": "actual/trigger-should-not-3.txt",
+      "executor": "turnstone-workstream (gpt-5.6-luna)",
+      "iteration": 1
+    },
+    {
+      "case_id": "intake-link",
+      "verdict": "PASS",
+      "evidence_link": "actual/intake-link.txt",
+      "executor": "turnstone-workstream (gpt-5.6-luna)",
+      "iteration": 1
+    },
+    {
+      "case_id": "intake-upload",
+      "verdict": "PASS",
+      "evidence_link": "actual/intake-upload.txt",
+      "executor": "turnstone-workstream (gpt-5.6-luna)",
+      "iteration": 1
+    },
+    {
+      "case_id": "intake-license-flag",
+      "verdict": "PASS",
+      "evidence_link": "actual/intake-license-flag.txt",
+      "iteration": 3,
+      "executor": "openclaw-main (gpt-5.6-luna) - after content fix"
+    },
+    {
+      "case_id": "intake-find",
+      "verdict": "PASS",
+      "evidence_link": "actual/intake-find.txt",
+      "iteration": 3,
+      "executor": "openclaw-main (gpt-5.6-luna) - after content fix"
+    },
+    {
+      "case_id": "intake-text-dump",
+      "verdict": "PASS",
+      "evidence_link": "actual/intake-text-dump.txt",
+      "executor": "turnstone-workstream (gpt-5.6-luna)",
+      "iteration": 1
+    },
+    {
+      "case_id": "gather-loop-yes-yes-no",
+      "verdict": "PASS",
+      "evidence_link": "actual/gather-loop-yes-yes-no.txt",
+      "iteration": 2,
+      "executor": "openclaw-main (gpt-5.6-luna)"
+    },
+    {
+      "case_id": "gather-loop-immediate-no",
+      "verdict": "PASS",
+      "evidence_link": "actual/gather-loop-immediate-no.txt",
+      "iteration": 3,
+      "executor": "openclaw-main (gpt-5.6-luna) - after content fix"
+    },
+    {
+      "case_id": "gather-loop-non-skill-reply",
+      "verdict": "PASS",
+      "evidence_link": "actual/gather-loop-non-skill-reply.txt",
+      "executor": "turnstone-workstream (gpt-5.6-luna)",
+      "iteration": 1
+    },
+    {
+      "case_id": "clarify-material-informed",
+      "verdict": "PASS",
+      "evidence_link": "actual/clarify-material-informed.txt",
+      "executor": "turnstone-workstream (gpt-5.6-luna)",
+      "iteration": 1
+    },
+    {
+      "case_id": "gate-summary-before-author",
+      "verdict": "PASS",
+      "evidence_link": "actual/gate-summary-before-author.txt",
+      "iteration": 3,
+      "executor": "openclaw-main (gpt-5.6-luna) - after content fix"
+    },
+    {
+      "case_id": "objective-what-good-looks-like",
+      "verdict": "PASS",
+      "evidence_link": "actual/objective-what-good-looks-like.txt",
+      "iteration": 2,
+      "executor": "openclaw-main (gpt-5.6-luna)"
+    },
+    {
+      "case_id": "input-store-context",
+      "verdict": "PASS",
+      "evidence_link": "actual/input-store-context.txt",
+      "iteration": 3,
+      "executor": "openclaw-main (gpt-5.6-luna) - after content fix"
+    },
+    {
+      "case_id": "input-mixed-anything",
+      "verdict": "PASS",
+      "evidence_link": "actual/input-mixed-anything.txt",
+      "executor": "turnstone-workstream (gpt-5.6-luna)",
+      "iteration": 1
+    },
+    {
+      "case_id": "heads-up-not-block",
+      "verdict": "PASS",
+      "evidence_link": "actual/heads-up-not-block.txt",
+      "iteration": 3,
+      "executor": "openclaw-main (gpt-5.6-luna) - after content fix"
+    },
+    {
+      "case_id": "eligibility-shape",
+      "verdict": "PASS",
+      "evidence_link": "actual/eligibility-shape.txt",
+      "iteration": 3,
+      "executor": "openclaw-main (gpt-5.6-luna) - after content fix"
+    },
+    {
+      "case_id": "revise-fix-loop",
+      "verdict": "PASS",
+      "evidence_link": "actual/revise-fix-loop.txt",
+      "iteration": 4,
+      "executor": "openclaw-main (gpt-5.6-luna)"
+    },
+    {
+      "case_id": "stocktake-audit",
+      "verdict": "PASS",
+      "evidence_link": "actual/stocktake-audit.txt",
+      "iteration": 4,
+      "executor": "openclaw-main (gpt-5.6-luna)"
+    },
+    {
+      "case_id": "provenance-metadata",
+      "verdict": "PASS",
+      "evidence_link": "actual/provenance-metadata.txt",
+      "iteration": 2,
+      "executor": "openclaw-main (gpt-5.6-luna)"
+    },
+    {
+      "case_id": "gov-pattern-author-emits",
+      "verdict": "PASS",
+      "evidence_link": "actual/gov-pattern-author-emits.txt",
+      "iteration": 2,
+      "executor": "openclaw-main (gpt-5.6-luna)"
+    },
+    {
+      "case_id": "gov-ship-deploys",
+      "verdict": "PASS",
+      "evidence_link": "actual/gov-ship-deploys.txt",
+      "executor": "turnstone-workstream (gpt-5.6-luna)",
+      "iteration": 1
+    },
+    {
+      "case_id": "gov-never-blocker",
+      "verdict": "PASS",
+      "evidence_link": "actual/gov-never-blocker.txt",
+      "iteration": 2,
+      "executor": "openclaw-main (gpt-5.6-luna)"
+    }
+  ]
+}

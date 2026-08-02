@@ -1,0 +1,5 @@
+I can create a **pull-request review persona** that follows the Process Engine pipeline: **Pattern → Review → Trial → Ship**. I’ll author original instructions, apply the Agent Skills standard, include evidence and acceptance criteria, and keep review decisions operator-visible.
+
+The prompt policy is content-only with no tool_gate; the advisory judge rules are operator-visible, reversible, never silent blockers.
+
+**Want to give me anything to work from?** A repository link, existing review checklist, coding standards, sample PRs, pasted guidance, or any other material is welcome; I’ll record and assess each item, extract behavior rather than copy it, and gate incorporation with you.

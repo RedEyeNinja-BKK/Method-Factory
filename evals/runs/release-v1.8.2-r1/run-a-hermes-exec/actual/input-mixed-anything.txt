@@ -1,0 +1,9 @@
+I can build a shop package from all three inputs:
+
+- **Skill material:** I’ll fetch, validate, extract the behavior rather than copy it, and record the source URL, access date, and license as provenance when known.
+- **Store link:** I’ll use it as domain context to shape the package, never publish it as package content.
+- **Pasted notes:** I’ll record them as user-provided material; if no source is named, they remain “user-provided, source unknown,” and I’ll extract the useful intent.
+
+**Heads-up:** marketplace policies and product claims may restrict certain wording; this never blocks — we proceed; you decide. **The prompt policy is content-only with no tool_gate; the advisory judge rules are operator-visible, reversible, never silent blockers.**
+
+What shape should the package produce: **a shop project, a shop-management persona, one or more skills, or another artifact?**

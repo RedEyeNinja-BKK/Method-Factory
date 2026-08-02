@@ -1,0 +1,7 @@
+I can help generate the package, but I won’t design or provide financial advice itself. The package will define how the tool operates, its evidence and safety boundaries, verification tests, and review gates.
+
+**Heads-up:** financial advice is a regulated, high-consequence policy surface. Licensing, jurisdiction, disclosures, suitability, privacy, and human escalation may matter. This never blocks us—we proceed; you decide the intended scope and level of professional review.
+
+First, what shape should the package produce: **a complete project, a persona, one or more skills, or another artifact?**
+
+Want to give me anything to work from? A link, pasted text, file, product example, target jurisdiction, or notes about the intended users are all welcome. I’ll record each item, extract original behavior rather than copy it, and gate with you before incorporating anything.

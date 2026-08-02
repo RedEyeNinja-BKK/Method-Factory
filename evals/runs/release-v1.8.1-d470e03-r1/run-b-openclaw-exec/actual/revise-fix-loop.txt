@@ -1,0 +1,1 @@
+I’ll diagnose the review findings, revise the package while preserving the approved intent, audit the changes, and re-run the regression checks. I won’t recommend shipping while any required case is FAIL or unrun.

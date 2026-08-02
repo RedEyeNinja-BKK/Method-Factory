@@ -1,0 +1,3 @@
+I’ll treat the attached file as **skill material**: extract its useful behaviors, author original instructions rather than copy it, and preserve its provenance. I’ll gate with you before incorporating anything.
+
+What would you like me to build from it: a **project, persona, skill(s), or something else**?

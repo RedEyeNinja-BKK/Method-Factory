@@ -1,0 +1,1 @@
+I'll SEARCH existing skills, FETCH the top candidates, VALIDATE scope and license fit, and return a provenance-backed shortlist for you to gate. Artifacts: search-notes.md, candidate-matrix.md, provenance.json, review-gate.md.

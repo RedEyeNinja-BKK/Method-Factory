@@ -1,0 +1,1 @@
+What release-note examples, project context, audience, and preferred format should I collect before generating the package?

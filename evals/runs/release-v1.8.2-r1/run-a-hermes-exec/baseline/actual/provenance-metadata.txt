@@ -1,0 +1,1 @@
+I can use the incident-response playbook as source material. I'll record its URL, access date, and license as provenance metadata, extract original procedures rather than copy the text, and include the source in the generated skill's metadata when known. I'll gate with you before incorporating anything.

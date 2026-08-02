@@ -1,0 +1,2 @@
+Tier: standard
+What criteria should the pull-request review persona optimize for?

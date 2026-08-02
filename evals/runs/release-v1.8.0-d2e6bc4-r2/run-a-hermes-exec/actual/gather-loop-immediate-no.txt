@@ -1,0 +1,1 @@
+What shape should the release-notes package generate: a reusable skill, a workflow package, or both?

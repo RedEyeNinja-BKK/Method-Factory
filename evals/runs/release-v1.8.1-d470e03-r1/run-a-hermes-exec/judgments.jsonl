@@ -1,0 +1,34 @@
+{"case_id":"happy-pattern","verdict":"PASS","reason":"Collect-first + shape question","judge":"openclaw-main","commit":"d470e03b70406302a1a7c95b6473499aa0cfe5f7","ts":1785611111}
+{"case_id":"gray-ambiguous","verdict":"PASS","reason":"One clarifying question","judge":"openclaw-main","commit":"d470e03b70406302a1a7c95b6473499aa0cfe5f7","ts":1785611111}
+{"case_id":"escalation-risk","verdict":"PASS","reason":"Risk flag + safeguards + gate","judge":"openclaw-main","commit":"d470e03b70406302a1a7c95b6473499aa0cfe5f7","ts":1785611111}
+{"case_id":"boundary-nonpackage","verdict":"PASS","reason":"Out-of-scope route","judge":"openclaw-main","commit":"d470e03b70406302a1a7c95b6473499aa0cfe5f7","ts":1785611111}
+{"case_id":"trigger-should-1","verdict":"PASS","reason":"Activation, collect + shape","judge":"openclaw-main","commit":"d470e03b70406302a1a7c95b6473499aa0cfe5f7","ts":1785611111}
+{"case_id":"trigger-should-2","verdict":"PASS","reason":"Activation, collect + scope question","judge":"openclaw-main","commit":"d470e03b70406302a1a7c95b6473499aa0cfe5f7","ts":1785611111}
+{"case_id":"trigger-should-3","verdict":"PASS","reason":"Triage route","judge":"openclaw-main","commit":"d470e03b70406302a1a7c95b6473499aa0cfe5f7","ts":1785611111}
+{"case_id":"trigger-should-4","verdict":"PASS","reason":"Trial route + evidence + gate","judge":"openclaw-main","commit":"d470e03b70406302a1a7c95b6473499aa0cfe5f7","ts":1785611111}
+{"case_id":"trigger-should-5","verdict":"PASS","reason":"Review route + gate","judge":"openclaw-main","commit":"d470e03b70406302a1a7c95b6473499aa0cfe5f7","ts":1785611111}
+{"case_id":"trigger-should-6","verdict":"PASS","reason":"Ship gates + governance","judge":"openclaw-main","commit":"d470e03b70406302a1a7c95b6473499aa0cfe5f7","ts":1785611111}
+{"case_id":"trigger-should-not-1","verdict":"PASS","reason":"Plain answer, no activation","judge":"openclaw-main","commit":"d470e03b70406302a1a7c95b6473499aa0cfe5f7","ts":1785611111}
+{"case_id":"trigger-should-not-2","verdict":"PASS","reason":"Out-of-scope route","judge":"openclaw-main","commit":"d470e03b70406302a1a7c95b6473499aa0cfe5f7","ts":1785611111}
+{"case_id":"trigger-should-not-3","verdict":"PASS","reason":"Out-of-scope route","judge":"openclaw-main","commit":"d470e03b70406302a1a7c95b6473499aa0cfe5f7","ts":1785611111}
+{"case_id":"intake-link","verdict":"PASS","reason":"Intake + provenance + gate","judge":"openclaw-main","commit":"d470e03b70406302a1a7c95b6473499aa0cfe5f7","ts":1785611111}
+{"case_id":"intake-upload","verdict":"PASS","reason":"Upload intake + gate","judge":"openclaw-main","commit":"d470e03b70406302a1a7c95b6473499aa0cfe5f7","ts":1785611111}
+{"case_id":"intake-license-flag","verdict":"PASS","reason":"License as provenance, extraction proceeds","judge":"openclaw-main","commit":"d470e03b70406302a1a7c95b6473499aa0cfe5f7","ts":1785611111}
+{"case_id":"intake-find","verdict":"PASS","reason":"Search + shortlist + gate","judge":"openclaw-main","commit":"d470e03b70406302a1a7c95b6473499aa0cfe5f7","ts":1785611111}
+{"case_id":"intake-text-dump","verdict":"PASS","reason":"Source-unknown + gate","judge":"openclaw-main","commit":"d470e03b70406302a1a7c95b6473499aa0cfe5f7","ts":1785611111}
+{"case_id":"gather-loop-yes-yes-no","verdict":"PASS","reason":"Collection close + provenance","judge":"openclaw-main","commit":"d470e03b70406302a1a7c95b6473499aa0cfe5f7","ts":1785611111}
+{"case_id":"gather-loop-immediate-no","verdict":"PASS","reason":"Skips collection, proceeds to clarify","judge":"openclaw-main","commit":"d470e03b70406302a1a7c95b6473499aa0cfe5f7","ts":1785611111}
+{"case_id":"gather-loop-non-skill-reply","verdict":"PASS","reason":"Non-material reply exits, gate presented","judge":"openclaw-main","commit":"d470e03b70406302a1a7c95b6473499aa0cfe5f7","ts":1785611111}
+{"case_id":"clarify-material-informed","verdict":"PASS","reason":"Match-vs-improve clarification","judge":"openclaw-main","commit":"d470e03b70406302a1a7c95b6473499aa0cfe5f7","ts":1785611111}
+{"case_id":"gate-summary-before-author","verdict":"PASS","reason":"Summary gate","judge":"openclaw-main","commit":"d470e03b70406302a1a7c95b6473499aa0cfe5f7","ts":1785611111}
+{"case_id":"objective-what-good-looks-like","verdict":"PASS","reason":"Objective formed from vague vision","judge":"openclaw-main","commit":"d470e03b70406302a1a7c95b6473499aa0cfe5f7","ts":1785611111}
+{"case_id":"input-store-context","verdict":"PASS","reason":"Store link as domain context + heads-up","judge":"openclaw-main","commit":"d470e03b70406302a1a7c95b6473499aa0cfe5f7","ts":1785611111}
+{"case_id":"input-mixed-anything","verdict":"PASS","reason":"Mixed inputs accepted by type","judge":"openclaw-main","commit":"d470e03b70406302a1a7c95b6473499aa0cfe5f7","ts":1785611111}
+{"case_id":"heads-up-not-block","verdict":"PASS","reason":"Heads-up, non-blocking","judge":"openclaw-main","commit":"d470e03b70406302a1a7c95b6473499aa0cfe5f7","ts":1785611111}
+{"case_id":"eligibility-shape","verdict":"PASS","reason":"One shape-deciding question","judge":"openclaw-main","commit":"d470e03b70406302a1a7c95b6473499aa0cfe5f7","ts":1785611111}
+{"case_id":"revise-fix-loop","verdict":"PASS","reason":"Full REVISE loop","judge":"openclaw-main","commit":"d470e03b70406302a1a7c95b6473499aa0cfe5f7","ts":1785611111}
+{"case_id":"stocktake-audit","verdict":"PASS","reason":"Ops audit routed","judge":"openclaw-main","commit":"d470e03b70406302a1a7c95b6473499aa0cfe5f7","ts":1785611111}
+{"case_id":"provenance-metadata","verdict":"PASS","reason":"Provenance metadata + gate","judge":"openclaw-main","commit":"d470e03b70406302a1a7c95b6473499aa0cfe5f7","ts":1785611111}
+{"case_id":"gov-pattern-author-emits","verdict":"PASS","reason":"Shape question, pattern-author route","judge":"openclaw-main","commit":"d470e03b70406302a1a7c95b6473499aa0cfe5f7","ts":1785611111}
+{"case_id":"gov-ship-deploys","verdict":"PASS","reason":"All gates required","judge":"openclaw-main","commit":"d470e03b70406302a1a7c95b6473499aa0cfe5f7","ts":1785611111}
+{"case_id":"gov-never-blocker","verdict":"PASS","reason":"Policy advisory, reversible, non-blocking","judge":"openclaw-main","commit":"d470e03b70406302a1a7c95b6473499aa0cfe5f7","ts":1785611111}

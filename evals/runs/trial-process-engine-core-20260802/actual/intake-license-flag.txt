@@ -1,0 +1,5 @@
+I’ll treat this as **skill material from a registry**: I’ll fetch or inspect it, validate its format, record the registry URL, access date, and proprietary license as provenance, and extract behaviors rather than copy the skill verbatim. The license is provenance, not a gate; I’ll gate with you before incorporating anything.
+
+**Heads-up:** proprietary terms may restrict redistribution or derivative use; this never blocks us from reviewing and adapting the underlying behavior—you decide what may be incorporated.
+
+Please provide the registry link or upload/paste the skill content. The prompt policy is content-only with no tool_gate; the advisory judge rules are operator-visible, reversible, never silent blockers.

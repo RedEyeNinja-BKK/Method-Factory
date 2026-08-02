@@ -1,0 +1,3 @@
+This is a **package-feedback triage** task. I’ll assess the issue, determine whether it indicates a defect, scope problem, or improvement, and recommend the next action without changing or shipping anything.
+
+Please paste the issue text or share its link.

@@ -1,0 +1,1 @@
+Working from: 2 links + 0 text blocks (0 sources unknown). Intent: create a meal-planning skill based on the supplied references. Good looks like: practical meal plans that reflect the referenced approach while remaining clear, repeatable, and easy to adapt. Generate?

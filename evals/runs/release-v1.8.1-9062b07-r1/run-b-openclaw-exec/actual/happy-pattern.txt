@@ -1,0 +1,3 @@
+Yes — I can generate a package for a **release-notes writing skill**. It will follow the Process Engine pipeline: **Pattern → Review → Trial → Ship**, with explicit acceptance criteria and Agent Skills format compliance. The package will include the skill artifact plus the supporting manifest, provenance, review checklist, and trial cases; the prompt policy is content-only with no tool_gate; the advisory judge rules are operator-visible, reversible, never silent blockers.
+
+Want to give me anything to work from—such as a release-notes example, preferred format, repository conventions, links, or pasted text?

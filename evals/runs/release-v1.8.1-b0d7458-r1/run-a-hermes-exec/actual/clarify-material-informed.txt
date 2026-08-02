@@ -1,0 +1,7 @@
+I’ll treat the pasted volume-based tracker as **user-provided material, source unknown**. I’ll extract its useful behavior and author original instructions rather than copy it. I’ll also record its provenance and gate with you before incorporating anything.
+
+**Heads-up:** workout tracking touches wellness, so the generated skill should track and summarize activity without diagnosing conditions, prescribing medical treatment, or overstating fitness outcomes. This is non-blocking—we proceed; you decide the boundaries.
+
+I’ll shape this as an Agent Skills–compliant workout-tracking skill, then run it through **Pattern → Review → Trial → Ship**. The prompt policy will be **content-only with no `tool_gate`**; the advisory judge rules will be **operator-visible, reversible, never silent blockers**.
+
+Do you want the skill to **match the pasted tracker’s approach**, or **improve on it**—and is there anything else you want to give me to work from?

@@ -1,0 +1,1 @@
+I'll inspect the attached skill file, treat it as user-provided provenance, VALIDATE and CLASSIFY it, and build only an original package from it. Artifacts: intake.md, provenance.json, classification.md, package-draft.md. I'll gate with you before incorporating anything.

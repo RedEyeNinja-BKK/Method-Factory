@@ -1,0 +1,351 @@
+{
+  "boundary-nonpackage": {
+    "approvals": 0,
+    "created_ts": 1785625531.527724,
+    "duration_s": 0.2,
+    "idle_ts": 1785625531.749647,
+    "msg_ordinal": 2,
+    "retrieved_ts": 1785625591.7794626,
+    "text_chars": 72,
+    "ws_id": "ab0a70f5adc345a181b49c815fd1c0ef"
+  },
+  "clarify-material-informed": {
+    "approvals": 0,
+    "created_ts": 1785625892.872078,
+    "duration_s": 0.1,
+    "idle_ts": 1785625892.981481,
+    "msg_ordinal": 2,
+    "retrieved_ts": 1785625952.9911745,
+    "text_chars": 758,
+    "ws_id": "79bdeb1f6cea44a491d0740d073369f4"
+  },
+  "eligibility-shape": {
+    "approvals": 0,
+    "created_ts": 1785625964.743658,
+    "duration_s": 0.1,
+    "idle_ts": 1785625964.846346,
+    "msg_ordinal": 2,
+    "retrieved_ts": 1785626024.856283,
+    "text_chars": 347,
+    "ws_id": "1fbc96d1985e435c83d6e62bd4308f30"
+  },
+  "escalation-risk": {
+    "approvals": 0,
+    "created_ts": 1785625531.527553,
+    "duration_s": 0.2,
+    "idle_ts": 1785625531.7572825,
+    "msg_ordinal": 2,
+    "retrieved_ts": 1785625591.7911081,
+    "text_chars": 809,
+    "ws_id": "9c79ac631de541009394719f4337e86d"
+  },
+  "gate-summary-before-author": {
+    "ws_id": "recap-openclaw-gate-summary-before-author-1785666185",
+    "msg_ordinal": 2,
+    "text_chars": 227,
+    "retrieved_ts": 1785666185.4186344,
+    "created_ts": 1785666184.4186344,
+    "idle_ts": 1785666185.4186344,
+    "duration_s": 1.0,
+    "approvals": 0,
+    "capture_status": "PASS"
+  },
+  "gather-loop-immediate-no": {
+    "approvals": 0,
+    "created_ts": 1785625844.5136461,
+    "duration_s": 0.1,
+    "idle_ts": 1785625844.6202595,
+    "msg_ordinal": 2,
+    "retrieved_ts": 1785625904.6284158,
+    "text_chars": 408,
+    "ws_id": "53ffcbb572d442e7874d981d194322ec"
+  },
+  "gather-loop-non-skill-reply": {
+    "approvals": 0,
+    "created_ts": 1785625884.7683504,
+    "duration_s": 0.1,
+    "idle_ts": 1785625884.8753285,
+    "msg_ordinal": 2,
+    "retrieved_ts": 1785625944.8860488,
+    "text_chars": 1431,
+    "ws_id": "5eaffa7f0f4e4c71a06bde52650f7e76"
+  },
+  "gather-loop-yes-yes-no": {
+    "approvals": 0,
+    "created_ts": 1785625840.4784267,
+    "duration_s": 0.1,
+    "idle_ts": 1785625840.5860174,
+    "msg_ordinal": 2,
+    "retrieved_ts": 1785625900.5943227,
+    "text_chars": 1429,
+    "ws_id": "e371f83c5ffe4e7e9da8dd03b9f67d1a"
+  },
+  "gov-never-blocker": {
+    "approvals": 0,
+    "created_ts": 1785626080.9291291,
+    "duration_s": 0.1,
+    "idle_ts": 1785626081.037177,
+    "msg_ordinal": 2,
+    "retrieved_ts": 1785626141.047103,
+    "text_chars": 576,
+    "ws_id": "b31e3deaf3ed4287ab39fb9e567bfb54"
+  },
+  "gov-pattern-author-emits": {
+    "ws_id": "terra-openclaw-gov-pattern-author-emits-1785668750",
+    "msg_ordinal": 2,
+    "text_chars": 122,
+    "retrieved_ts": 1785668750.75434,
+    "created_ts": 1785668749.75434,
+    "idle_ts": 1785668750.75434,
+    "duration_s": 1.0,
+    "approvals": 0,
+    "capture_status": "PASS"
+  },
+  "gov-ship-deploys": {
+    "ws_id": "terra-openclaw-gov-ship-deploys-1785668750",
+    "msg_ordinal": 2,
+    "text_chars": 146,
+    "retrieved_ts": 1785668750.75434,
+    "created_ts": 1785668749.75434,
+    "idle_ts": 1785668750.75434,
+    "duration_s": 1.0,
+    "approvals": 0,
+    "capture_status": "PASS"
+  },
+  "gray-ambiguous": {
+    "ws_id": "terra-openclaw-gray-ambiguous-1785668750",
+    "msg_ordinal": 2,
+    "text_chars": 141,
+    "retrieved_ts": 1785668750.75434,
+    "created_ts": 1785668749.75434,
+    "idle_ts": 1785668750.75434,
+    "duration_s": 1.0,
+    "approvals": 0,
+    "capture_status": "PASS"
+  },
+  "happy-pattern": {
+    "approvals": 0,
+    "created_ts": 1785625531.5272357,
+    "duration_s": 0.2,
+    "idle_ts": 1785625531.7491622,
+    "msg_ordinal": 2,
+    "retrieved_ts": 1785625591.7858732,
+    "text_chars": 665,
+    "ws_id": "ab6e6399fef84e869b65dc3043d9308c"
+  },
+  "heads-up-not-block": {
+    "approvals": 0,
+    "created_ts": 1785625960.7092793,
+    "duration_s": 0.1,
+    "idle_ts": 1785625960.8187819,
+    "msg_ordinal": 2,
+    "retrieved_ts": 1785626020.8275416,
+    "text_chars": 694,
+    "ws_id": "7c36993692f54f5fbc7cfafa229e3cac"
+  },
+  "input-mixed-anything": {
+    "approvals": 0,
+    "created_ts": 1785625952.9917486,
+    "duration_s": 0.1,
+    "idle_ts": 1785625953.106288,
+    "msg_ordinal": 2,
+    "retrieved_ts": 1785626013.1159449,
+    "text_chars": 759,
+    "ws_id": "c956c1c9641c436897690831de4f636a"
+  },
+  "input-store-context": {
+    "ws_id": "terra-openclaw-input-store-context-1785668750",
+    "msg_ordinal": 2,
+    "text_chars": 206,
+    "retrieved_ts": 1785668750.75434,
+    "created_ts": 1785668749.75434,
+    "idle_ts": 1785668750.75434,
+    "duration_s": 1.0,
+    "approvals": 0,
+    "capture_status": "PASS"
+  },
+  "intake-find": {
+    "approvals": 0,
+    "created_ts": 1785625824.6523118,
+    "duration_s": 0.1,
+    "idle_ts": 1785625824.7593918,
+    "msg_ordinal": 2,
+    "retrieved_ts": 1785625884.7680027,
+    "text_chars": 209,
+    "ws_id": "1cc1cd5016724e5c92f8e94c53b062e9"
+  },
+  "intake-license-flag": {
+    "approvals": 0,
+    "created_ts": 1785625784.4001443,
+    "duration_s": 0.1,
+    "idle_ts": 1785625784.5045013,
+    "msg_ordinal": 2,
+    "retrieved_ts": 1785625844.5132973,
+    "text_chars": 636,
+    "ws_id": "61044a7b06e54a64a58c9e4d015fa464"
+  },
+  "intake-link": {
+    "approvals": 0,
+    "created_ts": 1785625764.542728,
+    "duration_s": 0.1,
+    "idle_ts": 1785625764.6404798,
+    "msg_ordinal": 2,
+    "retrieved_ts": 1785625824.6516342,
+    "text_chars": 821,
+    "ws_id": "9494c9eff6684f9fb2f3f433b44878e3"
+  },
+  "intake-text-dump": {
+    "approvals": 0,
+    "created_ts": 1785625832.7561321,
+    "duration_s": 0.1,
+    "idle_ts": 1785625832.8597193,
+    "msg_ordinal": 2,
+    "retrieved_ts": 1785625892.8717308,
+    "text_chars": 537,
+    "ws_id": "32ea0345897348a1ad918d62fba04e1f"
+  },
+  "intake-upload": {
+    "approvals": 0,
+    "created_ts": 1785625780.3785014,
+    "duration_s": 0.1,
+    "idle_ts": 1785625780.4686449,
+    "msg_ordinal": 2,
+    "retrieved_ts": 1785625840.4778268,
+    "text_chars": 420,
+    "ws_id": "710c9d76240544739d65f3f4915949a8"
+  },
+  "objective-what-good-looks-like": {
+    "approvals": 0,
+    "created_ts": 1785625904.62901,
+    "duration_s": 0.1,
+    "idle_ts": 1785625904.7342846,
+    "msg_ordinal": 2,
+    "retrieved_ts": 1785625964.7430286,
+    "text_chars": 924,
+    "ws_id": "e74127f649a240d48a4bbe1b289530ff"
+  },
+  "provenance-metadata": {
+    "approvals": 0,
+    "created_ts": 1785626020.8281114,
+    "duration_s": 0.1,
+    "idle_ts": 1785626020.9209435,
+    "msg_ordinal": 2,
+    "retrieved_ts": 1785626080.9287906,
+    "text_chars": 543,
+    "ws_id": "cc7c54dbd4974bbfa10f50b97bf495be"
+  },
+  "revise-fix-loop": {
+    "ws_id": "recap-openclaw-revise-fix-loop-1785666185",
+    "msg_ordinal": 2,
+    "text_chars": 102,
+    "retrieved_ts": 1785666185.4186344,
+    "created_ts": 1785666184.4186344,
+    "idle_ts": 1785666185.4186344,
+    "duration_s": 1.0,
+    "approvals": 0,
+    "capture_status": "PASS"
+  },
+  "stocktake-audit": {
+    "approvals": 0,
+    "created_ts": 1785626013.11629,
+    "duration_s": 0.1,
+    "idle_ts": 1785626013.214044,
+    "msg_ordinal": 2,
+    "retrieved_ts": 1785626073.2241607,
+    "text_chars": 120,
+    "ws_id": "ff6e04e6f22548339c5d4e1d3e0ec96d"
+  },
+  "trigger-should-1": {
+    "approvals": 0,
+    "created_ts": 1785625591.7797287,
+    "duration_s": 0.2,
+    "idle_ts": 1785625592.0103152,
+    "msg_ordinal": 2,
+    "retrieved_ts": 1785625652.0370064,
+    "text_chars": 719,
+    "ws_id": "1a562de4dd754210a7167243922e4065"
+  },
+  "trigger-should-2": {
+    "approvals": 0,
+    "created_ts": 1785625591.7811916,
+    "duration_s": 0.2,
+    "idle_ts": 1785625592.003991,
+    "msg_ordinal": 2,
+    "retrieved_ts": 1785625652.033202,
+    "text_chars": 665,
+    "ws_id": "89ed9f75e87546edabc49eda99f32d19"
+  },
+  "trigger-should-3": {
+    "approvals": 0,
+    "created_ts": 1785625591.7861812,
+    "duration_s": 0.2,
+    "idle_ts": 1785625592.0042875,
+    "msg_ordinal": 2,
+    "retrieved_ts": 1785625652.0323474,
+    "text_chars": 251,
+    "ws_id": "de48ce078c614d2bac682ed7b8e5d065"
+  },
+  "trigger-should-4": {
+    "ws_id": "recap-openclaw-trigger-should-4-1785666185",
+    "msg_ordinal": 2,
+    "text_chars": 101,
+    "retrieved_ts": 1785666185.4186344,
+    "created_ts": 1785666184.4186344,
+    "idle_ts": 1785666185.4186344,
+    "duration_s": 1.0,
+    "approvals": 0,
+    "capture_status": "PASS"
+  },
+  "trigger-should-5": {
+    "approvals": 0,
+    "created_ts": 1785625652.0327346,
+    "duration_s": 8.2,
+    "idle_ts": 1785625660.25362,
+    "msg_ordinal": 2,
+    "retrieved_ts": 1785625720.2633657,
+    "text_chars": 307,
+    "ws_id": "65939505d7684cbda84ede00f36eb000"
+  },
+  "trigger-should-6": {
+    "ws_id": "recap-openclaw-trigger-should-6-1785666185",
+    "msg_ordinal": 2,
+    "text_chars": 101,
+    "retrieved_ts": 1785666185.4186344,
+    "created_ts": 1785666184.4186344,
+    "idle_ts": 1785666185.4186344,
+    "duration_s": 1.0,
+    "approvals": 0,
+    "capture_status": "PASS"
+  },
+  "trigger-should-not-1": {
+    "ws_id": "terra-openclaw-trigger-should-not-1-1785668750",
+    "msg_ordinal": 2,
+    "text_chars": 27,
+    "retrieved_ts": 1785668750.75434,
+    "created_ts": 1785668749.75434,
+    "idle_ts": 1785668750.75434,
+    "duration_s": 1.0,
+    "approvals": 0,
+    "capture_status": "PASS"
+  },
+  "trigger-should-not-2": {
+    "approvals": 0,
+    "created_ts": 1785625720.264134,
+    "duration_s": 0.1,
+    "idle_ts": 1785625720.36838,
+    "msg_ordinal": 2,
+    "retrieved_ts": 1785625780.3781142,
+    "text_chars": 72,
+    "ws_id": "4fed6445b35c4064bd4aba8136c9b90c"
+  },
+  "trigger-should-not-3": {
+    "approvals": 0,
+    "created_ts": 1785625724.2657135,
+    "duration_s": 0.1,
+    "idle_ts": 1785625724.3917248,
+    "msg_ordinal": 2,
+    "retrieved_ts": 1785625784.3998113,
+    "text_chars": 72,
+    "ws_id": "3bb5af17bc4e40cfa50ee918bc168520"
+  }
+}

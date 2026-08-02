@@ -1,0 +1,1 @@
+I can draft a release-notes skill that turns Git history into clear, audience-appropriate notes. Share your repository conventions, commit or PR examples, and preferred release-note format. What does "good" look like: concise user-facing highlights, a technical changelog, or both?

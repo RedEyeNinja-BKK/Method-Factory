@@ -1,0 +1,5 @@
+I can turn the idea into a **spec-valid skill package** and take it through **Pattern → Review → Trial → Ship**. You can provide the idea as pasted text, a link, a file, or a rough description; I’ll extract the behavior, author original instructions, and record provenance where applicable.
+
+**What idea should the skill package turn into?**
+
+The prompt policy is content-only with no `tool_gate`; the advisory judge rules are operator-visible, reversible, never silent blockers.

@@ -1,0 +1,1 @@
+Heads-up: financial-planning guidance is a high-assurance domain; the package will be advisory, content-only, and reversible rather than providing regulated advice or executing actions. What client type, jurisdiction, and planning scope should it cover?

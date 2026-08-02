@@ -1,0 +1,5 @@
+I can turn it into a standards-compliant skill package, following **Pattern → Review → Trial → Ship**. The package will include explicit acceptance criteria, evidence/provenance handling, and a review gate before anything is created or deployed. **The prompt policy is content-only with no `tool_gate`; the advisory judge rules are operator-visible, reversible, never silent blockers.**
+
+What should the package produce: **one skill, a set of coordinated skills, a persona, a project package, or another artifact shape**?
+
+You may provide any material afterward—notes, pasted text, links, files, or examples. I’ll extract behavior rather than copy it, record provenance where available, and gate incorporation with you.

@@ -1,0 +1,1 @@
+I can build the incident-response skill from your current playbook and preserve its provenance as the source reference.

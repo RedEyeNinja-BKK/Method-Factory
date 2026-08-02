@@ -1,0 +1,3 @@
+I can turn the idea into an original, spec-compliant **Agent Skill package** and take it through **Pattern → Review → Trial → Ship**. The prompt policy is content-only with no tool_gate; the advisory judge rules are operator-visible, reversible, never silent blockers.
+
+**What should the skill do?** You can provide the idea in any form—pasted notes, links, files, examples, or constraints. I’ll record and assess each input, extract behavior rather than copy, and gate incorporation with you before proceeding.

@@ -1,0 +1,15 @@
+I can’t ship yet: the available trial evidence explicitly says **“REVISE / NOT SHIP”** and **“Current ship eligibility: NO.”**
+
+The evidence is incomplete:
+
+- Trigger-set execution: **not run**
+- With/without-package token and duration measurements: **not collected**
+- Machine-readable eval set: **not generated during the run**
+- Operator sign-off for this package: **not present in the available evidence**
+
+Please provide either:
+
+1. The **package name/version** and its approved review/trial record, or  
+2. Explicit confirmation that you want to ship a different already-approved package (for example, the previously shipped governance package).
+
+I won’t override the review and trial gates based only on “approved package.”

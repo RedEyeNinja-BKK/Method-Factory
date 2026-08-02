@@ -1,0 +1,5 @@
+Absolutely. I’ll treat the skill link as **skill material** to fetch, validate, extract, and attribute; the store link as **domain context** used to shape the package but never published; and your pasted notes as **general input** incorporated into the design. I’ll record known URLs, access dates, and licenses as provenance, and I’ll author original instructions rather than copy.
+
+**Heads-up:** marketplace policies may restrict certain product or wellness claims; this never blocks us—we proceed, and you decide how conservative the package should be. I’ll gate incorporation with you before using the material.
+
+For the package shape, should it be a **project, persona, skill(s), or another artifact**? You can send the actual links and pasted notes whenever ready. The prompt policy will be **content-only with no `tool_gate`**; the advisory judge rules will be **operator-visible, reversible, and never silent blockers**.

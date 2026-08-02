@@ -1,0 +1,7 @@
+I’ll build a package aimed at **practical store improvement**: identify the highest-impact changes, explain why they matter, prioritize them by likely sales value versus effort, and avoid time-consuming advice that is unlikely to help.
+
+You can give me anything useful to work from—your store link, product listings, screenshots, shop stats, customer feedback, or notes. I’ll treat store links as domain context, use them to shape the package, and never publish them.
+
+> **Heads-up:** marketplace policies and product-claim rules may affect what can be recommended. This is non-blocking—we proceed, and you decide.
+
+One decision first: should this be a **reusable store-review skill**, a **reviewer persona**, or a **full project package**? The package will explicitly define that **the prompt policy is content-only with no `tool_gate`; the advisory judge rules are operator-visible, reversible, never silent blockers.**

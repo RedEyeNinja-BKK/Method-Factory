@@ -1,0 +1,2 @@
+Tier: high-assurance
+Heads-up: client financial-planning content needs jurisdiction, compliance, and disclaimer boundaries. What exact client workflow should it support?

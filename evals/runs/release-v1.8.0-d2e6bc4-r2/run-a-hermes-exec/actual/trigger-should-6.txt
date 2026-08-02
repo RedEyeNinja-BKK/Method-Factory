@@ -1,0 +1,1 @@
+I can't ship yet: review PASS, trial PASS, and operator approval are required. The authored package includes content-only prompt policy with no tool_gate and operator-visible, reversible advisory judge rules-not silent blockers.

@@ -1,0 +1,5 @@
+Yes—I can use it as source material, but the page currently exposes only a title (“Agent Skills - Agent Skills”), not the CSV Toolkit’s actual instructions or metadata.
+
+Please paste the skill contents here or upload the skill files (especially `SKILL.md`). I’ll then extract the useful techniques, adapt them into original instructions, and attribute the source rather than copying it verbatim.
+
+Anything else you’d like me to work from?

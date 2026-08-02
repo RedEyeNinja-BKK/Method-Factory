@@ -1,0 +1,3 @@
+Please share the linked skill’s URL or upload/paste its contents.
+
+I’ll fetch and validate it, record its source URL, access date, and license as provenance, then extract its behavior and author an original Agent Skills–compliant skill rather than copy it. I’ll gate incorporation with you before proceeding; the prompt policy is content-only with no `tool_gate`; the advisory judge rules are operator-visible, reversible, never silent blockers.

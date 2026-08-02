@@ -1,0 +1,1 @@
+I need one scope decision before I touch the server config: which server/environment is this for, and are you asking for a single change or a broader config package? Once you point me at the target, I'll collect the inputs and gate the shape.

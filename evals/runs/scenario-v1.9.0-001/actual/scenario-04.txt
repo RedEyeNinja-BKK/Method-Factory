@@ -1,0 +1,1 @@
+Working from: 1 link + 0 text blocks (1 source unknown). Intent: evaluate a GitHub skill for legal reuse and potential build-off. Good looks like: a scope-safe recommendation that classifies the repo, checks licensing risk, and tells you what can be reused. Generate? Please share the repo license text or the exact files you want to reuse.

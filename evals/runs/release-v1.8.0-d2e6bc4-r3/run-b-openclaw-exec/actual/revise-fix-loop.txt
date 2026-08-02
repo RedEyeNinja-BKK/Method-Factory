@@ -1,0 +1,1 @@
+I'll diagnose the issues, rewrite it while preserving intent, audit the changes, and rerun regression trials before bringing back the revised version.

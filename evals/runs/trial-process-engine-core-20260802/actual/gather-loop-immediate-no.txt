@@ -1,0 +1,10 @@
+I’ll create a **release-notes writing skill**. No external materials were provided, so the package will use original instructions and named best-practice sources. The skill will turn changelogs, commits, and issue summaries into accurate, audience-appropriate release notes without inventing changes.
+
+Heads-up: release notes can expose inaccurate or sensitive information if source material is incomplete; this is non-blocking — we proceed, and you decide what to review before shipping.
+
+The prompt policy is content-only with no tool_gate; the advisory judge rules are operator-visible, reversible, never silent blockers.
+
+**Working from:** 0 links + 0 text blocks.  
+**Intent:** Create a skill that writes release notes.  
+**Good looks like:** Clear, accurate, well-structured release notes that distinguish shipped changes from fixes, preserve uncertainty, and are ready for operator review.  
+**Generate?**

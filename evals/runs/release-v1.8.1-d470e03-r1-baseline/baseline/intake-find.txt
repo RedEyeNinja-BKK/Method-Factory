@@ -1,0 +1,12 @@
+I couldn’t find an existing skill specifically for **CSV cleanup**.
+
+The catalog has skills for Etsy sheets/targets and general engineering, but nothing covering common CSV tasks such as:
+
+- removing duplicates
+- normalizing headers and whitespace
+- fixing inconsistent values
+- validating columns and row structure
+- handling missing data
+- exporting a cleaned CSV with a change report
+
+Closest match: **`etsy-sheets-and-targets`**, but it is focused on reviewing business Google Sheets and profit targets—not general CSV cleanup.

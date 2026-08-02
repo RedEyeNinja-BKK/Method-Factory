@@ -1,0 +1,3 @@
+I’ve recorded the link as **skill material**. I’ll fetch and validate it, classify what it does, record its source URL, access date, and license as provenance, and extract useful behavior rather than copy it verbatim. **I’ll gate with you before incorporating anything.**
+
+What would you like this CSV toolkit skill to help you build or improve?

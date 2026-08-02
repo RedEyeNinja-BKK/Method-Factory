@@ -1,0 +1,7 @@
+I can help generate the package, but first we need to decide its shape: **should this be a complete project package, a persona, one or more skills, or something else?**
+
+**Heads-up:** financial advice is a high-risk and regulated domain. We’ll need explicit scope limits, evidence-backed methods, uncertainty handling, escalation to qualified professionals, and jurisdiction-aware safeguards. This is **non-blocking—we proceed; you decide**. The package must not imply individualized regulated advice unless its evidence, controls, and deployment context support that claim.
+
+Want to give me anything to work from? A link, pasted text, file, product example, regulatory notes, or design constraints are all useful. I’ll record and classify each item, extract original techniques rather than copy content, and **gate with you before incorporating anything**.
+
+If we author a package, **the prompt policy is content-only with no `tool_gate`; the advisory judge rules are operator-visible, reversible, never silent blockers.**

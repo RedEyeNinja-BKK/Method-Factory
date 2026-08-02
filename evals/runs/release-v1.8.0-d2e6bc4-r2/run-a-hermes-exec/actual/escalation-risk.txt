@@ -1,0 +1,1 @@
+Heads-up: financial-advice packages should include an educational-only boundary, jurisdiction-aware disclosures, and a human/escalation path rather than presenting personalized investment decisions. Share the intended users, jurisdiction, and source material; I'll gate with you before incorporating anything.

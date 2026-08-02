@@ -1,0 +1,5 @@
+I’ll intake that skill link: fetch and validate it, classify what it does, record its source URL, access date, and license as provenance when available, and extract useful behavior rather than copy its content. I’ll gate with you before incorporating anything.
+
+What are you trying to build with it—an adapted CSV skill, a larger package that uses CSV handling, or something else?
+
+Anything else to provide, such as notes, examples, or constraints?

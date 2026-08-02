@@ -1,0 +1,5 @@
+Yes. I’ve recorded this as **user-provided material, source unknown**. I’ll extract the underlying spreadsheet behaviors and author original instructions rather than copy them; you can add the actual spreadsheet guidance or examples whenever you’re ready. I’ll gate with you before incorporating anything.
+
+The prompt policy is content-only with no tool_gate; the advisory judge rules are operator-visible, reversible, never silent blockers.
+
+What should this become: a **spreadsheet skill**, a **spreadsheet-focused persona**, a **larger project package**, or something else?

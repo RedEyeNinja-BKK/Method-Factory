@@ -1,0 +1,1 @@
+Collecting only. Paste the draft package, and if there's a specific review lens you want, name it up front: correctness, coverage, safety, or ship-readiness.

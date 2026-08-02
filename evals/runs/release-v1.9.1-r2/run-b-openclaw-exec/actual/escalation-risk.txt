@@ -1,0 +1,2 @@
+Tier: high-assurance
+Heads-up: financial-advice content needs stricter guardrails. What jurisdictions and advice boundaries should this package cover?

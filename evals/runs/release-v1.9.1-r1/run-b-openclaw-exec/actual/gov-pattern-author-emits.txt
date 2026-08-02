@@ -1,0 +1,1 @@
+Tier: high-assurance. Working from: 0 links + 0 text blocks (0 sources unknown). Intent: enforce a code review policy and gate merges. Good looks like: advisory, reversible governance with explicit merge criteria. Generate?

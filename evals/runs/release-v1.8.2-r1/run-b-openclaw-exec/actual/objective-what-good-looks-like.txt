@@ -1,0 +1,7 @@
+I can build a package focused on **actionable store reviews**: identify the few changes most likely to improve sales, explain why, and avoid low-value busywork. Heads-up: marketplace policies and product-claim rules may affect recommendations; this never blocks—we proceed, and you decide.
+
+You can give me anything useful to work from—your store link, screenshots, listings, analytics, competitor examples, or notes. I’ll treat store links as domain context, not publish them; extract techniques rather than copy; and gate incorporation with you.
+
+**One shape decision:** should this be a reusable **store-review skill** you can run repeatedly, or a complete **store-improvement project package** with a review workflow, priorities, trials, and follow-up?
+
+For any artifact package, **the prompt policy is content-only with no `tool_gate`; the advisory judge rules are operator-visible, reversible, never silent blockers.**

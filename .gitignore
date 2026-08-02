@@ -1,0 +1,24 @@
+# OS / editor
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# Node
+node_modules/
+
+# Logs / secrets
+*.log
+.env
+.env.*
+!.env.example
+
+# Trial workspaces (generated at trial time)
+workspace/
+iteration-*/

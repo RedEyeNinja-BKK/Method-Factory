@@ -1,0 +1,1 @@
+I need the registry link or package contents to FETCH, VALIDATE, and CLASSIFY it. License is provenance, never a gate; I'll record the source URL, access date, and license as provenance metadata in the generated SKILL.md frontmatter. Provide it to proceed?

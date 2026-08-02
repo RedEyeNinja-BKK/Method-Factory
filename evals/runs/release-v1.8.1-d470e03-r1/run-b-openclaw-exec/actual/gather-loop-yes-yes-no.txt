@@ -1,0 +1,10 @@
+I’ll create a **workout-tracking skill**. I’ve recorded:
+
+- **1 skill/example link** for intake, validation, and provenance
+- **1 user-provided text block** on progressive overload, with source unknown
+- I’ll extract the underlying behavior and author original instructions rather than copy content.
+- The link’s source URL, access date, and license will be recorded as provenance when known.
+
+**Heads-up:** workout guidance is a wellness-related surface, so the skill should include sensible scope limits and safety prompts; this is non-blocking—we proceed, and you decide.
+
+Should the skill **match the example’s approach**, or **improve on it**?

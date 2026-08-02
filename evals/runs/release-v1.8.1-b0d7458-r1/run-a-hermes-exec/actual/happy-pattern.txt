@@ -1,0 +1,11 @@
+Yes — I’ll generate a **skill package for writing project release notes**, not the release-note skill itself yet.
+
+I’ll collect any material you want to use—such as example release notes, a repository link, your preferred format, commit conventions, or pasted guidance. I’ll extract and attribute useful techniques rather than copy external content. If you provide a link, I’ll record its URL, access date, and license as provenance metadata in the generated `SKILL.md` frontmatter. I’ll gate incorporation with you before using it.
+
+The package will include explicit acceptance criteria and follow:
+
+**Pattern → Review → Trial → Ship**
+
+If we author governance helpers, **the prompt policy is content-only with no tool_gate; the advisory judge rules are operator-visible, reversible, never silent blockers.**
+
+Want to give me anything to work from? A link, pasted text, file, or example release notes—all are welcome.

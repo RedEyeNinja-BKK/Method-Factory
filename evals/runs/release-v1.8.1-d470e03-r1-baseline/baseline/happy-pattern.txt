@@ -1,0 +1,58 @@
+Yes. I can generate a complete **release-notes skill package** for your projects.
+
+### Proposed package
+
+```text
+release-notes-skill/
+├── SKILL.md                 # The reusable skill instructions
+├── README.md                # Installation and usage
+├── templates/
+│   ├── github-release.md
+│   ├── changelog.md
+│   └── user-facing.md
+├── examples/
+│   ├── technical-release.md
+│   └── friendly-release.md
+└── evaluation/
+    └── quality-checklist.md
+```
+
+The skill would:
+
+- Gather changes from commits, pull requests, issues, changelogs, or supplied notes
+- Separate **features, fixes, improvements, breaking changes, security, and known issues**
+- Avoid inventing details or overstating impact
+- Distinguish user-visible changes from internal maintenance
+- Produce GitHub-ready Markdown
+- Support technical, user-facing, and concise announcement styles
+- Include upgrade instructions and migration notes when relevant
+- Flag missing information instead of guessing
+- Preserve attribution and links where provided
+- Include a final release-note quality check
+
+Before I generate it, please answer these four choices:
+
+1. **Primary source**
+   - Git history and diffs
+   - Pull requests/issues
+   - Material you provide manually
+   - All of these
+
+2. **Default output**
+   - GitHub Releases
+   - `CHANGELOG.md`
+   - Both
+   - A selectable format
+
+3. **Default voice**
+   - Technical and precise
+   - Friendly and accessible
+   - Professional open-source project
+   - Multiple audience versions
+
+4. Should it be:
+   - A **portable package** you can copy between projects
+   - Installed directly as a **Turnstone skill**
+   - Both
+
+My recommended defaults for your projects are: **all sources, selectable formats, professional open-source voice, and both portable plus installed versions**.

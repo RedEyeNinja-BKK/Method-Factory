@@ -1,0 +1,175 @@
+{
+  "cases": [
+    {
+      "case_id": "boundary-nonpackage",
+      "evidence_link": "baseline/actual/boundary-nonpackage.txt",
+      "transcript_sha256": "445efe8a159acd7349a8df62e5575e0fa5bab7814492d0325f82dcf7ad920f14"
+    },
+    {
+      "case_id": "clarify-material-informed",
+      "evidence_link": "baseline/actual/clarify-material-informed.txt",
+      "transcript_sha256": "802d6f995ffcaec1046896267212918371c5b3fe952ff91ed8e7b0b6d2ac5205"
+    },
+    {
+      "case_id": "eligibility-shape",
+      "evidence_link": "baseline/actual/eligibility-shape.txt",
+      "transcript_sha256": "c3d1d4d01c20351b3f831aa6f9ac182f9050524924c70f3121807743ff83579a"
+    },
+    {
+      "case_id": "escalation-risk",
+      "evidence_link": "baseline/actual/escalation-risk.txt",
+      "transcript_sha256": "5c9860da3d9314c201ba5cbd5d5d400fb67ccf7a8a7f13356a1a0fe9dccc3345"
+    },
+    {
+      "case_id": "gate-summary-before-author",
+      "evidence_link": "baseline/actual/gate-summary-before-author.txt",
+      "transcript_sha256": "b2b10de31e5cdc593c295ebfb4e2d274fc5d7a0ef0e35576f4eb7cb068a267c8"
+    },
+    {
+      "case_id": "gather-loop-immediate-no",
+      "evidence_link": "baseline/actual/gather-loop-immediate-no.txt",
+      "transcript_sha256": "09a3d483f31279bd3e6dd44e1b8641fb3464eef5e42399883512cf06217663fc"
+    },
+    {
+      "case_id": "gather-loop-non-skill-reply",
+      "evidence_link": "baseline/actual/gather-loop-non-skill-reply.txt",
+      "transcript_sha256": "a6d36c88592e6572522b5f9f5a72c29a76b9652df803d0e989a59e230105fac2"
+    },
+    {
+      "case_id": "gather-loop-yes-yes-no",
+      "evidence_link": "baseline/actual/gather-loop-yes-yes-no.txt",
+      "transcript_sha256": "0d6d8e2e49d031512cea56c8b52a6bf3de8defcf4382f9e63a565f52ccf004e7"
+    },
+    {
+      "case_id": "gov-never-blocker",
+      "evidence_link": "baseline/actual/gov-never-blocker.txt",
+      "transcript_sha256": "7759fc112a0f3ca321d62c10436442fab3641834caa266cac25d6023d1bd2f9f"
+    },
+    {
+      "case_id": "gov-pattern-author-emits",
+      "evidence_link": "baseline/actual/gov-pattern-author-emits.txt",
+      "transcript_sha256": "dd155632b491a8396bb9922f0e7c93cb890c5ff2ed18395e62436c778524ae74"
+    },
+    {
+      "case_id": "gov-ship-deploys",
+      "evidence_link": "baseline/actual/gov-ship-deploys.txt",
+      "transcript_sha256": "22c2ee36d098a0772dd5e1ca68fde85652964f4e17828474a48bbf3b0b763199"
+    },
+    {
+      "case_id": "gray-ambiguous",
+      "evidence_link": "baseline/actual/gray-ambiguous.txt",
+      "transcript_sha256": "c3d1d4d01c20351b3f831aa6f9ac182f9050524924c70f3121807743ff83579a"
+    },
+    {
+      "case_id": "happy-pattern",
+      "evidence_link": "baseline/actual/happy-pattern.txt",
+      "transcript_sha256": "8d952a0fba839a26f26686f30edbac556af633939a77a5c4317bc01367298a4a"
+    },
+    {
+      "case_id": "heads-up-not-block",
+      "evidence_link": "baseline/actual/heads-up-not-block.txt",
+      "transcript_sha256": "7ffd1d0d567fe6efef168267939a2c1bd84cd3e512ee26d1fdeefe150de1f1ed"
+    },
+    {
+      "case_id": "input-mixed-anything",
+      "evidence_link": "baseline/actual/input-mixed-anything.txt",
+      "transcript_sha256": "d18c61bfd4595902e810850213204e82de1cce2e54cc3df3f7f985a5fe1fde64"
+    },
+    {
+      "case_id": "input-store-context",
+      "evidence_link": "baseline/actual/input-store-context.txt",
+      "transcript_sha256": "2e94b6630958dd66fe787ae1c57614ce3ac17eeeeb54f7a73a087e4733f3badd"
+    },
+    {
+      "case_id": "intake-find",
+      "evidence_link": "baseline/actual/intake-find.txt",
+      "transcript_sha256": "666478dfc9719909e140ee2bc90e8149a17001f3f437241bd58cd190ecd3476a"
+    },
+    {
+      "case_id": "intake-license-flag",
+      "evidence_link": "baseline/actual/intake-license-flag.txt",
+      "transcript_sha256": "949580c9506a23abd27dacf8f68ce0e0b7846ddac4480c02b260924f0a2fe1ad"
+    },
+    {
+      "case_id": "intake-link",
+      "evidence_link": "baseline/actual/intake-link.txt",
+      "transcript_sha256": "5ef422aa6104a42629cfe72a9b45e95c8295013181bf2affefd408afac75aaed"
+    },
+    {
+      "case_id": "intake-text-dump",
+      "evidence_link": "baseline/actual/intake-text-dump.txt",
+      "transcript_sha256": "bd1b79536f569eae217e57fef5cad00fa89fab8d2f64fe7e97a6411bb379fb62"
+    },
+    {
+      "case_id": "intake-upload",
+      "evidence_link": "baseline/actual/intake-upload.txt",
+      "transcript_sha256": "11ce30cd7970794f9c7f6cc1824ad1e2daa08b14018ca06dce36bf80bdc571de"
+    },
+    {
+      "case_id": "objective-what-good-looks-like",
+      "evidence_link": "baseline/actual/objective-what-good-looks-like.txt",
+      "transcript_sha256": "e483bb5f8643e74a696f4878cc33e8365e0e8301988453ddb2a9b6106f8ddeda"
+    },
+    {
+      "case_id": "provenance-metadata",
+      "evidence_link": "baseline/actual/provenance-metadata.txt",
+      "transcript_sha256": "166c1e9f6e90a9be1af5b26d4c75ae666cc04c2b7d2853240b4437cb03554f41"
+    },
+    {
+      "case_id": "revise-fix-loop",
+      "evidence_link": "baseline/actual/revise-fix-loop.txt",
+      "transcript_sha256": "64562c6e83737846f586ff2e03a8e03530dd8c5f8063f7b58a71a21236dd40b0"
+    },
+    {
+      "case_id": "stocktake-audit",
+      "evidence_link": "baseline/actual/stocktake-audit.txt",
+      "transcript_sha256": "7b258a7bc55616d1db443f43d4cc2149cb8e0f8297aece10dbd6a522f6003d36"
+    },
+    {
+      "case_id": "trigger-should-1",
+      "evidence_link": "baseline/actual/trigger-should-1.txt",
+      "transcript_sha256": "85c518e939045a2094fe04a17e38bd04499cbf21556e93782ae0b4b05690140e"
+    },
+    {
+      "case_id": "trigger-should-2",
+      "evidence_link": "baseline/actual/trigger-should-2.txt",
+      "transcript_sha256": "7eb406967153313c093a472075c58ab68e852c1debc7391b2df6fd9075fb0c5d"
+    },
+    {
+      "case_id": "trigger-should-3",
+      "evidence_link": "baseline/actual/trigger-should-3.txt",
+      "transcript_sha256": "0cf552b5c96baf1357143bbc5356d61f2347344f7da069e88ecf4494819a8232"
+    },
+    {
+      "case_id": "trigger-should-4",
+      "evidence_link": "baseline/actual/trigger-should-4.txt",
+      "transcript_sha256": "c6fb9eaa8548909f5009e5473c871368df68b22b7779140175d0f57fce12944e"
+    },
+    {
+      "case_id": "trigger-should-5",
+      "evidence_link": "baseline/actual/trigger-should-5.txt",
+      "transcript_sha256": "878bbab0e126b17188387307cac8b7ca9e0245d22212786de5da2c36180d8d04"
+    },
+    {
+      "case_id": "trigger-should-6",
+      "evidence_link": "baseline/actual/trigger-should-6.txt",
+      "transcript_sha256": "d4fbb666b45bc6c24be5aa485d858780e92faf9e1778ccd948eeaf0ec6c79859"
+    },
+    {
+      "case_id": "trigger-should-not-1",
+      "evidence_link": "baseline/actual/trigger-should-not-1.txt",
+      "transcript_sha256": "5cd88cac0dae5987b31561932c5e15b8bca4923c35558ba452677fd0d54dd97c"
+    },
+    {
+      "case_id": "trigger-should-not-2",
+      "evidence_link": "baseline/actual/trigger-should-not-2.txt",
+      "transcript_sha256": "9b57edac4f47a023217d7eb1e7dcf7d2e24d92b3414d3e30a3839fec3f6c88b8"
+    },
+    {
+      "case_id": "trigger-should-not-3",
+      "evidence_link": "baseline/actual/trigger-should-not-3.txt",
+      "transcript_sha256": "460347939edba17a80acbeac2f7755c3d52dcf1ef313c32d4ce9d2d48f258f88"
+    }
+  ],
+  "result": "34 cases captured"
+}

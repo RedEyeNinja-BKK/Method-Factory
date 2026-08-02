@@ -1,0 +1,5 @@
+I’ll build a **meal-planning skill** from the two supplied link materials. I’ll fetch, validate, and classify them; extract useful behavior rather than copy content; and record each known source URL, access date, and license as provenance metadata in the generated `SKILL.md`. I’ll gate incorporation with you before anything is used.
+
+**Heads-up:** meal planning can touch nutrition and health claims. This is non-blocking—we’ll proceed, but the skill will state its limits and avoid unsupported medical or dietary claims.
+
+For the two examples, should the skill **match their approach or improve on it**?

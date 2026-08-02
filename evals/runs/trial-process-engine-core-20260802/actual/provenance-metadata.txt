@@ -1,0 +1,3 @@
+I can generate an original, spec-compliant skill using the reference skill’s behavior and techniques without copying it. I’ll validate the reference, extract and attribute relevant patterns, record its source URL, access date, and license as provenance metadata when known, then take it through **Pattern → Review → Trial → Ship**. **The prompt policy is content-only with no tool_gate; the advisory judge rules are operator-visible, reversible, never silent blockers.**
+
+Please provide the linked skill URL or upload/paste the skill you want me to use as reference.

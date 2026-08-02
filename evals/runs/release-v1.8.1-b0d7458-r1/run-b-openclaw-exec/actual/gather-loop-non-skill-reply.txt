@@ -1,0 +1,22 @@
+Understood. Collection is closed with **no external material**: I’ll create an original, evidence-named package rather than copy an existing skill.
+
+**Proposed objective:** a professional `database-backup-operator` skill that guides safe backup, verification, retention, restore testing, failure handling, and operator reporting across supported database systems.
+
+**Good looks like:**
+- clear preflight and safety checks;
+- least-privilege and secret-handling guidance;
+- reliable backup and integrity verification;
+- restore drills, not just “backup succeeded” claims;
+- explicit acceptance criteria, escalation paths, and audit evidence;
+- Agent Skills–compliant files with no unsupported database-specific assumptions;
+- review and trial gates before deployment.
+
+> **Heads-up:** database backups are only trustworthy when restores are tested and recovery objectives are explicit. This is non-blocking—we’ll proceed with conservative defaults and leave system-specific details configurable.
+
+The package will include governance helpers: **the prompt policy is content-only with no `tool_gate`; the advisory judge rules are operator-visible, reversible, never silent blockers.**
+
+**Working from:** 0 links + 0 text blocks (0 sources unknown).  
+**Intent:** generate a database-backup operator skill package.  
+**Good looks like:** a reviewable, trial-ready, standards-compliant skill for safe backup and recovery operations.
+
+**Generate?**

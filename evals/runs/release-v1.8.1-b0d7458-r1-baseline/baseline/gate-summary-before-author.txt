@@ -1,0 +1,12 @@
+Absolutely. Please send the two links—the placeholders came through as “(link)”.
+
+Also tell me what **good meal planning** should look like for you. For example:
+
+- Number of people and meals per day
+- Dietary needs, allergies, dislikes, or preferred cuisines
+- Budget and available cooking time
+- Whether plans should use pantry ingredients or minimize waste
+- Desired output: weekly menu, shopping list, recipes, nutrition targets, prep schedule, or all of these
+- Whether the skill should **only suggest plans** or also create files, track inventory, or manage reminders
+
+I’ll review the material, extract useful techniques rather than copy it, then draft the meal-planning skill for your review before creating or enabling anything.

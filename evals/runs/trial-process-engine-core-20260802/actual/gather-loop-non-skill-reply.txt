@@ -1,0 +1,11 @@
+Understood — I’ll create a **database-backup operator skill package**. I’m treating “get on with it” as the end of the material-collection step; no extra source material was provided.
+
+**Provisional objective:** produce a spec-valid, evidence-conscious operator skill that guides database backups through safe planning, configuration, execution, verification, retention, restoration testing, failure handling, and audit-friendly reporting—without assuming a particular database, cloud, or backup tool.
+
+**Pipeline:** Pattern → operator Review → Trial with representative cases → Ship only after your approval. The package will include explicit limits, acceptance criteria, and named sources rather than unsupported claims. **The prompt policy is content-only with no `tool_gate`; the advisory judge rules are operator-visible, reversible, never silent blockers.**
+
+**Summary gate — working from:** 0 links + 0 text blocks (0 sources unknown).  
+**Intent:** create a database-backup operator skill package.  
+**Good looks like:** a practical, safe, database-agnostic skill that an operator can use to perform and verify backups and restorations reliably, while clearly identifying tool-specific assumptions and escalation points.
+
+Generate?

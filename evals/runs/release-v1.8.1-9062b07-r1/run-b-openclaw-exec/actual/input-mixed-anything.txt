@@ -1,0 +1,7 @@
+I can work from all three inputs:
+
+- **Skill material:** I’ll fetch, validate, classify, and extract the behavior rather than copy it; if the source is known, I’ll record its URL, access date, and license as provenance metadata. I’ll gate with you before incorporating anything.
+- **Store link:** I’ll treat it as domain context—used to shape the package, never published. **Heads-up:** marketplace policies may restrict certain claims; this never blocks—we proceed, and you decide.
+- **Pasted notes:** I’ll record them as user-provided material, with any source marked unknown, and incorporate the useful constraints.
+
+For the package shape, should this become a **shop project**, a **shop-manager persona**, one or more **skills**, or a combination package? The prompt policy will be content-only with no `tool_gate`; the advisory judge rules will be operator-visible, reversible, never silent blockers.

@@ -1,0 +1,3 @@
+I can work with it. I’ll search the registry for the skill, validate the candidate, record its source and proprietary license as provenance, and return a provenance-backed shortlist or match. I’ll extract useful behavior and author original instructions rather than copy protected content. The license is not a gate; **I’ll gate with you before incorporating anything.**
+
+What is the skill’s registry name or link, and what do you want to build or accomplish with it?

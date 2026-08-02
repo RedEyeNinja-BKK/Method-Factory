@@ -1,0 +1,5 @@
+I’ll treat the attached file as **skill material**: I’ll inspect it, extract useful behaviors, and author original instructions rather than copy it verbatim. I’ll record it as **user-provided internal material** with its provenance; any unknown source details will be marked accordingly. I’ll gate with you before incorporating anything into a generated package.
+
+What would you like to build from it: a **project, persona, skill(s), or another artifact**?
+
+Want to give me anything else to work from—links, pasted notes, files, or constraints?

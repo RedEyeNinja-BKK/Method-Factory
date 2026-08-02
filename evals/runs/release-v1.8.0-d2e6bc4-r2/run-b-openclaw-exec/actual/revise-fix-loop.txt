@@ -1,0 +1,1 @@
+I'll diagnose the REVISE notes, rewrite while preserving intent, audit the changes, and re-run regression trials before bringing it back.

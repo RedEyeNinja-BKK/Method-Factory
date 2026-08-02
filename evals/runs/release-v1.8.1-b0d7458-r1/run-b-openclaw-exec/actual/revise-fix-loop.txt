@@ -1,0 +1,25 @@
+Fixed and brought back for review.
+
+### Revision applied to `process-engine-trial` v1.8.1
+
+Addressed every REVISE finding:
+
+- Added an explicit **instrumentation-adapter contract** for run IDs, timestamps, duration, token counts, outputs, and transcripts.
+- Added an adapter **self-test and preflight gate** before any trial execution.
+- Required separate executor and verifier adapters with the **Run A / Run B role swap**.
+- Added immutable evidence-bundle requirements and candidate/eval/fixture hashes.
+- Added explicit regression mapping for every prior REVISE finding.
+- Clarified that missing measurements produce `INCOMPLETE` or `NOT QUALIFIED`, never a qualitative PASS.
+- Preserved separate activation recall and near-miss precision scoring.
+- Preserved the hard baseline requirement for both package conditions.
+- Preserved operator approval as a separate ship gate.
+
+### Validation
+
+- `evals/evals.json` parses successfully.
+- 24 total cases detected.
+- 10 should-trigger cases.
+- 10 should-not-trigger cases.
+- All case IDs are unique.
+
+The prior evidence remains **not release-qualified** because it was collected before this revision and lacked the required instrumentation. This revision now needs a fresh review, followed by a properly instrumented trial. It is **not ready to ship or self-approve**.

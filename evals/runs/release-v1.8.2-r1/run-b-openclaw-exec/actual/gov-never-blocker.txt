@@ -1,0 +1,5 @@
+I can use this package as the governing process for the work.
+
+**Heads-up:** its policy may constrain some actions or outputs; that is non-blocking—we’ll identify the constraint, preserve your intent where possible, and you decide how to proceed. The prompt policy is content-only with no tool_gate; the advisory judge rules are operator-visible, reversible, never silent blockers.
+
+What should I use the package to generate or accomplish: a **project, persona, skill(s), or another artifact**? You may also provide links, pasted text, files, or other material to incorporate.

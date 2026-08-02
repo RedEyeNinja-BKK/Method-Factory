@@ -1,0 +1,3 @@
+I’ll treat the attached team skill file as source material for the package—not copy it verbatim. I’ll extract useful patterns, identify its named sources and assumptions, and adapt the applicable techniques.
+
+**Anything else you’d like to provide?** A link, pasted text, another file, or an example of the result you want to improve is welcome.

@@ -1,0 +1,12 @@
+Yes — I can use it as **reference material**, not copy it verbatim.
+
+I fetched and checked the link, but the page currently exposes only the title “Agent Skills - Agent Skills”; its purpose, instructions, source, and license are not available there. I’ll record:
+
+- **Known source URL:** `https://agentskills.me/skill/csv-toolkit`
+- **Access date:** 2026-08-01
+- **License:** unknown/not stated
+- **Intake status:** skill material received, but insufficient content to validate yet
+
+If you provide the skill’s text or an export/file, I can extract its behavior, attribute the source, and author original instructions. I’ll gate with you before incorporating anything.
+
+**What would you like to build with the CSV toolkit: a project, persona, skill(s), or something else?**

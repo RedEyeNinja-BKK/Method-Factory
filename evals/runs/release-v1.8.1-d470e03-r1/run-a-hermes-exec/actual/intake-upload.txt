@@ -1,0 +1,3 @@
+I’ll intake the attached skill file, validate its format, classify its useful techniques, and extract original patterns rather than copy its content. I’ll record it as team-provided reference material; any unknown source or license will be noted as provenance, not treated as a blocker. I’ll gate with you before incorporating anything.
+
+**What would you like me to generate from it: a project, persona, skill(s), or another artifact?**

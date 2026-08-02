@@ -1,0 +1,34 @@
+## Trial complete: **NOT SHIP**
+
+I trialed `process-engine-trial` v1.8.1 using two independent evaluator runs against:
+
+- Happy path
+- Gray zone / shortcut resistance
+- Regression / escalation
+- Risk-relevant boundary
+- 10 should-trigger queries
+- 10 shouldn't-trigger near-misses
+- With-package vs without-package baseline requirements
+
+### Results
+
+| Area | Result |
+|---|---|
+| Core scenario behavior | **PASS** in both runs |
+| Should-trigger activation | Run A: **10/10 PASS**; Run B: **not executed** |
+| Shouldn't-trigger activation | Run A: **10/10 PASS**; Run B: **not executed** |
+| Independent verifier and role swap | **UNAVAILABLE** |
+| Token counts | **UNAVAILABLE** |
+| Duration measurements | **UNAVAILABLE** |
+| Context-cost proof | **NOT ESTABLISHED** |
+| Operator approval | **NOT PROVIDED** |
+
+The skill correctly rejects shortcut validation, requires safeguard drills for risk-relevant packages, and blocks shipping on incomplete evidence. However, the release qualification itself is incomplete because the required mirrored verification and baseline instrumentation were not available.
+
+Evidence recorded at:
+
+```text
+evals/process-engine-trial-trial-2026-08-01-r2.md
+```
+
+**Final verdict: FAIL / NOT SHIP.**

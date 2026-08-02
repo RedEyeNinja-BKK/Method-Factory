@@ -1,0 +1,1 @@
+The current catalog contains 123 skills across 12 categories. It includes code review, development, DevOps, Hermes, productivity, research, creative, communication, workflow, GitHub, gaming, and autonomous-agent skills. I can also provide the full catalog or filter it by category.

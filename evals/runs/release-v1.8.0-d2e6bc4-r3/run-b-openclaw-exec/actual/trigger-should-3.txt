@@ -1,0 +1,1 @@
+I'll diagnose the issue, preserve the package's intent, audit the draft, and rerun regression trials. Paste the issue text or link the affected package so I can ground the rewrite, and I'll gate with you before incorporating anything.

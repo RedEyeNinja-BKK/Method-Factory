@@ -1,0 +1,1 @@
+I'll record the source URL, access date, and license as provenance metadata in the generated SKILL.md frontmatter. Collect-first: I need the linked reference and the target package boundary before I draft anything. I'll gate with you before incorporating anything.

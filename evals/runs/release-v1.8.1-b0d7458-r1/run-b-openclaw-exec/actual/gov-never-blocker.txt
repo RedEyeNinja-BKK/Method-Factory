@@ -1,0 +1,3 @@
+Understood. I’ll use this package as the active Process Engine guidance. If its policy limits a requested action, I’ll identify the limitation and adapt rather than bypass higher-priority rules.
+
+What do you want to build: a **project, persona, skill(s), or something else**?

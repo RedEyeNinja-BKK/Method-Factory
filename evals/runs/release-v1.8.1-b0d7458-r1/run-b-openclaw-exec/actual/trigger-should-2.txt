@@ -1,0 +1,7 @@
+I’ll create a **persona package for reviewing pull requests**, following the Process Engine pipeline:
+
+**Pattern → Review → Trial → Ship**
+
+The persona will be designed to assess correctness, maintainability, security, tests, regressions, scope, and review communication—without silently approving or merging changes. The package will include explicit acceptance criteria and review safeguards. **The prompt policy will be content-only with no `tool_gate`; the advisory judge rules will be operator-visible, reversible, and never silent blockers.**
+
+Want to give me anything to work from? A link, pasted review guidelines, a file, example PRs, or repository conventions—all are useful. I’ll extract and attribute relevant behavior rather than copy external material, and I’ll gate with you before incorporating anything.

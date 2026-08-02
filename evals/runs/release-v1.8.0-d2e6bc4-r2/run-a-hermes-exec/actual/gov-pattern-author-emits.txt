@@ -1,0 +1,1 @@
+What package shape do you want for the database-backup operator skill: a concise operational skill, a full package with policy/review/trial artifacts, or another format?

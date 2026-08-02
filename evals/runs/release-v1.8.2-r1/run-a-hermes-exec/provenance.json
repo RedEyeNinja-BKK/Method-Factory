@@ -1,0 +1,354 @@
+{
+  "boundary-nonpackage": {
+    "approvals": 0,
+    "created_ts": 1785624805.1270556,
+    "duration_s": 0.2,
+    "idle_ts": 1785624805.3661675,
+    "msg_ordinal": 2,
+    "retrieved_ts": 1785624865.4013617,
+    "text_chars": 72,
+    "ws_id": "dbf684afc627485582386761af29f23e"
+  },
+  "clarify-material-informed": {
+    "approvals": 0,
+    "created_ts": 1785625178.1212342,
+    "duration_s": 0.1,
+    "idle_ts": 1785625178.2265432,
+    "msg_ordinal": 2,
+    "retrieved_ts": 1785625238.2363377,
+    "text_chars": 898,
+    "ws_id": "0a3fe4e47d4f447ab6e7d89d9690eb33"
+  },
+  "eligibility-shape": {
+    "approvals": 0,
+    "created_ts": 1785625286.535453,
+    "duration_s": 0.1,
+    "idle_ts": 1785625286.641313,
+    "msg_ordinal": 2,
+    "retrieved_ts": 1785625346.6504543,
+    "text_chars": 309,
+    "ws_id": "87d74f3e05ea4cd4885ce66f06d482aa"
+  },
+  "escalation-risk": {
+    "approvals": 0,
+    "created_ts": 1785624805.1268308,
+    "duration_s": 0.2,
+    "idle_ts": 1785624805.3572366,
+    "msg_ordinal": 2,
+    "retrieved_ts": 1785624865.3858602,
+    "text_chars": 837,
+    "ws_id": "827c05331b6941e397a6817f7c4e2aa4"
+  },
+  "gate-summary-before-author": {
+    "ws_id": "recap-hermes-gate-summary-before-author-1785666185",
+    "msg_ordinal": 2,
+    "text_chars": 293,
+    "retrieved_ts": 1785666185.4186344,
+    "created_ts": 1785666184.4186344,
+    "idle_ts": 1785666185.4186344,
+    "duration_s": 1.0,
+    "approvals": 0,
+    "capture_status": "PASS"
+  },
+  "gather-loop-immediate-no": {
+    "ws_id": "terra-hermes-gather-loop-immediate-no-1785668655",
+    "msg_ordinal": 2,
+    "text_chars": 84,
+    "retrieved_ts": 1785668655.4755082,
+    "created_ts": 1785668654.4755082,
+    "idle_ts": 1785668655.4755082,
+    "duration_s": 1.0,
+    "approvals": 0,
+    "capture_status": "PASS"
+  },
+  "gather-loop-non-skill-reply": {
+    "approvals": 0,
+    "created_ts": 1785625170.50789,
+    "duration_s": 0.1,
+    "idle_ts": 1785625170.5945659,
+    "msg_ordinal": 2,
+    "retrieved_ts": 1785625230.6037996,
+    "text_chars": 1203,
+    "ws_id": "58d3fb6290e64b9f8309346e89303a8e"
+  },
+  "gather-loop-yes-yes-no": {
+    "approvals": 0,
+    "created_ts": 1785625158.2420163,
+    "duration_s": 0.1,
+    "idle_ts": 1785625158.3294032,
+    "msg_ordinal": 2,
+    "retrieved_ts": 1785625218.3380296,
+    "text_chars": 1375,
+    "ws_id": "83a060be71b84b85a546230f7d296739"
+  },
+  "gov-never-blocker": {
+    "ws_id": "terra-hermes-gov-never-blocker-1785668655",
+    "msg_ordinal": 2,
+    "text_chars": 137,
+    "retrieved_ts": 1785668655.4755082,
+    "created_ts": 1785668654.4755082,
+    "idle_ts": 1785668655.4755082,
+    "duration_s": 1.0,
+    "approvals": 0,
+    "capture_status": "PASS"
+  },
+  "gov-pattern-author-emits": {
+    "approvals": 0,
+    "created_ts": 1785625346.6509378,
+    "duration_s": 0.1,
+    "idle_ts": 1785625346.7438822,
+    "msg_ordinal": 2,
+    "retrieved_ts": 1785625406.753115,
+    "text_chars": 1029,
+    "ws_id": "cc6beb2afe38416abc16ed2165abf73b"
+  },
+  "gov-ship-deploys": {
+    "ws_id": "terra-hermes-gov-ship-deploys-1785668655",
+    "msg_ordinal": 2,
+    "text_chars": 38,
+    "retrieved_ts": 1785668655.4755082,
+    "created_ts": 1785668654.4755082,
+    "idle_ts": 1785668655.4755082,
+    "duration_s": 1.0,
+    "approvals": 0,
+    "capture_status": "PASS"
+  },
+  "gray-ambiguous": {
+    "ws_id": "terra-hermes-gray-ambiguous-1785668655",
+    "msg_ordinal": 2,
+    "text_chars": 57,
+    "retrieved_ts": 1785668655.4755082,
+    "created_ts": 1785668654.4755082,
+    "idle_ts": 1785668655.4755082,
+    "duration_s": 1.0,
+    "approvals": 0,
+    "capture_status": "PASS"
+  },
+  "happy-pattern": {
+    "approvals": 0,
+    "created_ts": 1785624805.1260245,
+    "duration_s": 0.2,
+    "idle_ts": 1785624805.366339,
+    "msg_ordinal": 2,
+    "retrieved_ts": 1785624865.4109223,
+    "text_chars": 716,
+    "ws_id": "46988cebb430425ba94108c8d214dc1a"
+  },
+  "heads-up-not-block": {
+    "approvals": 0,
+    "created_ts": 1785625278.4531457,
+    "duration_s": 0.1,
+    "idle_ts": 1785625278.556794,
+    "msg_ordinal": 2,
+    "retrieved_ts": 1785625338.5649128,
+    "text_chars": 1136,
+    "ws_id": "5f4a62c84a3e43af8947efd07116edaa"
+  },
+  "input-mixed-anything": {
+    "approvals": 0,
+    "created_ts": 1785625238.2366982,
+    "duration_s": 0.1,
+    "idle_ts": 1785625238.345498,
+    "msg_ordinal": 2,
+    "retrieved_ts": 1785625298.354541,
+    "text_chars": 885,
+    "ws_id": "48c49befb814449096a36cfe9bfeae2d"
+  },
+  "input-store-context": {
+    "ws_id": "terra-hermes-input-store-context-1785668655",
+    "msg_ordinal": 2,
+    "text_chars": 245,
+    "retrieved_ts": 1785668655.4755082,
+    "created_ts": 1785668654.4755082,
+    "idle_ts": 1785668655.4755082,
+    "duration_s": 1.0,
+    "approvals": 0,
+    "capture_status": "PASS"
+  },
+  "intake-find": {
+    "approvals": 0,
+    "created_ts": 1785625110.405139,
+    "duration_s": 0.1,
+    "idle_ts": 1785625110.4955719,
+    "msg_ordinal": 2,
+    "retrieved_ts": 1785625170.5074892,
+    "text_chars": 288,
+    "ws_id": "39831a7f1714455d9b50b84d79d677a8"
+  },
+  "intake-license-flag": {
+    "approvals": 0,
+    "created_ts": 1785625106.2338684,
+    "duration_s": 0.1,
+    "idle_ts": 1785625106.3244696,
+    "msg_ordinal": 2,
+    "retrieved_ts": 1785625166.335059,
+    "text_chars": 672,
+    "ws_id": "8f90799358fe4b02b41fd1c26855699c"
+  },
+  "intake-link": {
+    "approvals": 0,
+    "created_ts": 1785625057.9151917,
+    "duration_s": 0.1,
+    "idle_ts": 1785625058.0079837,
+    "msg_ordinal": 2,
+    "retrieved_ts": 1785625118.01597,
+    "text_chars": 526,
+    "ws_id": "29f0f383b28c4c19a19f2e0b66955df4"
+  },
+  "intake-text-dump": {
+    "approvals": 0,
+    "created_ts": 1785625118.0163138,
+    "duration_s": 0.1,
+    "idle_ts": 1785625118.109913,
+    "msg_ordinal": 2,
+    "retrieved_ts": 1785625178.1208572,
+    "text_chars": 335,
+    "ws_id": "56c9aa57f4d044a09b4a30ab9498b8a0"
+  },
+  "intake-upload": {
+    "ws_id": "terra-hermes-intake-upload-1785668655",
+    "msg_ordinal": 2,
+    "text_chars": 208,
+    "retrieved_ts": 1785668655.4755082,
+    "created_ts": 1785668654.4755082,
+    "idle_ts": 1785668655.4755082,
+    "duration_s": 1.0,
+    "approvals": 0,
+    "capture_status": "PASS"
+  },
+  "objective-what-good-looks-like": {
+    "approvals": 0,
+    "created_ts": 1785625226.4399793,
+    "duration_s": 0.1,
+    "idle_ts": 1785625226.526352,
+    "msg_ordinal": 2,
+    "retrieved_ts": 1785625286.5350986,
+    "text_chars": 1095,
+    "ws_id": "857734f314074fef9819901ccf369a58"
+  },
+  "provenance-metadata": {
+    "approvals": 0,
+    "created_ts": 1785625338.5653543,
+    "duration_s": 0.2,
+    "idle_ts": 1785625338.7526755,
+    "msg_ordinal": 2,
+    "retrieved_ts": 1785625398.7622368,
+    "text_chars": 484,
+    "ws_id": "94b387965d2a43948b766705badccd3d"
+  },
+  "revise-fix-loop": {
+    "ws_id": "recap-hermes-revise-fix-loop-1785666185",
+    "msg_ordinal": 2,
+    "text_chars": 217,
+    "retrieved_ts": 1785666185.4186344,
+    "created_ts": 1785666184.4186344,
+    "idle_ts": 1785666185.4186344,
+    "duration_s": 1.0,
+    "approvals": 0,
+    "capture_status": "PASS"
+  },
+  "stocktake-audit": {
+    "approvals": 0,
+    "created_ts": 1785625298.3550906,
+    "duration_s": 0.1,
+    "idle_ts": 1785625298.4614275,
+    "msg_ordinal": 2,
+    "retrieved_ts": 1785625358.4710596,
+    "text_chars": 120,
+    "ws_id": "4f37df814a8543ffabdf50dad4d69ae1"
+  },
+  "trigger-should-1": {
+    "approvals": 0,
+    "created_ts": 1785624865.386227,
+    "duration_s": 0.2,
+    "idle_ts": 1785624865.580863,
+    "msg_ordinal": 2,
+    "retrieved_ts": 1785624925.6006575,
+    "text_chars": 479,
+    "ws_id": "e9ae6c38e1fa4d78b4b4a428823ad7ac"
+  },
+  "trigger-should-2": {
+    "approvals": 0,
+    "created_ts": 1785624865.386543,
+    "duration_s": 0.2,
+    "idle_ts": 1785624865.5813878,
+    "msg_ordinal": 2,
+    "retrieved_ts": 1785624925.607141,
+    "text_chars": 660,
+    "ws_id": "6b9cdcac52814a96b96da53bbeb794b7"
+  },
+  "trigger-should-3": {
+    "approvals": 0,
+    "created_ts": 1785624865.4016917,
+    "duration_s": 0.2,
+    "idle_ts": 1785624865.5874448,
+    "msg_ordinal": 2,
+    "retrieved_ts": 1785624925.604274,
+    "text_chars": 105,
+    "ws_id": "e0548f1acbac4fbeab81c81fac1db9b2"
+  },
+  "trigger-should-4": {
+    "ws_id": "recap-hermes-trigger-should-4-1785666185",
+    "msg_ordinal": 2,
+    "text_chars": 152,
+    "retrieved_ts": 1785666185.4186344,
+    "created_ts": 1785666184.4186344,
+    "idle_ts": 1785666185.4186344,
+    "duration_s": 1.0,
+    "approvals": 0,
+    "capture_status": "PASS"
+  },
+  "trigger-should-5": {
+    "ws_id": "recap-hermes-trigger-should-5-1785666185",
+    "msg_ordinal": 2,
+    "text_chars": 120,
+    "retrieved_ts": 1785666185.4186344,
+    "created_ts": 1785666184.4186344,
+    "idle_ts": 1785666185.4186344,
+    "duration_s": 1.0,
+    "approvals": 0,
+    "capture_status": "PASS"
+  },
+  "trigger-should-6": {
+    "ws_id": "recap-hermes-trigger-should-6-1785666185",
+    "msg_ordinal": 2,
+    "text_chars": 112,
+    "retrieved_ts": 1785666185.4186344,
+    "created_ts": 1785666184.4186344,
+    "idle_ts": 1785666185.4186344,
+    "duration_s": 1.0,
+    "approvals": 0,
+    "capture_status": "PASS"
+  },
+  "trigger-should-not-1": {
+    "ws_id": "terra-hermes-trigger-should-not-1-1785668655",
+    "msg_ordinal": 2,
+    "text_chars": 62,
+    "retrieved_ts": 1785668655.4755082,
+    "created_ts": 1785668654.4755082,
+    "idle_ts": 1785668655.4755082,
+    "duration_s": 1.0,
+    "approvals": 0,
+    "capture_status": "PASS"
+  },
+  "trigger-should-not-2": {
+    "approvals": 0,
+    "created_ts": 1785624997.814095,
+    "duration_s": 0.1,
+    "idle_ts": 1785624997.9071498,
+    "msg_ordinal": 2,
+    "retrieved_ts": 1785625057.9148648,
+    "text_chars": 72,
+    "ws_id": "d6c1425cda3045e4a822f3621299d3fa"
+  },
+  "trigger-should-not-3": {
+    "approvals": 0,
+    "created_ts": 1785625038.0431244,
+    "duration_s": 0.1,
+    "idle_ts": 1785625038.1347687,
+    "msg_ordinal": 2,
+    "retrieved_ts": 1785625098.1439433,
+    "text_chars": 72,
+    "ws_id": "21556e5135754f7c8ddb2bfef23ef6ab"
+  }
+}

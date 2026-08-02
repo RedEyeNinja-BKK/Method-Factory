@@ -1,0 +1,5 @@
+Absolutely. I’ll help turn the idea into the right kind of package for your team—such as a project, persona, skill, or another artifact—through **Pattern → Review → Trial → Ship**, with your approval at each gate.
+
+You can give me anything useful to work from: links, pasted notes, files, examples, or constraints. I’ll record and assess each item, extract original behavior rather than copy, and gate incorporation with you.
+
+**What team problem or outcome do you want this idea to address?**

@@ -1,0 +1,20 @@
+{
+  "run_id": "release-v1.8.0-d2e6bc4",
+  "commit": "d2e6bc4d59627a16a7a2c51d3bc3e4bce5a3d464",
+  "engine_version": "1.8.0",
+  "iteration": "final-release",
+  "protocol": "mirrored-dual-source",
+  "run_a": {
+    "executor": "hermes-agent",
+    "verifier": "openclaw-main",
+    "model": "gpt-5.6-terra",
+    "cases": 34
+  },
+  "run_b": {
+    "executor": "openclaw-main",
+    "verifier": "hermes-gateway",
+    "model": "gpt-5.6-terra",
+    "cases": 34
+  },
+  "note": "Release-qualification evidence sealed against commit d2e6bc4. Run A: Hermes executes / OpenClaw verifies. Run B: OpenClaw executes / Hermes verifies. Each run has immutable per-run transcripts + judgments. Final verdict derived from each run's own judgments."
+}

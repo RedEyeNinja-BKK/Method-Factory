@@ -1,0 +1,1 @@
+Collecting only. Send 2-3 sample release notes, the target audience, and any house style or length limit; I'll generate the package around that. For a package I author, the prompt policy will be content-only with no tool_gate, and the advisory judge rules will stay operator-visible, reversible, and never silent blockers.

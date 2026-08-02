@@ -1,0 +1,5 @@
+I can generate an original skill using the linked skill as reference. Please provide the link.
+
+I’ll fetch, validate, and classify it; extract techniques rather than copy content; and record the source URL, access date, and license as provenance metadata in the generated `SKILL.md` frontmatter when available. **I’ll gate with you before incorporating anything.**
+
+Want to give me anything else to work from—pasted notes, files, constraints, or an example of what “good” should look like?

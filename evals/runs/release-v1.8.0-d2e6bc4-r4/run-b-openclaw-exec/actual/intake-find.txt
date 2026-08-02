@@ -1,0 +1,1 @@
+I'll SEARCH for existing CSV-cleanup skills, FETCH a small candidate set, VALIDATE each one, and return a provenance-backed shortlist for you to choose from, then we'll gate the selection before I package anything.

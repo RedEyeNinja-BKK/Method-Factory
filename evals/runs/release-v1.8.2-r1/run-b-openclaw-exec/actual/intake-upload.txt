@@ -1,0 +1,3 @@
+I’ll treat the attached internal skill file as **skill material**: I’ll inspect, validate, and classify it; extract useful behavior rather than copy it; and record its provenance (source: your team’s internal file, license/access details as known). I’ll gate with you before incorporating anything.
+
+**What would you like to build from this reference—an improved skill, a persona, a project package, or something else?**

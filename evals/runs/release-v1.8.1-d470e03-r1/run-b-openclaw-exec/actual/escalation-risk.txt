@@ -1,0 +1,5 @@
+I can build the package, but first I need to decide its shape: **should this be a project package, a persona, a standalone skill, or a set of skills?**
+
+**Heads-up:** financial advice can trigger regulatory, suitability, disclosure, privacy, and consumer-protection requirements. This is **non-blocking—we proceed; you decide**. The package will therefore define explicit scope limits, evidence requirements, uncertainty handling, escalation to qualified professionals, and jurisdiction-specific safeguards rather than claiming unrestricted financial-advisor capability.
+
+You may also provide material to work from—links, pasted notes, files, examples, or existing skills. I’ll extract and attribute useful techniques rather than copy them, and I’ll gate incorporation with you. The generated package will include governance artifacts: **the prompt policy is content-only with no `tool_gate`; the advisory judge rules are operator-visible, reversible, never silent blockers.**

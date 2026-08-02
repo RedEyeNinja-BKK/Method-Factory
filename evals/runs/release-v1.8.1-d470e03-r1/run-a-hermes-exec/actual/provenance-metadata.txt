@@ -1,0 +1,5 @@
+I can generate an original skill using the reference skill’s behavior and structure—not copy its text.
+
+Please provide the skill link (or paste/upload it). I’ll fetch, validate, classify, and record its source URL, access date, and license as provenance metadata in the generated `SKILL.md` frontmatter when known. I’ll extract techniques rather than reproduce wording, then gate with you before incorporating anything.
+
+The package will include explicit review and trial gates; the prompt policy is content-only with no `tool_gate`; the advisory judge rules are operator-visible, reversible, never silent blockers.

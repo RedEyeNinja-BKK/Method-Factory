@@ -1,0 +1,5 @@
+Understood — no source material to collect. I’ll create an original **release-notes-writing skill** that turns changelogs, commits, and issue summaries into clear, accurate, audience-appropriate release notes, with explicit source attribution and verification steps.
+
+The package will go through **Pattern → Review → Trial → Ship**. The prompt policy is content-only with no tool_gate; the advisory judge rules are operator-visible, reversible, never silent blockers.
+
+What does “good” look like to you for the release notes — for example, concise customer-facing notes, detailed technical notes, or both?

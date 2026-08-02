@@ -1,0 +1,15 @@
+{
+  "run_id": "release-v1.8.0-d2e6bc4-r6-run-a-hermes-exec",
+  "commit": "d2a26d0bed62ad0dd054a46b5203661bb433518c",
+  "engine_version": "1.8.0",
+  "iteration": "final-release",
+  "protocol": "mirrored-dual-source",
+  "executor": "hermes-agent",
+  "verifier": "openclaw-main",
+  "model": "gpt-5.6-terra",
+  "case_count": 34,
+  "passed": 34,
+  "failed": 0,
+  "pending": 0,
+  "sealed_at": "785c7d4"
+}

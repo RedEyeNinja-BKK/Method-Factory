@@ -1,0 +1,5 @@
+I’ve recorded this as **proprietary-licensed skill material from a registry**. I’ll validate it, preserve its provenance and licensing metadata, extract behaviors rather than copy protected text, and **gate with you before incorporating anything**. Heads-up: proprietary licensing may limit redistribution or derivative use; this never blocks — we proceed, and you decide.
+
+The prompt policy is content-only with no tool_gate; the advisory judge rules are operator-visible, reversible, never silent blockers.
+
+**What do you want to build or accomplish with this skill—an adapted skill, a persona, a project package, or something else?**

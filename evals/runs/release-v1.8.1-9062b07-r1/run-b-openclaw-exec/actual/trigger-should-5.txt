@@ -1,0 +1,3 @@
+I can review it against the Process Engine gates: intent and scope, evidence/provenance, Agent Skills format, safeguards, acceptance criteria, governance artifacts, and Pattern → Review → Trial → Ship readiness.
+
+Please provide the draft package as a file, link, or pasted text.

@@ -1,0 +1,5 @@
+I’ll build a **database-backup operator skill package**—original instructions, standards-compliant, and taken through **Pattern → Review → Trial → Ship**. I won’t author it until the scope is clear.
+
+If you have material to work from, you can provide a link, pasted runbook, existing skill, file, or examples; I’ll record each input and extract techniques rather than copy content. I’ll gate incorporation with you. **Heads-up:** backup operations can affect data safety and recovery readiness, so the package will include explicit verification, restore-testing, failure handling, and scope limits; this is non-blocking—we proceed, and you decide.
+
+**What does “good” look like for this operator skill?**

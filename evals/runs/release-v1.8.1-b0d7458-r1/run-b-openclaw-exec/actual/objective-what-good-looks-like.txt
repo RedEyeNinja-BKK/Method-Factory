@@ -1,0 +1,17 @@
+Good looks like: **a practical store-review package that identifies the highest-impact ways to sell better, explains why they matter, and gives you a short prioritized action list—without burying you in low-value advice or wasting your time.**
+
+I’ll shape the objective around:
+
+- finding problems that may reduce visibility, clicks, trust, or conversion;
+- prioritizing changes by likely impact versus effort;
+- separating evidence-based findings from suggestions or uncertainty;
+- producing clear “do this next” actions rather than a generic audit;
+- respecting your store’s platform policies and avoiding unsupported claims.
+
+**Heads-up:** marketplace policies and product-claim rules may affect what can safely be recommended; this never blocks us—we proceed, and you decide.
+
+Want to give me anything to work from? A **store link, platform name, screenshots, listings, shop notes, or an existing review/skill**—anything helps. I’ll record each input, use store links as domain context rather than publishable content, extract original review behavior rather than copy external material, and gate incorporation with you.
+
+The eventual package can include the review workflow, supporting skills, explicit acceptance criteria, and governance artifacts: **the prompt policy is content-only with no `tool_gate`; the advisory judge rules are operator-visible, reversible, never silent blockers.**
+
+One question to start: **What store or platform should this review package target?**

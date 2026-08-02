@@ -1,0 +1,3 @@
+This is a **package-feedback triage** request. I’ll assess the filed issue, classify the finding, identify affected package artifacts, and recommend whether to revise, trial, or close it—without silently changing or shipping anything.
+
+Please paste the issue text or provide its link.

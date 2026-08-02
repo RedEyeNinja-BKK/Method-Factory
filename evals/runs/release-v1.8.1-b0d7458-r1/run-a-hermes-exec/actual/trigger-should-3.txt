@@ -1,0 +1,10 @@
+This is an **incoming feedback / issue** case, so I’ll route it to **package triage**.
+
+Please share the filed issue—either its link, pasted text, or a file. I’ll classify the finding, identify the affected package stage, and recommend whether it needs:
+
+- a correction,
+- a clarification,
+- a new trial case, or
+- no change.
+
+I won’t alter or ship the package without your review and approval.

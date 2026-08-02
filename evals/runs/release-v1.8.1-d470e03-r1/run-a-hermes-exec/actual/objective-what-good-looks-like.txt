@@ -1,0 +1,9 @@
+I can turn this into a package that reviews your store and focuses only on changes likely to improve sales—prioritized by impact, effort, and evidence, so it does not waste your time.
+
+**One scope question:** should this be a reusable **store-review skill** you can run repeatedly, or a broader **store-improvement project/persona** that guides ongoing work?
+
+You can give me anything to work from: your store link, screenshots, listings, shop stats, customer notes, competitor examples, or existing review guidance. I’ll treat store links as **domain context—used to shape the package, never published**.
+
+> **Heads-up:** marketplace policies and product-claim rules may affect what recommendations are safe to make; this never blocks—we proceed, and you decide.
+
+If we author the package, **the prompt policy is content-only with no `tool_gate`; the advisory judge rules are operator-visible, reversible, never silent blockers.** I’ll gate the collected material with you before incorporating anything.

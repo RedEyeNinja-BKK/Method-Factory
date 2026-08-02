@@ -1,0 +1,1 @@
+FETCH completed for https://agentskills.me/skill/csv-toolkit; validation/classification is pending source-content review. License is provenance, never a gate. I'll record the source URL, access date (2026-08-01T07:30:52Z), and license as provenance metadata in the generated SKILL.md frontmatter. Generate after validation?

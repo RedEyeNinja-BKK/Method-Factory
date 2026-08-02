@@ -1,0 +1,1 @@
+What does “good” look like for this database-backup operator skill—for example, **reliable automated backups with tested restores, clear failure alerts, and safe handling of credentials**?

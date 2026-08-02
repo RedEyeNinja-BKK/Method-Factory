@@ -1,0 +1,9 @@
+I can generate a professional package for creating wellness-product store listings. The package will extract original, evidence-named listing practices rather than copy external material, and will include review and trial gates before anything ships.
+
+**Heads-up:** wellness and marketplace policies may restrict health claims, ingredients, testimonials, and implied medical benefits. This is non-blocking—we proceed, and you decide the boundaries.
+
+You’re welcome to provide material to work from—store links, existing listings, marketplace rules, brand notes, or example skills. I’ll treat store links as domain context, skill material as source material to extract and attribute, and general notes as inputs; nothing is published automatically. **I’ll gate with you before incorporating anything.**
+
+**What shape should I generate: a project, a persona, a skill or set of skills, or another artifact?**
+
+For any package authored, the prompt policy is content-only with no `tool_gate`; the advisory judge rules are operator-visible, reversible, never silent blockers.

@@ -1,0 +1,1 @@
+What should the package primarily be: **a shop-management persona**, **one or more focused skills**, **a complete shop project package**, or **a combination** of these?

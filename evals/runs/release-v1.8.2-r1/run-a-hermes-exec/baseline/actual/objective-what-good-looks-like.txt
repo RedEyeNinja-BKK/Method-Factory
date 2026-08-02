@@ -1,0 +1,1 @@
+What does "good" look like for the changelog—fully automated and publish-ready, or a draft that groups and edits PR descriptions for human approval?

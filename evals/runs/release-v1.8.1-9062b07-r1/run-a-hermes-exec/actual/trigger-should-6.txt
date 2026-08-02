@@ -1,0 +1,5 @@
+I can ship it, but I need to verify the package’s release evidence first: review **PASS**, trial **PASS**, and the operator approval recorded against the package manifest. I’ll also deploy the governance artifacts — **the prompt policy is content-only with no tool_gate; the advisory judge rules are operator-visible, reversible, never silent blockers** — and verify them by read-back.
+
+Which package ID or manifest should I ship?I can ship it, but I need to verify the package’s release evidence first: review **PASS**, trial **PASS**, and operator approval recorded against the package manifest. I’ll also deploy the governance artifacts — **the prompt policy is content-only with no tool_gate; the advisory judge rules are operator-visible, reversible, never silent blockers** — and verify them by read-back.
+
+Which package ID or manifest should I ship?

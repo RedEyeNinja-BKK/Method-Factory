@@ -1,0 +1,3 @@
+Got it — we’ll create a **skill that writes release notes**. I’ll use no additional source material and proceed through **Pattern → Review → Trial → Ship**, with your approval required before anything is shipped. The prompt policy is content-only with no tool_gate; the advisory judge rules are operator-visible, reversible, never silent blockers.
+
+What does **“good”** release-note writing look like to you?

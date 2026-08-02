@@ -1,0 +1,1 @@
+Collect first: share PR standards, example reviews, repository conventions, or policy links. What review scope should the persona cover: correctness, security, performance, maintainability, or all of them?

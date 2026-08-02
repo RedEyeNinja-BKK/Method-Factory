@@ -1,0 +1,5 @@
+I can turn it into a complete skill package through **Pattern → Review → Trial → Ship**. I won’t author the skill until the intent is clear and you approve the generation summary.
+
+**What idea should the skill package enable?**
+
+You can share anything useful to work from—pasted notes, links, files, examples, or constraints. I’ll extract behaviors rather than copy material, record provenance when sources are known, and gate incorporation with you. The package will also include governance artifacts: **the prompt policy is content-only with no tool_gate; the advisory judge rules are operator-visible, reversible, never silent blockers.**

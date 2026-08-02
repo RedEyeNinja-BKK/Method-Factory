@@ -1,0 +1,15 @@
+Please provide the reference skill—either:
+
+- a URL,
+- an uploaded file,
+- pasted skill text, or
+- a local workspace path.
+
+Also tell me, if known:
+
+1. **What the new skill should do**
+2. **Who will use it** — Turnstone, Hermes, OpenClaw, or another agent
+3. **Desired name and scope**
+4. Whether it should be **instruction-only** or include tools, auto-approval, model, and activation settings
+
+I’ll use the reference for techniques and structure, then author an original skill rather than copying it.

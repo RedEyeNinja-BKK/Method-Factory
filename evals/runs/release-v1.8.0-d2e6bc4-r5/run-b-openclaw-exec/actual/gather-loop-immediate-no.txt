@@ -1,0 +1,1 @@
+Working from: 1 text block (0 sources unknown). Intent: a skill that writes release notes. Good looks like: a package that turns changelog inputs into clear release notes with consistent structure, audience-aware tone, and version/date handling. Artifacts: objective.md, pattern-map.md, trial-plan.md, review-gate.md. Generate?

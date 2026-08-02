@@ -1,0 +1,3 @@
+I’ll intake the CSV Toolkit skill: fetch and validate it, classify what it contributes, record its source URL, access date, and license as provenance, and extract useful behavior rather than copy its content. I’ll gate with you before incorporating anything.
+
+What are you trying to build with it—a standalone CSV skill, or a larger project/persona package that includes CSV capabilities?

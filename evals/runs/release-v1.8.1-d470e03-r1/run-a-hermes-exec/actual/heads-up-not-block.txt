@@ -1,0 +1,9 @@
+I’ll build a package for generating wellness-product store listings, with evidence-aware wording and clear limits around health claims.
+
+**Heads-up:** wellness and marketplace policies may restrict medical, therapeutic, or unsubstantiated claims; this never blocks the work—we proceed, and you decide the boundaries.
+
+Want to give me anything to work from? A store link, example listing, product notes, policy text, or another file is all useful. I’ll treat store links as domain context, skill material as something to extract and attribute, and general notes as package input—not publish them directly. I’ll gate incorporation with you.
+
+**One shape decision:** should this be a reusable **skill**, a broader **project**, a **persona**, or are you not sure yet?
+
+If we author the package, the prompt policy will be content-only with no `tool_gate`; the advisory judge rules will be operator-visible, reversible, never silent blockers.

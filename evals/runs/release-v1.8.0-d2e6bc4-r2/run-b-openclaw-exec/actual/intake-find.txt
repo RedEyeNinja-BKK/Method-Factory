@@ -1,0 +1,1 @@
+I'll search the skill catalog/registry for CSV cleanup candidates, validate the best matches, and return a provenance-backed shortlist. If you have a preferred runtime or target shape, send it now; otherwise I'll optimize for general CSV cleanup coverage.

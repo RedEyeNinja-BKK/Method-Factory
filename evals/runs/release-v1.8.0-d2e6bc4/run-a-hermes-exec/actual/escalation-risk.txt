@@ -1,0 +1,1 @@
+Heads-up: a financial-advice tool package needs advisory guardrails; it should avoid individualized or guaranteed-return claims and account for applicable marketplace/regulatory restrictions. Want to give me anything to work from? A link, pasted text, a file - anything that helps. Anything else?

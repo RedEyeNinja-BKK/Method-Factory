@@ -1,0 +1,9 @@
+I can accept all three inputs:
+
+- **Skill material** — I’ll fetch, validate, classify, extract the behavior rather than copy it, and attribute the source.
+- **Store link** — treated as domain context to shape the package, never published. **Heads-up:** marketplace policies may restrict certain claims; this never blocks — we proceed; you decide.
+- **Pasted notes** — incorporated as general input; if no source is supplied, recorded as **“user-provided, source unknown.”**
+
+For any known reference, I’ll record the source URL, access date, and license as provenance metadata in the generated `SKILL.md` frontmatter. I’ll gate with you before incorporating anything. The prompt policy is content-only with no tool_gate; the advisory judge rules are operator-visible, reversible, never silent blockers.
+
+What should the package be: a **shop project**, a **shop-management persona**, one or more **skills**, or a different artifact?

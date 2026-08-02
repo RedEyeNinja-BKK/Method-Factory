@@ -1,0 +1,7 @@
+I’ll build a **project/persona/skills package for generating wellness-product store listings**—not the listings themselves. It will follow the pipeline:
+
+**Pattern → Review → Trial → Ship**
+
+Because wellness products can involve health-related claims, the package will include evidence-naming, claim boundaries, and safety checks rather than inventing benefits.
+
+Want to give me anything to work from? A store link, product details, existing listings, brand guidelines, competitor examples, marketplace requirements, or pasted text—anything that helps.

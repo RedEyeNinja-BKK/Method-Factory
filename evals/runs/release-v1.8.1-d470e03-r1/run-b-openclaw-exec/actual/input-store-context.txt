@@ -1,0 +1,5 @@
+I’ll treat `https://myshop.example.com` as **domain context**—used to shape the package, never published. I’ll fetch, validate, and classify it; record the known URL, access date, and license as provenance where available; and extract original techniques rather than copy content. **Heads-up:** marketplace and advertising policies may restrict certain SEO claims; this is non-blocking—we proceed, and you decide. I’ll gate with you before incorporating anything.
+
+For the package shape, do you want **a project package** containing a store-review workflow plus SEO-listing skill(s), or **standalone skill(s)** only?
+
+You may also provide anything else useful—product notes, target marketplace, example listings, or existing SEO guidance. For any package we author, **the prompt policy is content-only with no `tool_gate`; the advisory judge rules are operator-visible, reversible, never silent blockers.**

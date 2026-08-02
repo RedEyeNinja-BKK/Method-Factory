@@ -1,0 +1,1 @@
+Tier: high-assurance. Working from: 1 link + 0 text blocks (0 sources unknown). Intent: preserve incident-response provenance from last quarter. Good looks like: source-linked, date-stamped, owner-aware, and reversible. Generate?

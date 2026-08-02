@@ -1,0 +1,9 @@
+Which approved package should I ship?
+
+I found these relevant candidates:
+
+1. **Process Engine v1.8.1** — release-boundary repair; the mirrored re-run is still pending seal, so I cannot treat it as ship-ready yet.
+2. **Process Engine v1.8.0** — already published and deployed.
+3. **Etsy Store Manager v1** — already shipped and verified on 2026-08-01.
+
+Please provide the package name/version or approval/reference ID.

@@ -1,0 +1,5 @@
+I’ll create a **persona for reviewing pull requests**, following the Process Engine pipeline: **Pattern → Review → Trial → Ship**. It will be designed as an original package, with explicit review criteria, evidence expectations, acceptance tests, and scope limits.
+
+For governance, the package will include **the prompt policy is content-only with no tool_gate; the advisory judge rules are operator-visible, reversible, never silent blockers.**
+
+Want to give me anything to work from? A link, pasted text, an existing review checklist, a file, or an example pull request are all useful. I’ll record and assess each input, extract behavior rather than copy content, and gate with you before incorporating anything.

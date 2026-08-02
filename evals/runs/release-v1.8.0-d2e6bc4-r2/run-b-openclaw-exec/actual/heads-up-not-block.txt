@@ -1,0 +1,1 @@
+Wellness and marketplace listings can drift into regulated-claims territory, so please give me the claim boundaries you want enforced, like no medical claims or before-and-after language. I'll keep this package-scoped and I'll gate with you before incorporating anything.

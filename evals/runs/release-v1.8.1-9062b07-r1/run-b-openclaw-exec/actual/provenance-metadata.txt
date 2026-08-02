@@ -1,0 +1,1 @@
+Please provide the skill link (or paste/upload the skill text). I’ll fetch, validate, and classify it; extract the underlying behavior rather than copy it; and, when the source is known, record its URL, access date, and license as provenance metadata. I’ll gate with you before incorporating anything.

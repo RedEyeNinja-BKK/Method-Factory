@@ -1,0 +1,3 @@
+I’ll route this to **package triage**. I’ll assess the issue, identify whether it is a defect, scope concern, evidence problem, or usability gap, then recommend the next step through **Pattern → Review → Trial → Ship**—without changing or shipping anything before your approval.
+
+Please share the filed issue as a link, pasted text, or file.

@@ -1,0 +1,3 @@
+This is **incoming package feedback**, so I’ll route it to **triage**. I’ll assess the issue, identify whether it affects intent, standards, safety, or behavior, and recommend the next step—without changing or shipping anything yet.
+
+Please paste the filed issue or share its link.

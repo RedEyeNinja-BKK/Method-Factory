@@ -1,0 +1,5 @@
+I’ll treat the attachment as **skill material**: I’ll intake, validate, and classify it; extract its techniques rather than copy it verbatim; and record its provenance as **team-provided/internal**. It will not be published. I’ll gate with you before incorporating anything.
+
+What would you like built from it: a **project, persona, skill(s), or another artifact**?
+
+If you have other material—links, pasted notes, files, or constraints—feel free to provide it as well. If we author a package, **the prompt policy is content-only with no tool_gate; the advisory judge rules are operator-visible, reversible, never silent blockers.**

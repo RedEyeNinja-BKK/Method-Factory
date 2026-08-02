@@ -1,0 +1,9 @@
+I can build a complete package for your shop, but we need choose its **primary shape** first:
+
+**Should it be:**
+1. a **shop-manager persona** for handling your shop with you,
+2. one or more **focused skills** (for example SEO, listings, customer messages, product research, or operations),
+3. a **combined package** containing a persona plus several skills, or
+4. something else?
+
+Want to give me anything to work from? A shop link, platform name, pasted notes, existing prompts, product examples, or files are all welcome. I’ll record and assess everything, extract useful behavior rather than copy it, and gate any incorporation with you.

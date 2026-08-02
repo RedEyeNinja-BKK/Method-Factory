@@ -1,0 +1,5 @@
+I’ll build a **skill package for a database-backup operator**—not the operational skill yet. I’ll collect any material you want to provide (links, pasted procedures, files, examples, or constraints), extract and attribute techniques rather than copy them, and gate incorporation with you before proceeding.
+
+**Heads-up:** backup and recovery work can affect data durability, privacy, and production systems; this is non-blocking—we proceed, and you decide the boundaries. The prompt policy is content-only with no `tool_gate`; the advisory judge rules are operator-visible, reversible, never silent blockers.
+
+What should “good” look like for this operator skill—for example, reliable backups, tested restores, multi-database coverage, offline operation, or something else?

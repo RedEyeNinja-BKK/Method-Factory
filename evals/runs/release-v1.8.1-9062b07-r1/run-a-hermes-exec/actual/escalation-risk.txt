@@ -1,0 +1,5 @@
+I can generate the package, but first I need to determine its shape: **should this be a project, a persona, a skill or set of skills, or another artifact?**
+
+You can also give me any material to work from—a link, pasted text, file, product example, or requirements. I’ll extract and attribute useful techniques rather than copy them.
+
+**Heads-up:** financial advice is a regulated, high-risk surface. The package will need explicit scope limits, evidence naming, safety boundaries, uncertainty handling, and escalation to qualified professionals. This is **non-blocking—we proceed; you decide**. The generated package will also include **the prompt policy is content-only with no tool_gate; the advisory judge rules are operator-visible, reversible, never silent blockers.** Nothing will ship without your review and successful trials.

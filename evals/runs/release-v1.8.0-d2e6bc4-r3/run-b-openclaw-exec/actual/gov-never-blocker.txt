@@ -1,0 +1,1 @@
+Heads-up: if this package touches policy-limited behavior, I can still help narrow it to compliant scope, audit what's usable, and keep the policy surface explicit instead of silent. Paste the package and the policy concern, and I'll classify what can be used, what needs scoping, and what must stay out.

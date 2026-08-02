@@ -1,0 +1,1 @@
+I’ll run the **trial stage** for the drafted skill now—using its acceptance criteria and regression cases, recording evidence, and stopping short of shipping. A ship recommendation will only be made after the trial result is clear and you approve it.

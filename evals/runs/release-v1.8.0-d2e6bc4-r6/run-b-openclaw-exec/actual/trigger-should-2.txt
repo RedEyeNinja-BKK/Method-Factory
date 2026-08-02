@@ -1,0 +1,1 @@
+Collecting only. Send the review focus you want emphasized, such as correctness, security, style, or maintainability, plus the repo context if there's a house style to match. For a package I author, I'll keep the prompt policy content-only with no tool_gate, and the advisory judge rules operator-visible, reversible, and never silent blockers.

@@ -1,0 +1,1 @@
+I can inspect the repository, validate the skill structure and specification compliance, assess its scope and quality, and return an evidence-backed review. I'll record the URL, access date, and license as provenance, extract useful techniques rather than copy content, and gate with you before incorporating anything.

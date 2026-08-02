@@ -1,0 +1,11 @@
+I can build this as a professional package for your shop, using:
+
+- **Skill material:** I’ll fetch, validate, and classify the skill link; extract techniques rather than copy it, and record its source URL, access date, and license as provenance when known.
+- **Store context:** I’ll use the store link to shape the package, never publish it as part of the package.
+- **General input:** I’ll incorporate your pasted notes, recording any unattributed material as **user-provided, source unknown**.
+
+**Heads-up:** marketplace policies may restrict certain product or wellness claims; this is non-blocking—we proceed, and you decide how to handle any claims. I’ll gate all source incorporation with you before using it.
+
+One shape question before we collect and generate: **Should this package primarily be a shop-management project, a shop-focused persona, a set of reusable skills, or something else?**
+
+Please send the actual skill link, store link, and pasted notes when ready. For any package we author, **the prompt policy is content-only with no tool_gate; the advisory judge rules are operator-visible, reversible, never silent blockers.**

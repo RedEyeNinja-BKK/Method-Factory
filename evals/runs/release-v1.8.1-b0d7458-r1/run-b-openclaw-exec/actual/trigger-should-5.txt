@@ -1,0 +1,13 @@
+Please provide the draft package—upload it, paste its contents, or share its workspace path/link.
+
+I’ll review it against the Process Engine standards, including:
+
+- intent and objective alignment
+- package structure and scope honesty
+- evidence and provenance
+- Agent Skills format compliance, if applicable
+- lifecycle coverage and acceptance criteria
+- safety, privacy, and policy considerations
+- trial readiness and review findings
+
+I’ll return a **PASS**, **REVISE**, or **FAIL** decision with specific corrections.

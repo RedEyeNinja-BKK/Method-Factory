@@ -1,0 +1,1 @@
+I’ll run the trial against the skill draft now, using its acceptance criteria and regression cases. I’ll report each case as **PASS / FAIL / UNRUN**, fix any trial-blocking defects before recommending shipment, and keep the operator approval gate intact.

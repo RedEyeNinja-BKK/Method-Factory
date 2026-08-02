@@ -1,0 +1,1 @@
+Received 2 links. I'll fetch, validate, classify, and gate them; I'll retain license and provenance information, then extract original patterns rather than copy. Anything else?

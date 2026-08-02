@@ -1,0 +1,1 @@
+I'm treating this as a revision pass. Paste the issue text and the current generated package so I can diagnose the failure, preserve intent, rewrite the package, and rerun the regression trials.

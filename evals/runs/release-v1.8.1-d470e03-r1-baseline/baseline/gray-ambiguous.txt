@@ -1,0 +1,11 @@
+Absolutely. Tell me the idea in whatever form it currently exists—rough notes, a link, a sketch, or just a conversation—and I’ll help turn it into something workable.
+
+To get started, share:
+
+1. **What is the idea?**
+2. **Who on your team is it for?**
+3. **What problem or friction should it solve?**
+4. **What would “good” look like if it worked?**
+5. **Are there constraints** such as time, budget, tools, privacy, or approval requirements?
+
+We can begin with the messy version. I’ll help clarify the objective, shape the options, and identify a small trial before anything is committed or shipped.

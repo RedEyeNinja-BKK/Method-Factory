@@ -1,0 +1,3 @@
+Which package do you mean? Please provide its **name, path, or link**.
+
+I can inspect its policy and use it where permitted, but I won’t bypass safety, authorization, or system/operator constraints merely because the package’s policy is restrictive.

@@ -1,0 +1,5 @@
+I’ll fetch and validate the CSV Toolkit skill, classify what it does, and extract useful behavior rather than copy it verbatim. I’ll record its source URL, access date, and license as provenance metadata when available; the link will be treated as skill material, not automatically adopted. I’ll gate with you before incorporating anything.
+
+**Heads-up:** CSV handling can involve sensitive or consequential data; we’ll keep the package’s scope and safeguards explicit, but this never blocks — we proceed; you decide. The prompt policy is content-only with no tool_gate; the advisory judge rules are operator-visible, reversible, never silent blockers.
+
+What are you trying to build with this skill: **adopt/adapt it as a standalone skill**, or **use it as reference material for a larger project/persona/skill package**?

@@ -1,0 +1,1 @@
+I can assess it, but I'm surfacing a heads-up: proprietary licensing can constrain reuse, redistribution, and packaging. I won't block on that, but I will flag it clearly in the provenance and compatibility notes while I validate whether it can be used for this package.

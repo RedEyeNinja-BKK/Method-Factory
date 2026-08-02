@@ -1,0 +1,9 @@
+Understood: you want a **package for a database-backup operator skill**. I’ll build it through **Pattern → Review → Trial → Ship**, with explicit acceptance criteria, verification, rollback/recovery considerations, and source attribution—without authoring the skill yet.
+
+You can give me anything to work from: an existing skill, links, pasted procedures, database/platform details, or operational constraints. I’ll extract behavior rather than copy external material, record provenance when known, and **I’ll gate with you before incorporating anything**.
+
+**Heads-up:** backup and restore operations can affect data integrity and availability; this is non-blocking—we proceed, and the package will include safeguards and operator approval points.
+
+The package will also honor this governance rule: **the prompt policy is content-only with no tool_gate; the advisory judge rules are operator-visible, reversible, never silent blockers.**
+
+**Which database systems and backup environment should this operator skill cover first?**

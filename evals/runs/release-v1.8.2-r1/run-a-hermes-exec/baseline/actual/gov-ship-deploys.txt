@@ -1,0 +1,1 @@
+I can ship it only after confirming review PASS, trial PASS including trigger and baseline evidence, operator approval, a manifest, and a rollback plan. Without those recorded gates, deployment is not authorized.

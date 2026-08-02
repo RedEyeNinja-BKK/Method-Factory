@@ -1,0 +1,9 @@
+I’ll proceed with a **skill package** for a database-backup operator: a practical, verification-first operator that plans backups, runs or delegates approved backup jobs, validates restoreability, reports failures clearly, and avoids claiming success without evidence.
+
+No external material was provided, so I’ll use the Process Engine’s standards and record the package as based on operator direction, with source provenance noted as unknown. I’ll author original instructions rather than copy an existing skill. The package will include explicit safety boundaries, acceptance criteria, review and trial gates, and Agent Skills–compliant structure.
+
+Heads-up: database backups are operationally and potentially security-sensitive; the package will require least-privilege access, secret protection, restore testing, and operator approval for destructive or production-impacting actions. This is non-blocking — we proceed; you decide.
+
+For governance, **the prompt policy is content-only with no `tool_gate`; the advisory judge rules are operator-visible, reversible, never silent blockers.**
+
+**Summary gate — Working from:** 0 links + 0 text blocks (0 unknown sources). **Intent:** create a database-backup operator skill package. **Good looks like:** a reviewable, standards-compliant skill that produces trustworthy backups and evidence of recoverability without exposing secrets or silently taking risky actions. **Generate?**

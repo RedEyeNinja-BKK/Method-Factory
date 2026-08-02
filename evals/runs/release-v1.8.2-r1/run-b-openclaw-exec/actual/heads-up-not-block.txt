@@ -1,0 +1,7 @@
+I’ll build this as a **package generator**, not the store listings themselves. It can accept product details, brand notes, example listings, marketplace rules, or reference links; I’ll extract useful behavior, attribute sources, and author original instructions.
+
+**Heads-up:** wellness and marketplace claims may require careful wording and evidence. This is **non-blocking** — we proceed, and you decide the boundaries.
+
+The prompt policy is content-only with no `tool_gate`; the advisory judge rules are operator-visible, reversible, never silent blockers.
+
+Which package shape do you want: **a reusable listing-generation skill, a complete store-content project, or a persona plus skills**?

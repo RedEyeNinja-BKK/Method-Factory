@@ -1,0 +1,1 @@
+Heads-up: merge gating is production governance and therefore high-assurance; any governance package I generate will be content-only, advisory, and reversible, not a tool gate. What policy source or explicit merge criteria should it work from?

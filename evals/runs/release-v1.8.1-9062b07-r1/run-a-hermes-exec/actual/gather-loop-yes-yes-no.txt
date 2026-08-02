@@ -1,0 +1,9 @@
+I’ll create a **workout-tracking skill**.
+
+- The linked skill material will be fetched, validated, and classified; I’ll extract useful behavior rather than copy it, recording its source URL, access date, and license as provenance when known.
+- The progressive-overload text will be recorded as **user-provided, source unknown** and used as input; I’ll extract the approach rather than copy it.
+- **Heads-up:** workout guidance can become wellness/health advice if it makes claims or prescribes training. This is non-blocking—we proceed, and the skill will stay within clearly stated scope limits.
+- The package will include explicit tracking behavior, progression logic, safety boundaries, acceptance criteria, and a review/trial gate.
+- For governance, **the prompt policy is content-only with no tool_gate; the advisory judge rules are operator-visible, reversible, never silent blockers.**
+
+Working from: 1 link + 1 text block (1 source unknown). Intent: Create an Agent Skills–compliant skill for tracking workouts and applying the supplied progressive-overload approach. Good looks like: a practical, reliable tracker that records sessions consistently, makes progression decisions transparently from logged performance, avoids unsupported health claims, and is ready for operator review and trial. Generate?

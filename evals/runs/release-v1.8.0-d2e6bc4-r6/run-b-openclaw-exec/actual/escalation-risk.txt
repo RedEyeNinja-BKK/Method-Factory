@@ -1,0 +1,1 @@
+Heads-up: a financial-advice package needs explicit safety boundaries, jurisdiction scope, and fallback/escrow rules. This never blocks - we proceed; you decide. Send the allowed behaviors, forbidden behaviors, target users, and any regulatory limits, and I'll shape the package with the required governance artifacts.

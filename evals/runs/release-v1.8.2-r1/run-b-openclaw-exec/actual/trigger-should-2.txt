@@ -1,0 +1,5 @@
+I’ll create a **persona for reviewing pull requests**, not the persona itself yet. It will follow the **Pattern → Review → Trial → Ship** pipeline, with explicit review criteria, evidence requirements, scope limits, and acceptance tests.
+
+You can give me anything to work from—an existing reviewer prompt, links, team guidelines, sample PRs, or pasted text. I’ll extract behavior rather than copy it, record provenance where known, and gate incorporation with you. **The prompt policy is content-only with no `tool_gate`; the advisory judge rules are operator-visible, reversible, never silent blockers.**
+
+**What does “good” look like for this PR-review persona?**

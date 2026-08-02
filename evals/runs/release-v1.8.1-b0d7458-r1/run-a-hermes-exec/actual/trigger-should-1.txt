@@ -1,0 +1,5 @@
+What idea should the skill package help someone accomplish, and should the end result be a **project, persona, or one or more skills**?
+
+Want to give me anything to work from—a link, pasted text, file, example, or constraints? I’ll record and assess every input, extract behavior rather than copy, and gate with you before incorporating anything.
+
+If we author a package, **the prompt policy is content-only with no tool_gate; the advisory judge rules are operator-visible, reversible, never silent blockers.**

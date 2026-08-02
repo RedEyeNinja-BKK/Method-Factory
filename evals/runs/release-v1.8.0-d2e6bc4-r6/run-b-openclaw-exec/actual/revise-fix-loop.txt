@@ -1,0 +1,1 @@
+REVISE acknowledged. I'll diagnose the failure, rewrite while preserving intent, audit the changes, then rerun regression trials before I bring it back.

@@ -1,0 +1,1 @@
+I can use it as source material. I'll fetch the skill, validate it, classify fit, and gate it with provenance recorded as source URL + access date + license if present; license is provenance only, never a gate. If you want, I'll proceed with the registry check and return a provenance-backed assessment.

@@ -1,0 +1,1 @@
+I require review PASS + trial PASS + operator approval. The prompt policy is content-only with no tool_gate; the advisory judge rules are operator-visible, reversible, never silent blockers - the governance artifacts are deployed and verified by read-back.

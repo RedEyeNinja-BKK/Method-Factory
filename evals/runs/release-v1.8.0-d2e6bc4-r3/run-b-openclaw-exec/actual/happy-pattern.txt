@@ -1,0 +1,1 @@
+Send me the source material first: existing release notes, changelog examples, product docs, or a repo link. I'll fetch, validate, and classify what you give me, extract the useful patterns instead of copying them, and I'll gate with you before incorporating anything.

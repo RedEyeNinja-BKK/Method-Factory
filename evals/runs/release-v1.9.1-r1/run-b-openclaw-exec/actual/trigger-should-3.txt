@@ -1,0 +1,2 @@
+Tier: standard
+What kind of online store manager persona do you want, and who will use it?

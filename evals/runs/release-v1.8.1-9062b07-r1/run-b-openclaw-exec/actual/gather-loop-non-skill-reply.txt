@@ -1,0 +1,5 @@
+Understood. I’ll treat this as a **skill package** for an operator that manages database backups. No additional material is needed; I’ll proceed from your intent.
+
+The package will cover backup planning, execution, verification, retention, restore testing, failure handling, and clear safety boundaries. It will go through **Pattern → Review → Trial → Ship**. The prompt policy will be **content-only with no tool_gate**; the advisory judge rules will be **operator-visible, reversible, never silent blockers**.
+
+Working from: 0 links + 0 text blocks (0 sources unknown). Intent: create a database-backup operator skill package. Good looks like: a spec-compliant, evidence-aware, operationally useful skill that safely guides database backup and restore workflows, verifies outcomes, avoids destructive assumptions, and is ready for operator review before any deployment. Generate?

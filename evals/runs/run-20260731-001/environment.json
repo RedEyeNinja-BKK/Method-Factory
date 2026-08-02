@@ -1,0 +1,9 @@
+{
+  "model": "gpt-5.6-luna",
+  "provider": "openai",
+  "runner": "turnstone-workstream-trial",
+  "node": "localclaw-vm",
+  "repo_head": "cc549f67cc3264a6b8b356acf5f7f51549e1d2f4",
+  "evals_json_sha256": "edf5402f30e06d8652160a1cc91c05b24d0ed338ad13361374fa9ce67287a4f1",
+  "generated_at": "2026-08-01T00:00:00+07:00"
+}

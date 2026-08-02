@@ -1,0 +1,17 @@
+I can create that skill, but I’m missing the source material—the message only contains placeholders:
+
+- `(link)`
+- `(text block)`
+
+Please send:
+
+1. The link you like  
+2. The text describing the progressive-overload approach  
+3. What you want the skill to do, if more specific than “track workouts” — for example:
+   - log exercises, sets, reps, and weight
+   - suggest the next workout
+   - detect when to increase load
+   - track volume, PRs, and deloads
+   - work from natural-language entries
+
+Once you provide those, I’ll turn them into an original, usable workout-tracking skill rather than copying the source.

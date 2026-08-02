@@ -1,0 +1,3 @@
+Recorded as **user-provided spreadsheet skill material, source unknown**. I can use it by extracting its useful behavior and authoring original instructions rather than copying it; I’ll gate with you before incorporating anything.
+
+What should I build from it: a **spreadsheet skill**, a **spreadsheet-focused persona**, a **project package**, or something else?

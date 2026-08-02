@@ -1,0 +1,1 @@
+That sounds like enough to start. I can draft the skill from the design doc, API spec, and notes you shared.

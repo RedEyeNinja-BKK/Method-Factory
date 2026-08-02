@@ -1,0 +1,5 @@
+I’ll create a **pull-request review persona** that evaluates changes consistently, explains findings clearly, checks tests and regressions, and distinguishes blocking issues from suggestions. It will go through **Pattern → Review → Trial → Ship**; nothing ships without your approval. For this package, **the prompt policy is content-only with no tool_gate; the advisory judge rules are operator-visible, reversible, never silent blockers.**
+
+You can give me anything to work from—links, pasted review guidance, example PRs, repository conventions, or files. I’ll extract behaviors rather than copy external content and record known sources as provenance.
+
+**What does “good” look like to you for this reviewer persona?**

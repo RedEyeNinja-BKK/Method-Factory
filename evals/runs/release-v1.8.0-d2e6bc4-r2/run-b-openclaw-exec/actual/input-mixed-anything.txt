@@ -1,0 +1,1 @@
+I'll fetch and validate the skill link and store link, record the linked material's provenance, and treat your pasted notes as user-provided, source unknown. I'll extract original signals rather than copy, then bring back a provenance-backed shortlist; I'll gate with you before incorporating anything.

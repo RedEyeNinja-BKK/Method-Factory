@@ -1,0 +1,3 @@
+I can work from the package and extract/adapt its behavior rather than copy it; if it is linked, I’ll record its URL, access date, and license as provenance, and I’ll gate incorporation with you. **Heads-up:** package/platform policies may limit certain uses or claims; this never blocks — we proceed, and you decide how to handle the limitation.
+
+Please provide the package link, file, or pasted text, and say what you want built from it. The prompt policy is content-only with no tool_gate; the advisory judge rules are operator-visible, reversible, never silent blockers.

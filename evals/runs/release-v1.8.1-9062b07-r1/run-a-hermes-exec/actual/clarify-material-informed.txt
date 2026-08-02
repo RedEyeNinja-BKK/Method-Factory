@@ -1,0 +1,5 @@
+I’ll treat the pasted volume-based tracker as **user-provided material, source unknown**. I’ll extract its useful behavior rather than copy it, and use it as the basis for an original, Agent Skills–compliant workout-tracking skill. You can add any other notes, examples, links, or files; I’ll record each input and gate incorporation with you.
+
+**Heads-up:** workout tracking touches wellness, so the generated skill will distinguish record-keeping from medical or individualized training advice; this never blocks — we proceed, you decide.
+
+Should the new skill **match the pasted tracker’s approach or improve on it**?

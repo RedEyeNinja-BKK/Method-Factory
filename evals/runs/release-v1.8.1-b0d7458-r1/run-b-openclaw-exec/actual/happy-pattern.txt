@@ -1,0 +1,7 @@
+Yes. I’ll generate a **skill package for writing project release notes**, not the release notes themselves.
+
+Want to give me anything to work from? A link, pasted text, file, example release note, changelog style, or repository convention — anything helps. I’ll extract useful behavior and author original instructions; known sources will be recorded as provenance, while source-unknown material will be recorded as **user-provided, source unknown**. I’ll gate with you before incorporating anything.
+
+The package will include reviewable governance helpers: **the prompt policy is content-only with no tool_gate; the advisory judge rules are operator-visible, reversible, never silent blockers.**
+
+What does “good” look like for the finished skill — for example, concise customer-facing notes, technical developer changelogs, or both?

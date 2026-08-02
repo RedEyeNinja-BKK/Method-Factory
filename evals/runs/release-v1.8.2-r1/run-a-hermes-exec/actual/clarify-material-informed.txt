@@ -1,0 +1,8 @@
+Recorded: **1 pasted text block**, user-provided with **source unknown**. I’ll extract the tracker’s behavior rather than copy its wording, and preserve provenance accordingly.
+
+I’ll develop an original **workout-tracking skill** focused on logging exercises, sets, reps, load, and volume, with clear calculations, reviewable records, and explicit limits around health or training advice. **The prompt policy is content-only with no `tool_gate`; the advisory judge rules are operator-visible, reversible, never silent blockers.**
+
+**Working from:** 0 links + 1 text block (source unknown).  
+**Intent:** Create a skill for tracking workouts, based on the supplied volume-based tracker concept.  
+**Good looks like:** A reliable, spec-compliant skill that consistently records workout data and calculates volume without presenting itself as medical or individualized coaching advice.  
+**Generate?**

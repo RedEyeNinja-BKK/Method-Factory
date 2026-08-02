@@ -1,0 +1,1 @@
+That's outside the package generator - routing to the general assistant. If you want a process package instead, send the target system, desired outcome, and any constraints.

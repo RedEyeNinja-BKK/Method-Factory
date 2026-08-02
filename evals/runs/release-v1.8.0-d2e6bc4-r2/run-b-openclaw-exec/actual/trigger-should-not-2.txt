@@ -1,0 +1,1 @@
+Which README file should I summarize? Give me the path, link, or paste the text, and I'll treat pasted content as user-provided, source unknown.

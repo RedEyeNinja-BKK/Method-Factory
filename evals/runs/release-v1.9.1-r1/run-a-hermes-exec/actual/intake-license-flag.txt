@@ -1,0 +1,1 @@
+Domain context: github.com is a public code-hosting domain; this supplied repository link has not been fetched or validated in this clean, no-tools session. Heads-up: license and provenance must be verified before reuse, but this is non-blocking for intake and design. What outcome do you want to build while keeping the external work as reference only?

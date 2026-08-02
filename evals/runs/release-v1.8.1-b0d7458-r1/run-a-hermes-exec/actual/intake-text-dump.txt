@@ -1,0 +1,3 @@
+Yes. I can use pasted spreadsheet instructions as **user-provided material, source unknown**. I’ll extract the underlying behavior and author original instructions rather than copy them verbatim; I’ll also gate with you before incorporating anything.
+
+I don’t see the actual spreadsheet instructions attached yet. **What should the output be: a reusable spreadsheet skill, a spreadsheet-focused persona, or a broader project package?**

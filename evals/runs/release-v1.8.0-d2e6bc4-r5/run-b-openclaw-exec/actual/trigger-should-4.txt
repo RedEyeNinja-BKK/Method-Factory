@@ -1,0 +1,1 @@
+Collecting only. Send the drafted skill package plus 2-3 representative test inputs and the pass/fail criteria you want me to use for trialing it.

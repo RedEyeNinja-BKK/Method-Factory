@@ -1,0 +1,1 @@
+Tier: standard. What source should the release-notes skill treat as authoritative?

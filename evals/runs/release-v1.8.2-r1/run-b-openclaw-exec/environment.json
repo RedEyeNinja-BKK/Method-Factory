@@ -1,0 +1,12 @@
+{
+  "model": "gpt-5.6-terra",
+  "provider": "openai",
+  "node": "localclaw-vm",
+  "repo_head": "043a887360617769a0919fee780d769e7149527a",
+  "evals_json_sha256": "9413cc2c4d8ae483920372aef97aecd50b3a28749e7d961533b9b040f1a953be",
+  "generated_at": "2026-08-02T08:05:04.126553+07:00",
+  "hashes": {
+    "prompt_hash": "0044a031fcc8ebe0a2b831da5a5c2484d7e60d9ec3f7a3515386ec6cd4fcb13a",
+    "package_hash": "7f57444b29cc14ffb44c6efdd67e5adddc43df3c36f0c5fac24c2010b7ca7d05"
+  }
+}

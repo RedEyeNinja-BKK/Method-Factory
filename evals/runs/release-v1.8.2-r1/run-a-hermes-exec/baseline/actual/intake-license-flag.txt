@@ -1,0 +1,1 @@
+I can inspect the repository and record its URL, access date, and license status as provenance. The license is important for deciding what can be reused, but it is not a gate to analysis; I'll extract original techniques rather than copy protected text, and gate with you before incorporating anything.

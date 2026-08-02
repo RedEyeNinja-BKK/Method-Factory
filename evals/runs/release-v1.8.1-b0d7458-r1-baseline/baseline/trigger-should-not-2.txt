@@ -1,0 +1,101 @@
+# README summary
+
+**Process Engine** is a portable, skill-based framework for creating complete agent packages—not just system prompts. Given an idea and supporting material, it produces:
+
+- A project definition
+- An agent persona
+- Six structured skills
+- Session templates
+- Evaluation cases
+
+Its goal is to apply engineering discipline to agent development.
+
+## Core workflow
+
+The engine follows a gated pipeline:
+
+```text
+Intent
+  → Orient
+  → Collect material
+  → Clarify requirements
+  → Define objective
+  → Summary confirmation
+  → Pattern/package authoring
+  → Review
+  → Trial
+  → Ship
+  → Verify and record evidence
+  → Triage feedback
+```
+
+The operator remains the decision-maker:
+
+- Nothing proceeds without the relevant sign-off.
+- Nothing ships without trials.
+- Supplied material is adapted rather than copied.
+- Sources are attributed where known.
+- The engine provides guidance but does not act as a “police officer.”
+
+## Turnstone integration
+
+Process Engine works on any Agent Skills-compatible platform, but Turnstone adds governance features:
+
+- Projects
+- Personas
+- Skills
+- Prompt policies
+- Judge rules
+- Audit evidence
+- Read-back verification
+
+The generated packages remain portable. Turnstone-specific governance is an additional platform layer, not a requirement for using the core package.
+
+## Included components
+
+The repository contains six skills:
+
+1. `process-engine-core` — entry point, routing, pipeline, and standards
+2. `process-engine-pattern-author` — creates the package
+3. `process-engine-review` — performs the review gate
+4. `process-engine-trial` — runs adversarial evaluation cases
+5. `process-engine-ship` — deploys and verifies approved packages
+6. `process-engine-triage` — turns feedback into engine improvements
+
+It also includes seven reference documents, a persona definition, six session templates, and evaluation cases.
+
+## Intended users
+
+It is a good fit for people who:
+
+- Build personas, skills, or agent packages
+- Want requirements clarification before generation
+- Value review, evidence, trials, and deployment verification
+- Need packages usable across multiple agent clients
+
+It is not intended to be:
+
+- A one-click UI
+- A deterministic semantic grading system
+- An automated compliance solution for regulated domains
+
+## Usage
+
+The normal interaction begins with an idea. The engine first asks what material is available, then clarifies the goal and defines what “good” means before generating anything.
+
+For non-Turnstone clients, install all six `process-engine-*` skills. Installing only `process-engine-core` provides a minimal orientation and intake mode, not the complete author-to-ship workflow.
+
+For Turnstone deployment, the README describes creating the project, persona, skills, templates, prompt policy, and Judge rule, followed by read-back verification and evaluation trials.
+
+## Current status and caveat
+
+The README describes **release v1.8.1**, focused on evidence sealing, timestamp measurement, baseline support, hardened trial configuration, and validator enforcement.
+
+It explicitly cautions that:
+
+- Historical v1.8.0 evidence must not be treated as a v1.8.1 PASS.
+- The mirrored v1.8.1 rerun is still pending seal.
+- Core content portability is credible.
+- Full end-to-end behavior on non-Turnstone clients has been provisioned but not yet executed.
+
+The project is MIT licensed and includes architecture, governance, specification, and case-study documentation.

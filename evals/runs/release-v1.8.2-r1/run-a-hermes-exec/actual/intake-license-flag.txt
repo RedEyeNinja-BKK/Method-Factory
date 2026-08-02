@@ -1,0 +1,7 @@
+I’ll treat this as **skill material from a registry**: fetch and validate it, classify its provenance and proprietary license, extract behaviors rather than copy the text, and record the known source URL, access date, and license as provenance metadata. **I’ll gate with you before incorporating anything.**
+
+Heads-up: the proprietary license may limit redistribution or derivative use; this is non-blocking—we can still inspect and adapt only what the license permits, and you decide.
+
+**What is the registry URL or exact skill name?**
+
+The prompt policy is content-only with no tool_gate; the advisory judge rules are operator-visible, reversible, never silent blockers.

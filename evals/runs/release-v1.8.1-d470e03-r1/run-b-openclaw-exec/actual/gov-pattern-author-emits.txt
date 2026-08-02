@@ -1,0 +1,5 @@
+I’ll build this as a **database-backup operator skill package**—an operational skill for planning, executing, verifying, and documenting backups, with safety boundaries and recovery checks.
+
+**Heads-up:** backup operations can affect data integrity, storage, credentials, and recovery readiness; this is non-blocking—we proceed with explicit safeguards, review gates, and trials. The prompt policy will be **content-only with no `tool_gate`**; the advisory judge rules will be **operator-visible, reversible, never silent blockers**.
+
+Want to give me anything to work from—a link, pasted procedure, existing skill, database/platform details, or file?

@@ -1,0 +1,7 @@
+Yes — I’ll generate a **skill package** for an original, standards-compliant release-notes writer, then take it through **Pattern → Review → Trial → Ship**. Nothing will ship without your approval.
+
+You can give me anything useful to work from — release-note examples, changelog conventions, repository links, preferred tone, templates, or project constraints. I’ll extract behaviors rather than copy external content, and record sources as provenance when applicable.
+
+The prompt policy is content-only with no tool_gate; the advisory judge rules are operator-visible, reversible, never silent blockers.
+
+**What does “good” release-note writing look like to you?**

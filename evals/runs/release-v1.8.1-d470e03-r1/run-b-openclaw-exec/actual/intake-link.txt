@@ -1,0 +1,5 @@
+Yes — I can use it as **reference material**.
+
+I’ll fetch and validate the CSV Toolkit skill, classify which techniques are relevant, record its source URL, access date, and license as provenance, and extract its behavior rather than copy its content. I’ll gate with you before incorporating anything.
+
+**What are you trying to build with it: a new skill, a persona, a project package, or something else?**

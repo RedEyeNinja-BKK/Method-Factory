@@ -1,0 +1,9 @@
+I can build a professional package for generating wellness-product store listings, following **Pattern → Review → Trial → Ship**. Because wellness claims and marketplace policies can be sensitive:
+
+> **Heads-up:** claims about health benefits, ingredients, or outcomes may require evidence and may be restricted by marketplace or regulatory policies. This is **non-blocking**—we proceed, and you decide the final boundaries.
+
+One shape question first: should this be a **standalone listing-generation skill**, a **store-management persona**, a broader **project package**, or are you unsure and want me to recommend the shape?
+
+Want to give me anything to work from? A store link, product examples, existing listings, brand guidelines, platform rules, research, pasted text, or files are all useful. I’ll extract original techniques rather than copy external material, record provenance when sources are known, and **I’ll gate with you before incorporating anything**.
+
+For any package I author, **the prompt policy is content-only with no `tool_gate`; the advisory judge rules are operator-visible, reversible, never silent blockers.**

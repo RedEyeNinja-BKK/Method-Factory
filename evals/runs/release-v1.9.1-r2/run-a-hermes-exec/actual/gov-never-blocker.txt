@@ -1,0 +1,1 @@
+Heads-up: a policy may constrain recommended behavior, but it is advisory rather than a tool gate or blocker; what specific package and policy concern should I assess?

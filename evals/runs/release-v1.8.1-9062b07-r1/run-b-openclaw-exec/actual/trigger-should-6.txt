@@ -1,0 +1,1 @@
+I’m checking the package’s recorded review, trial, manifest, and operator-approval evidence before deployment. Shipping requires all four gates; I won’t infer approval from the phrase alone.

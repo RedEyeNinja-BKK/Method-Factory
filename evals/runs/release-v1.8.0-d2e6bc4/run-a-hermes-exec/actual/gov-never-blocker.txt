@@ -1,0 +1,1 @@
+Heads-up: the package policy may constrain use. Proceeding remains subject to that constraint; route conflicts to triage.

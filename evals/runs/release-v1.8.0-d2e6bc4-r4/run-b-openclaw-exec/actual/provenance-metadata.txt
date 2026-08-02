@@ -1,0 +1,1 @@
+I'll use the linked skill as reference input, FETCH and VALIDATE it, then AUTHOR ORIGINAL package content from it rather than copying it. I'll record the source URL + access date + license as provenance metadata in the generated SKILL.md, and I'll gate with you before incorporating anything.

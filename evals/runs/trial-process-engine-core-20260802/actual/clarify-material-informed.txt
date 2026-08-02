@@ -1,0 +1,7 @@
+I’ll treat the pasted volume-based tracker as **user-provided, source unknown**: I’ll extract its useful behavior rather than copy it, then author an original, spec-compliant workout-tracking skill. You can also add any links, files, notes, or examples you want considered.
+
+**Heads-up:** workout guidance can affect health and injury risk; the skill will track and organize workouts, not diagnose conditions or replace qualified professional advice. This is non-blocking—we proceed; you decide.
+
+The prompt policy is content-only with no tool_gate; the advisory judge rules are operator-visible, reversible, never silent blockers.
+
+Should the new skill **match the pasted tracker’s approach** or **improve on it**?

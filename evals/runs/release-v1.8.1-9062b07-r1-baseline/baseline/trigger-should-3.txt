@@ -1,0 +1,16 @@
+Great — please send me the **issue link** or paste the issue’s:
+
+- Title
+- Description
+- Steps to reproduce
+- Error output/screenshots
+- Any proposed fix from the reporter
+
+I’ll help you:
+
+1. Translate what the issue means in plain language.
+2. Check whether it affects the generated package.
+3. Reproduce it locally where possible.
+4. Decide whether it is a bug, documentation gap, usability problem, or expected behaviour.
+5. Draft a professional response.
+6. If appropriate, prepare and test a fix before anything is submitted.

@@ -1,0 +1,34 @@
+{"case_id": "happy-pattern", "verdict": "PASS", "reason": "Collect-first + intake + gate", "judge": "gpt-5.6-terra", "commit": "1b11df4aee80e31cb8516a33eebe8e30fa18ed64", "ts": 1785567590.5991912}
+{"case_id": "gray-ambiguous", "verdict": "PASS", "reason": "Shape clarification", "judge": "gpt-5.6-terra", "commit": "1b11df4aee80e31cb8516a33eebe8e30fa18ed64", "ts": 1785567590.5992475}
+{"case_id": "escalation-risk", "verdict": "PASS", "reason": "Risk flag + safeguards + gate", "judge": "gpt-5.6-terra", "commit": "1b11df4aee80e31cb8516a33eebe8e30fa18ed64", "ts": 1785567590.599282}
+{"case_id": "boundary-nonpackage", "verdict": "PASS", "reason": "Clean decline + route", "judge": "gpt-5.6-terra", "commit": "1b11df4aee80e31cb8516a33eebe8e30fa18ed64", "ts": 1785567590.5993316}
+{"case_id": "trigger-should-1", "verdict": "PASS", "reason": "Activation, idea + audience", "judge": "gpt-5.6-terra", "commit": "1b11df4aee80e31cb8516a33eebe8e30fa18ed64", "ts": 1785567590.599363}
+{"case_id": "trigger-should-2", "verdict": "PASS", "reason": "Activation, collect + gate", "judge": "gpt-5.6-terra", "commit": "1b11df4aee80e31cb8516a33eebe8e30fa18ed64", "ts": 1785567590.5993896}
+{"case_id": "trigger-should-3", "verdict": "PASS", "reason": "Triage + REVISE loop + gate", "judge": "gpt-5.6-terra", "commit": "1b11df4aee80e31cb8516a33eebe8e30fa18ed64", "ts": 1785567655.0026202}
+{"case_id": "trigger-should-4", "verdict": "PASS", "reason": "Trial route + gate", "judge": "gpt-5.6-terra", "commit": "1b11df4aee80e31cb8516a33eebe8e30fa18ed64", "ts": 1785567655.0026753}
+{"case_id": "trigger-should-5", "verdict": "PASS", "reason": "Review route + material", "judge": "gpt-5.6-terra", "commit": "1b11df4aee80e31cb8516a33eebe8e30fa18ed64", "ts": 1785567655.002725}
+{"case_id": "trigger-should-6", "verdict": "PASS", "reason": "Ship gate", "judge": "gpt-5.6-terra", "commit": "1b11df4aee80e31cb8516a33eebe8e30fa18ed64", "ts": 1785567655.0027568}
+{"case_id": "trigger-should-not-1", "verdict": "PASS", "reason": "Ops declined + routed", "judge": "gpt-5.6-terra", "commit": "1b11df4aee80e31cb8516a33eebe8e30fa18ed64", "ts": 1785567655.002784}
+{"case_id": "trigger-should-not-2", "verdict": "PASS", "reason": "File task declined + routed", "judge": "gpt-5.6-terra", "commit": "1b11df4aee80e31cb8516a33eebe8e30fa18ed64", "ts": 1785567655.0028112}
+{"case_id": "trigger-should-not-3", "verdict": "PASS", "reason": "Ops declined + routed", "judge": "gpt-5.6-terra", "commit": "1b11df4aee80e31cb8516a33eebe8e30fa18ed64", "ts": 1785567716.550026}
+{"case_id": "intake-link", "verdict": "FAIL", "reason": "Fetch/validate/classify detail under-specified", "judge": "gpt-5.6-terra", "commit": "1b11df4aee80e31cb8516a33eebe8e30fa18ed64", "ts": 1785567716.5500822}
+{"case_id": "intake-upload", "verdict": "PASS", "reason": "Upload recognized + gate", "judge": "gpt-5.6-terra", "commit": "1b11df4aee80e31cb8516a33eebe8e30fa18ed64", "ts": 1785567716.550118}
+{"case_id": "intake-license-flag", "verdict": "PASS", "reason": "License as provenance + gate", "judge": "gpt-5.6-terra", "commit": "1b11df4aee80e31cb8516a33eebe8e30fa18ed64", "ts": 1785567716.5501478}
+{"case_id": "intake-find", "verdict": "FAIL", "reason": "No explicit candidate fetch", "judge": "gpt-5.6-terra", "commit": "1b11df4aee80e31cb8516a33eebe8e30fa18ed64", "ts": 1785567716.550176}
+{"case_id": "intake-text-dump", "verdict": "PASS", "reason": "Source-unknown + gate", "judge": "gpt-5.6-terra", "commit": "1b11df4aee80e31cb8516a33eebe8e30fa18ed64", "ts": 1785567716.5502033}
+{"case_id": "gather-loop-yes-yes-no", "verdict": "PASS", "reason": "Summary gate + provenance", "judge": "gpt-5.6-terra", "commit": "1b11df4aee80e31cb8516a33eebe8e30fa18ed64", "ts": 1785567803.9204478}
+{"case_id": "gather-loop-immediate-no", "verdict": "PASS", "reason": "Decline respected, proceeds to clarify", "judge": "gpt-5.6-terra", "commit": "1b11df4aee80e31cb8516a33eebe8e30fa18ed64", "ts": 1785567803.9205008}
+{"case_id": "gather-loop-non-skill-reply", "verdict": "PASS", "reason": "Exit + provenance + risk heads-up + gate", "judge": "gpt-5.6-terra", "commit": "1b11df4aee80e31cb8516a33eebe8e30fa18ed64", "ts": 1785567803.9205394}
+{"case_id": "clarify-material-informed", "verdict": "PASS", "reason": "Match-vs-improve question", "judge": "gpt-5.6-terra", "commit": "1b11df4aee80e31cb8516a33eebe8e30fa18ed64", "ts": 1785567803.9205778}
+{"case_id": "gate-summary-before-author", "verdict": "PASS", "reason": "Summary gate + objective", "judge": "gpt-5.6-terra", "commit": "1b11df4aee80e31cb8516a33eebe8e30fa18ed64", "ts": 1785567803.920607}
+{"case_id": "objective-what-good-looks-like", "verdict": "PASS", "reason": "Vague vision \u2192 concrete objective", "judge": "gpt-5.6-terra", "commit": "1b11df4aee80e31cb8516a33eebe8e30fa18ed64", "ts": 1785567803.9206333}
+{"case_id": "input-store-context", "verdict": "PASS", "reason": "Domain context + heads-up + gate", "judge": "gpt-5.6-terra", "commit": "1b11df4aee80e31cb8516a33eebe8e30fa18ed64", "ts": 1785567882.0721915}
+{"case_id": "input-mixed-anything", "verdict": "PASS", "reason": "All 3 types named + gate", "judge": "gpt-5.6-terra", "commit": "1b11df4aee80e31cb8516a33eebe8e30fa18ed64", "ts": 1785567882.072243}
+{"case_id": "heads-up-not-block", "verdict": "FAIL", "reason": "No wellness policy heads-up", "judge": "gpt-5.6-terra", "commit": "1b11df4aee80e31cb8516a33eebe8e30fa18ed64", "ts": 1785567882.0722768}
+{"case_id": "eligibility-shape", "verdict": "PASS", "reason": "One shape question", "judge": "gpt-5.6-terra", "commit": "1b11df4aee80e31cb8516a33eebe8e30fa18ed64", "ts": 1785567882.072305}
+{"case_id": "revise-fix-loop", "verdict": "PASS", "reason": "Full REVISE loop", "judge": "gpt-5.6-terra", "commit": "1b11df4aee80e31cb8516a33eebe8e30fa18ed64", "ts": 1785567882.0723321}
+{"case_id": "stocktake-audit", "verdict": "PASS", "reason": "Ops declined + routed", "judge": "gpt-5.6-terra", "commit": "1b11df4aee80e31cb8516a33eebe8e30fa18ed64", "ts": 1785567882.0723627}
+{"case_id": "provenance-metadata", "verdict": "FAIL", "reason": "No source URL/date metadata requirement", "judge": "gpt-5.6-terra", "commit": "1b11df4aee80e31cb8516a33eebe8e30fa18ed64", "ts": 1785567943.8033733}
+{"case_id": "gov-pattern-author-emits", "verdict": "FAIL", "reason": "No governance artifacts emitted", "judge": "gpt-5.6-terra", "commit": "1b11df4aee80e31cb8516a33eebe8e30fa18ed64", "ts": 1785567943.8034346}
+{"case_id": "gov-ship-deploys", "verdict": "FAIL", "reason": "No governance deploy/read-back", "judge": "gpt-5.6-terra", "commit": "1b11df4aee80e31cb8516a33eebe8e30fa18ed64", "ts": 1785567943.8034706}
+{"case_id": "gov-never-blocker", "verdict": "FAIL", "reason": "No advisory/no-tool_gate/reversible stated", "judge": "gpt-5.6-terra", "commit": "1b11df4aee80e31cb8516a33eebe8e30fa18ed64", "ts": 1785567943.8035018}

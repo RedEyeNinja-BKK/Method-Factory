@@ -1,0 +1,7 @@
+**Good looks like:** a practical store-review package that identifies the highest-impact improvements, explains *why* they matter, prioritizes them by likely sales benefit versus effort, and avoids low-value busywork.
+
+Heads-up: marketplace policies and product-claim rules may affect what can be recommended; this never blocks — we proceed; you decide.
+
+You can provide any material that helps: your store link, product listings, screenshots, notes, or examples. I’ll treat links as domain context, extract useful review behavior rather than copy content, and gate everything with you before incorporating it. **The prompt policy is content-only with no `tool_gate`; the advisory judge rules are operator-visible, reversible, never silent blockers.**
+
+**One decision first:** should this package be a reusable **store-review skill** you can run repeatedly, or a one-time **store-audit project/package** for your current store?

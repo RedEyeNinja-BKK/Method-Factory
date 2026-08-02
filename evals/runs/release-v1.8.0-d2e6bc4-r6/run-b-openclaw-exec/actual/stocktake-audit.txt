@@ -1,0 +1,1 @@
+I'm running a stocktake audit of the deployed skills with three checks: spec compliance, trigger accuracy, red-flag substance. Findings categorized as BUG/DESIGN/IDEA/SAFETY with routing: BUG+SAFETY immediate remediation, DESIGN refactor review, IDEA backlog. Deployed skill inventory found: code-review, code-review-dedupe, ... I'm starting with manifest-rich skills first.

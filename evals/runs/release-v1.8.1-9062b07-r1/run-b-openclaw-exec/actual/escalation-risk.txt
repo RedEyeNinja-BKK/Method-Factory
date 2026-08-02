@@ -1,0 +1,5 @@
+I’ll treat this as a **risk-relevant financial-advice package**. **Heads-up:** financial guidance may trigger regulatory, suitability, disclosure, and consumer-protection requirements; this is non-blocking—we proceed, and you decide the boundaries. The package will include explicit limits, escalation rules, evidence requirements, and verification criteria rather than unsupported claims.
+
+You can provide any material you want me to work from—links, pasted text, files, examples, or product notes. I’ll record each input, extract behaviors rather than copy content, and gate incorporation with you. The generated package will explicitly include **the prompt policy as content-only with no `tool_gate`; the advisory judge rules are operator-visible, reversible, never silent blockers**.
+
+**What shape should I generate: a project, a persona, one or more skills, or a non-artifact package?**

@@ -1,0 +1,20 @@
+{
+  "run_id": "release-v1.8.1-9062b07-r1",
+  "commit": "9062b07a766dad8aad3c769a5d39f438c0a412d3",
+  "engine_version": "1.8.1",
+  "protocol": "mirrored-dual-source",
+  "run_a": {
+    "executor": "turnstone-orchestrator",
+    "verifier": "openclaw-main",
+    "model": "gpt-5.6-terra",
+    "result": "34 PASS / 0 FAIL / 0 PENDING"
+  },
+  "run_b": {
+    "executor": "turnstone-orchestrator",
+    "verifier": "hermes-gateway",
+    "model": "gpt-5.6-terra",
+    "result": "34 PASS / 0 FAIL / 0 PENDING"
+  },
+  "baseline": "executed",
+  "sealed_at": "9062b07a766dad8aad3c769a5d39f438c0a412d3"
+}

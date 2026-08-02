@@ -1,0 +1,11 @@
+Understood. I’ll proceed with no additional source material.
+
+**Heads-up:** backup operations affect data durability and recovery. The package will therefore require verification, restore testing, least-privilege access, clear failure handling, and explicit scope limits. This never blocks us—we proceed; you decide.
+
+**Working from:** 0 links + 0 text blocks (0 sources unknown)  
+**Intent:** Create an Agent Skills–compliant package for a database-backup operator skill.  
+**Good looks like:** A practical, auditable operator skill that guides backup configuration, execution, monitoring, retention, encryption, failure recovery, and restore verification without silently claiming that a backup is usable until restoration has been tested.
+
+The package will include explicit acceptance criteria and the canonical governance artifacts: **the prompt policy is content-only with no tool_gate; the advisory judge rules are operator-visible, reversible, never silent blockers.**
+
+**Generate?**

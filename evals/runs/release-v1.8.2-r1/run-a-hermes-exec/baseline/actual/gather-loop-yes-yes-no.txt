@@ -1,0 +1,1 @@
+Working from: 2 links + 0 text blocks (0 sources unknown). Intent: create a team skill using the design document and API specification. Good looks like: a practical, specification-aligned skill that applies the documented process and API correctly. Generate?

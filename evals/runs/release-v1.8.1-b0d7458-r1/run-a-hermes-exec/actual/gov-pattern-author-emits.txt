@@ -1,0 +1,7 @@
+I’ll build a **database-backup operator skill package** that follows:
+
+**Pattern → Review → Trial → Ship**
+
+**Heads-up:** backup operations can affect data retention, recovery, credentials, and production availability. I’ll make the package explicit about safety checks, least privilege, restore verification, and scope limits; this is **non-blocking—we proceed, and you decide**.
+
+Want to give me anything to work from? A link, pasted runbook, existing skill, file, database/platform details, or examples are all useful. I’ll record and assess each item, extract behavior rather than copy external text, and gate incorporation with you. The package will also include **the prompt policy, which is content-only with no `tool_gate`; the advisory judge rules are operator-visible, reversible, never silent blockers.**

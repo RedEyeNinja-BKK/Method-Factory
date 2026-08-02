@@ -1,0 +1,5 @@
+I can design a professional package for a **financial-guidance tool**, including its persona, skills, safeguards, evidence requirements, review gates, and trial plan.
+
+Because this is a risk-relevant domain, the package will need to distinguish clearly between **general financial education**, **personalized guidance**, and **regulated financial advice**. It must not claim authority or suitability beyond its evidence, jurisdiction, and intended scope.
+
+Want to give me anything to work from? A link, some pasted text, a file, an example tool, or regulatory guidance — anything that helps.

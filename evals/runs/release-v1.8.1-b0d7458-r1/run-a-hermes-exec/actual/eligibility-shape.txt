@@ -1,0 +1,10 @@
+I can build this as a **project, persona, skill(s), or a small combination** for your shop. Which outcome do you want most?
+
+1. **Shop operator persona** — an assistant that helps run the shop  
+2. **Specific skill(s)** — for example, product listings, SEO, customer replies, or marketing  
+3. **Complete shop package** — persona + supporting skills + operating instructions  
+4. **Something else**
+
+Want to give me anything to work from? A shop link, product examples, notes, existing prompts, or files are all useful. I’ll extract and author original guidance rather than copy material, record provenance where sources are known, and gate incorporation with you.
+
+**Heads-up:** if this involves marketplace claims, product promises, or regulated categories, those policies may matter; this never blocks us—we proceed and you decide. The eventual package will include **a content-only prompt policy with no `tool_gate`** and **operator-visible, reversible advisory judge rules that are never silent blockers**.

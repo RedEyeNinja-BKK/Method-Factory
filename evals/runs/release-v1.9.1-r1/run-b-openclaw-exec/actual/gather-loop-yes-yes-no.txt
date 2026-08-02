@@ -1,0 +1,1 @@
+Tier: standard. Working from: 2 links + 0 text blocks (0 sources unknown). Intent: build a team skill from the design doc and API spec. Good looks like: concise, reusable, reviewable, and ready to draft. Generate?

@@ -1,0 +1,9 @@
+I’ll treat these as three accepted inputs:
+
+- **Skill material:** extract behavior, attribute the source, and author original instructions rather than copy.
+- **Store link:** use as domain context to shape the package, never publish it.
+- **Pasted notes:** record as user-provided material; if no source is included, it remains “source unknown.”
+
+I’ll intake, validate, classify, and record provenance for any known URLs, then gate with you before incorporating anything. **Heads-up:** marketplace policies may restrict certain claims or marketing language; this never blocks — we proceed; you decide.
+
+For the package shape, should this be a **project**, **persona**, **skill(s)**, or **a combination package**?

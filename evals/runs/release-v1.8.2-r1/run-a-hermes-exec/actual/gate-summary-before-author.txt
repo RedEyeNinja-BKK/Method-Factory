@@ -1,0 +1,1 @@
+I'll treat both links as operator-provided inputs, then fetch, validate, classify, and gate them with you before incorporating them. Working from: the two provided links. Intent: create a meal-planning skill. Good looks like: practical meal plans aligned with the supplied material. Generate?

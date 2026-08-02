@@ -1,0 +1,1 @@
+Domain context: github.com is a public code-hosting domain; this supplied repository link has not been fetched or validated in this clean, no-tools session. Heads-up: external skill reuse can introduce provenance, security, and license constraints; this is explicitly non-blocking. What outcome should the reviewed skill support for your team?

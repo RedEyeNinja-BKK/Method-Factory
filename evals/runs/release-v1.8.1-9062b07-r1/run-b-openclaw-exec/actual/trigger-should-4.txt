@@ -1,0 +1,39 @@
+## Trial complete: `process-engine-trial` v1.8.2 draft
+
+**Verdict: `REVISE / NOT SHIP`**
+
+### Static behavioral results
+
+| Case group | Result |
+|---|---:|
+| Scenario cases | 4/4 PASS |
+| Should-trigger cases | 10/10 PASS |
+| Should-not-trigger cases | 10/10 PASS |
+| **Specification coverage** | **24/24 PASS** |
+
+The draft clearly specifies the intended trial behavior: fixtures, adversarial cases, baselines, independent verification, instrumentation, regression handling, and the operator approval gate.
+
+### Release-blocking findings
+
+1. **Evidence filename conflict**  
+   The draft references both `summary.json` and `release-record.json` without selecting one canonical artifact.
+
+2. **Baseline schema is underspecified**  
+   Paired without-package baselines are required, but there is no complete machine-readable schema clearly distinguishing:
+   - mirrored with-package Run A,
+   - mirrored with-package Run B,
+   - paired without-package baselines.
+
+3. **No runtime qualification yet**  
+   This trial was static because this session cannot produce the required live activation telemetry, immutable runtime transcripts, token counts, and duration measurements.
+
+4. **Case-set quality issue**  
+   `evals/evals.json` contains a duplicate top-level `artifact` key and should be cleaned before runtime execution.
+
+Evidence saved and JSON-validated at:
+
+```text
+evals/process-engine-trial-v1.8.2-static-trial-2026-08-02-r2.json
+```
+
+The skill is **not eligible to ship** until findings 1, 2, and 4 are corrected and the fully instrumented mirrored runtime trial is completed.

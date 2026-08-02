@@ -1,0 +1,1 @@
+I'll fetch and validate the store URL, classify it as domain context, and use it only as input, never as published content. If you have target keywords, audience, or constraints, send them over now; I'll gate with you before incorporating anything.

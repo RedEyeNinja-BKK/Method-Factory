@@ -1,0 +1,1 @@
+I'll diagnose the issue, rewrite preserving intent, audit, and re-run regression trials. Provide the issue and affected package material; I'll gate with you before incorporating anything.

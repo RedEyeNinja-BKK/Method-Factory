@@ -1,0 +1,1 @@
+I’ll verify the package manifest, review PASS, trial PASS, and the recorded operator approval first. Shipping proceeds only if all four are present; governance artifacts will be deployed and verified by read-back.

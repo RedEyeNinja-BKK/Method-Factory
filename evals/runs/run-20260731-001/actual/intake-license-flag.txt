@@ -1,0 +1,3 @@
+What would you like to build with this skill?
+
+Please share the skill itself in any form available—a registry link, pasted text, uploaded file, or local path. I’ll treat it as source material, extract useful techniques, and author an original package rather than copying proprietary content.

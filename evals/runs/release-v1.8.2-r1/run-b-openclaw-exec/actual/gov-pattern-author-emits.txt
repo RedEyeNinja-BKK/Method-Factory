@@ -1,0 +1,1 @@
+Heads-up: I can build that, but I need the policy material first. What exact merge-gating rules should the skill enforce?

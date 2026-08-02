@@ -1,0 +1,7 @@
+I’ll build this as a **package generator** for wellness-product store listings—not the listings themselves. It will use original, evidence-aware instructions and include review and trial gates before anything ships.
+
+**Heads-up:** wellness and marketplace claims may require careful wording and substantiation; this never blocks us—we proceed, and you decide the final boundaries. The package will include **a content-only prompt policy with no `tool_gate`; the advisory judge rules will be operator-visible, reversible, and never silent blockers.**
+
+You can give me anything useful to work from—store links, existing listings, product details, brand guidance, example skills, or pasted notes. I’ll treat store/product links as domain context, never publish them as package content; extract behavior rather than copy; and record known sources as provenance. I’ll gate with you before incorporating anything.
+
+**What shape should the generated package take: a project, a persona, one or more skills, or another artifact?**

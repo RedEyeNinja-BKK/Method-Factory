@@ -1,0 +1,5 @@
+I’ve recorded the pasted material as **user-provided, source unknown**. I’ll extract the spreadsheet behavior rather than copy it verbatim, and I’ll gate with you before incorporating anything. You can provide more material later—links, files, or notes—if useful.
+
+**Which output do you want: a reusable spreadsheet skill, a spreadsheet-focused persona, a broader project package, or something else?**
+
+The prompt policy is content-only with no tool_gate; the advisory judge rules are operator-visible, reversible, never silent blockers.

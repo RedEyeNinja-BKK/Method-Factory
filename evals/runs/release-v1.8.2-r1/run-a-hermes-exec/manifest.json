@@ -1,0 +1,20 @@
+{
+  "run_id": "release-v1.8.2-r1-run-a-hermes-exec",
+  "commit": "c5ac13553e27bb2716f7fe406f43bd316d3a2e83",
+  "engine_version": "1.8.2",
+  "iteration": "final-release",
+  "protocol": "mirrored-dual-source",
+  "executor": "turnstone-orchestrator",
+  "verifier": "openclaw-main",
+  "model": "gpt-5.6-terra",
+  "case_count": 34,
+  "passed": 34,
+  "failed": 0,
+  "pending": 0,
+  "start": "2026-08-02T05:54:25+07:00",
+  "completion": "2026-08-02T07:45:47+07:00",
+  "baseline_status": "not-executed",
+  "prompt_hash": "0044a031fcc8ebe0a2b831da5a5c2484d7e60d9ec3f7a3515386ec6cd4fcb13a",
+  "package_hash": "c9de3dab8ab94e1aad89cd3f41947378e1b3dd6556cce4049f5dfae574d0b388",
+  "sealed_at": "c5ac13553e27bb2716f7fe406f43bd316d3a2e83"
+}

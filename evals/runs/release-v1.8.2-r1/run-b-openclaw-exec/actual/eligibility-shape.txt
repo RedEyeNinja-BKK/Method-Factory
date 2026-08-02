@@ -1,0 +1,3 @@
+I can package this as a **project, persona, skill(s), or a combination** for your shop. Which should be the primary result: **a shop-operating persona, a reusable skill, or a complete package combining both**?
+
+The prompt policy is content-only with no `tool_gate`; the advisory judge rules are operator-visible, reversible, never silent blockers.

@@ -1,0 +1,9 @@
+Understood: you want a **package for a database-backup operator skill**.
+
+Want to give me anything to work from? A link, pasted text, existing skill, runbook, database/platform details, example commands, or files — anything that helps. I’ll record and account for every input, extract behaviors rather than copy external content, and gate with you before incorporating anything.
+
+**Heads-up:** database backups involve operational and data-loss risk, so the package will include explicit safety boundaries, verification steps, restore trials, and failure handling. This is non-blocking—we proceed, and you decide the boundaries.
+
+The generated package will also name its governance artifacts explicitly: **the prompt policy is content-only with no `tool_gate`; the advisory judge rules are operator-visible, reversible, never silent blockers.**
+
+What database environments should this operator skill cover—one specific system, such as PostgreSQL/MySQL/SQLite, or multiple systems?

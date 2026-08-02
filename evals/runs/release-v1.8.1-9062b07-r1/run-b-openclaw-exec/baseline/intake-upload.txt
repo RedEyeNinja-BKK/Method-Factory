@@ -1,0 +1,10 @@
+Understood. I’ll treat the attached internal skill file as reference material for this session.
+
+Tell me what you’d like me to do with it—for example:
+
+- review or summarize it,
+- compare it with the current Process Engine behavior,
+- identify gaps or contradictions,
+- adapt it into a new skill,
+- test its procedures against the codebase, or
+- apply it to a specific task.

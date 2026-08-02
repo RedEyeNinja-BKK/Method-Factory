@@ -1,0 +1,3 @@
+Yes—I can use it as reference material. I’ll fetch, validate, and classify the skill; record its URL, access date, and license as provenance; and extract its useful behavior into original instructions rather than copying it. I’ll gate with you before incorporating anything.
+
+What do you want to build with it: a standalone CSV skill, or should it be incorporated into another package?

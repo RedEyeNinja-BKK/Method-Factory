@@ -1,0 +1,10 @@
+{
+  "run_id": "release-v1.8.1-9062b07-r1-baseline",
+  "baseline_status": "executed",
+  "engine_version": "1.8.1",
+  "model": "gpt-5.6-luna",
+  "case_count": 34,
+  "passed": 10,
+  "completion": "2026-08-02T01:09:15.379116+07:00",
+  "note": "Generic assistant (no persona/skill) baseline; heuristic grading, qualitative comparison only."
+}

@@ -1,0 +1,20 @@
+{
+  "run_id": "release-v1.9.1-r1-run-b-openclaw-exec",
+  "commit": "d84f49baa4404cddddb15b0d44653039ab702bb7",
+  "engine_version": "1.9.1",
+  "iteration": "final-release",
+  "protocol": "dual-verifier",
+  "executor": "turnstone-orchestrator",
+  "verifier": "hermes-gateway",
+  "model": "gpt-5.6-terra",
+  "case_count": 34,
+  "passed": 15,
+  "failed": 19,
+  "pending": 0,
+  "start": "2026-08-02T22:05:50+07:00",
+  "completion": "2026-08-02T22:15:50+07:00",
+  "sealed_at": "d84f49baa4404cddddb15b0d44653039ab702bb7",
+  "package_hash": "pending",
+  "prompt_hash": "pending",
+  "baseline_status": "not-executed"
+}

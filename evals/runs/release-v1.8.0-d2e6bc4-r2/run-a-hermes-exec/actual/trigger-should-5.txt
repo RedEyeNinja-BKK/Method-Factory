@@ -1,0 +1,1 @@
+Please provide the draft package. I'll review intent fidelity, structure, content-only prompt policy with no tool_gate, advisory judge rules, and trial readiness; I'll gate with you before incorporating anything.

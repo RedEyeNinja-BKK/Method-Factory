@@ -1,0 +1,5 @@
+I’ll build this as a **skill package** that generates store listings for your wellness products, with evidence-aware wording, platform-policy awareness, and explicit limits around health claims. **Heads-up:** wellness and marketplace policies may restrict certain claims; this never blocks us—we proceed, and you decide the final boundaries.
+
+You can give me anything to work from—product details, store links, example listings, platform requirements, brand voice notes, or existing skills. I’ll extract useful techniques rather than copy them, record provenance where sources are known, and gate incorporation with you. The package will include **a content-only prompt policy with no `tool_gate`** and **advisory judge rules that are operator-visible, reversible, and never silent blockers**.
+
+**One decision:** should the generated package be a reusable **listing-generation skill**, a broader **store-listing project/persona**, or are you unsure and want me to choose the appropriate shape?

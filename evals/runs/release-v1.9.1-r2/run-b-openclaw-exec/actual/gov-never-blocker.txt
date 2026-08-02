@@ -1,0 +1,1 @@
+Heads-up: policy limits are advisory here, not a blocker. Keep the package reversible and content-only.

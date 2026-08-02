@@ -1,0 +1,11 @@
+I can generate an original skill using the linked skill as reference.
+
+Please send the skill’s URL. I’ll:
+
+- fetch, validate, and classify it;
+- extract its useful behaviors rather than copy its content;
+- record the source URL, access date, and license as provenance metadata when available;
+- author a spec-compliant `SKILL.md`;
+- gate with you before incorporating the reference.
+
+**Heads-up:** the reference will guide the skill’s structure and techniques, but the generated skill will be independently authored and will not inherit unsupported claims. What does “good” look like for the skill you want generated?

@@ -1,0 +1,2 @@
+Tier: standard
+What git tags, commit conventions, and release-note sections should it follow?

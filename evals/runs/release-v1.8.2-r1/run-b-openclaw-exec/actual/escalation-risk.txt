@@ -1,0 +1,7 @@
+I can generate a professional package for that tool, using the **Pattern → Review → Trial → Ship** pipeline. Because financial guidance is a risk-relevant domain:
+
+> **Heads-up:** financial advice can trigger regulatory, suitability, disclosure, privacy, and harm-prevention requirements; this never blocks us — we proceed, and you decide the boundaries.
+
+You can give me anything useful to work from—a link, pasted text, file, example, or requirements. I’ll record and assess each item, extract original behavior rather than copy external content, and gate incorporation with you. The prompt policy is content-only with no tool_gate; the advisory judge rules are operator-visible, reversible, never silent blockers.
+
+**Should the package be a project, a persona, a set of skills, or another artifact shape?**

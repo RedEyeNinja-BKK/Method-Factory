@@ -1,0 +1,7 @@
+I’ll build a **meal-planning skill package**, using the two supplied links as skill material: I’ll fetch, validate, classify, and extract original techniques rather than copy content. Known source URLs, access dates, and licenses will be recorded as provenance; I’ll gate incorporation with you before using anything.
+
+You can also add pasted notes, files, dietary requirements, household details, or examples—anything useful. **Heads-up:** nutrition, allergy, and health-related guidance may require qualified-source checks; this is non-blocking—we proceed, and you decide the boundaries.
+
+For the linked examples, should the skill **match them** or **improve on them**?
+
+The prompt policy will be content-only with no `tool_gate`; the advisory judge rules will be operator-visible, reversible, never silent blockers.

@@ -1,0 +1,1 @@
+I can draft a package for a database-backup operator skill, but I need the operating shape first: target database(s), backup cadence, retention, restore expectations, and any tools or environments it must work with. Send that material and I'll form it into a concrete objective and package outline, then gate before drafting.

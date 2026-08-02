@@ -1,0 +1,9 @@
+I’ll build a package aimed at **practical store reviews that identify the highest-impact ways to sell better, prioritize actions, and avoid time-wasting advice**. Your definition of “good” is clear: useful, commercially relevant, and efficient.
+
+You can give me anything to work from—your store link, screenshots, product listings, analytics, notes, or an existing review skill. I’ll treat store links as domain context, use them to shape the package, and never publish them as package content. If you provide reference material, I’ll extract techniques rather than copy them and record provenance where available.
+
+**Heads-up:** marketplace policies and product-claim rules may affect what recommendations are safe or usable; this never blocks us—we proceed, and you decide.
+
+The prompt policy is content-only with no tool_gate; the advisory judge rules are operator-visible, reversible, never silent blockers.
+
+**One choice before I proceed:** should this package be a **review skill** you can run repeatedly, a **store-review persona/agent**, or a broader **project package** containing both?

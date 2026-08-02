@@ -1,0 +1,1 @@
+I can draft the code-review policy package, including a skill, acceptance criteria, and governance helpers. The prompt policy will be content-only with no tool_gate; the advisory judge rules will be operator-visible, reversible, and never silent blockers. I will not ship it directly: review PASS, trial PASS, and operator approval are required before deployment.

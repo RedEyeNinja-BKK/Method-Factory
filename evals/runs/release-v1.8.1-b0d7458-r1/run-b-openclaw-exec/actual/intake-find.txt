@@ -1,0 +1,6 @@
+I searched the enabled skill catalog for CSV/data-cleaning skills, then broadened the search across all available skills. **There is currently no existing skill specifically for CSV cleanup**—nothing covering normalization, deduplication, missing values, type correction, or validation.
+
+I won’t select an unrelated skill as a substitute. I can either:
+
+1. Search an external skill/package registry for an existing candidate and return a provenance-backed shortlist, or  
+2. Generate a new CSV-cleanup skill package for your review.

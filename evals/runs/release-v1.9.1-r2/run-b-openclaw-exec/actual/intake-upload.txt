@@ -1,0 +1,2 @@
+Tier: standard
+What should I do with the attached skill file: adapt it, review it, or turn it into a package?

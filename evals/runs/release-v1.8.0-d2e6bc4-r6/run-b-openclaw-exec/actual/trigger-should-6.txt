@@ -1,0 +1,1 @@
+I can ship only after review PASS, trial PASS, and operator approval are all present. If you have them, send them with the package; the prompt policy is content-only with no tool_gate, and the advisory judge rules are operator-visible, reversible, never silent blockers, deployed and verified by read-back.

@@ -1,0 +1,11 @@
+I’ll create a **workout-tracking skill** from:
+
+- **Skill material:** the linked example — I’ll fetch, validate, classify, and extract its useful behavior rather than copy it. I’ll record the source URL, access date, and license as provenance when available.
+- **User-provided text:** your progressive-overload approach, recorded as provided; if it has no identifiable source, it will be labeled **“user-provided, source unknown.”** I’ll extract the method rather than reproduce the wording.
+- **Collection status:** complete — I won’t request additional material.
+
+**Provisional objective:** produce a spec-valid skill that helps a user log workouts consistently, track progression over time, apply the supplied progressive-overload approach, and identify when information is insufficient rather than inventing training conclusions.
+
+**Heads-up:** workout guidance is a wellness-related surface, so the generated skill will include appropriate scope limits and safety escalation guidance. This is non-blocking—we proceed; you decide. The prompt policy is content-only with no tool_gate; the advisory judge rules are operator-visible, reversible, never silent blockers.
+
+**Working from:** 1 link placeholder + 1 text block (source/license currently unknown). **Intent:** create a workout-tracking skill. **Good looks like:** reliable logging, clear progression tracking, and conservative, evidence-labeled guidance. **Generate?**

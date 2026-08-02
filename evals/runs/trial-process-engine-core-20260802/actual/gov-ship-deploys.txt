@@ -1,0 +1,3 @@
+I can ship it only after verifying the package manifest, **review PASS**, **trial PASS**, and your operator approval. Governance artifacts will be deployed and verified by read-back; **the prompt policy is content-only with no `tool_gate`; the advisory judge rules are operator-visible, reversible, never silent blockers.**
+
+I’ll first verify those gates and the package identity, then ship only if all required evidence is present.

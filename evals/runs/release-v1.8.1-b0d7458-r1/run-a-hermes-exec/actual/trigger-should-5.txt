@@ -1,0 +1,13 @@
+Please provide the draft package to review—either its **path**, **package ID**, or paste/upload the contents.
+
+I’ll review it against the Process Engine gates:
+
+- intent, objective, and desired outcomes
+- input disposition and provenance
+- scope honesty and named evidence
+- Agent Skills format compliance, if applicable
+- lifecycle coverage and acceptance criteria
+- safety, privacy, and governance wiring
+- trial readiness and unresolved risks
+
+I’ll return a structured **PASS**, **REVISE**, or **FAIL** recommendation with specific findings. Review will remain a gate; nothing will be shipped or deployed from the review alone.

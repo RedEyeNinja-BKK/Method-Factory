@@ -1,0 +1,1 @@
+Objective: generate a database-backup operator package, not backup instructions themselves. Good looks like: an auditable, reusable skill package with clear operator boundaries, review criteria, regression trials, and ship-readiness artifacts. Generate?

@@ -1,0 +1,1 @@
+What work should the shop package perform end to end so I can determine whether it needs one persona, one or more skills, or both?

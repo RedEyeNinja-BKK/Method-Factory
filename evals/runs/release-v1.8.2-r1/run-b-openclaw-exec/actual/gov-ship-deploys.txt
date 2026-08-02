@@ -1,0 +1,1 @@
+Working from: approved package. Intent: ship the package. Good looks like: a reversible, content-only release plan with rollback notes. Generate?

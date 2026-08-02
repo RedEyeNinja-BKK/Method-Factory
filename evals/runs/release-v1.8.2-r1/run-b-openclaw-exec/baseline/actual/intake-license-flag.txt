@@ -1,0 +1,1 @@
+I can help assess it, but I'd want to check the license before building off it. If you share the repo or the license text, I can tell you what's safe to reuse.

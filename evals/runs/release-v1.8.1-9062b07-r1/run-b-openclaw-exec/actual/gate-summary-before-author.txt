@@ -1,0 +1,7 @@
+I can build an original **meal-planning skill** from the two link references. I’ll fetch, validate, and classify them as skill material; extract useful behaviors rather than copy text; and record each known URL, access date, and license as provenance metadata in the generated `SKILL.md` frontmatter. The links are recorded even if their sources are currently unknown. I’ll gate with you before incorporating anything.
+
+**Heads-up:** meal planning can touch nutrition, allergies, medical conditions, food safety, and health-related claims. This is non-blocking—we proceed with clear scope limits and safety checks; you decide the final boundaries.
+
+The package will include an explicit review and trial stage. If governance artifacts are generated, **the prompt policy is content-only with no `tool_gate`; the advisory judge rules are operator-visible, reversible, never silent blockers.**
+
+Working from: **2 links + 0 text blocks (2 sources unknown).** Intent: **Create a meal-planning skill.** Good looks like: **a practical, customizable skill that produces useful meal plans from preferences, constraints, budget, available ingredients, and schedule while clearly handling uncertainty, allergies, food safety, and medical limits without pretending to provide clinical advice.** Generate?

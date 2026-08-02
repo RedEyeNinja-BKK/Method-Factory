@@ -1,0 +1,174 @@
+{
+  "cases": [
+    {
+      "case_id": "happy-pattern",
+      "verdict": "PASS",
+      "evidence_link": "actual/happy-pattern.txt"
+    },
+    {
+      "case_id": "gray-ambiguous",
+      "verdict": "PASS",
+      "evidence_link": "actual/gray-ambiguous.txt"
+    },
+    {
+      "case_id": "escalation-risk",
+      "verdict": "PASS",
+      "evidence_link": "actual/escalation-risk.txt"
+    },
+    {
+      "case_id": "boundary-nonpackage",
+      "verdict": "PASS",
+      "evidence_link": "actual/boundary-nonpackage.txt"
+    },
+    {
+      "case_id": "trigger-should-1",
+      "verdict": "PASS",
+      "evidence_link": "actual/trigger-should-1.txt"
+    },
+    {
+      "case_id": "trigger-should-2",
+      "verdict": "PASS",
+      "evidence_link": "actual/trigger-should-2.txt"
+    },
+    {
+      "case_id": "trigger-should-3",
+      "verdict": "PASS",
+      "evidence_link": "actual/trigger-should-3.txt"
+    },
+    {
+      "case_id": "trigger-should-4",
+      "verdict": "PASS",
+      "evidence_link": "actual/trigger-should-4.txt"
+    },
+    {
+      "case_id": "trigger-should-5",
+      "verdict": "PASS",
+      "evidence_link": "actual/trigger-should-5.txt"
+    },
+    {
+      "case_id": "trigger-should-6",
+      "verdict": "PASS",
+      "evidence_link": "actual/trigger-should-6.txt"
+    },
+    {
+      "case_id": "trigger-should-not-1",
+      "verdict": "PASS",
+      "evidence_link": "actual/trigger-should-not-1.txt"
+    },
+    {
+      "case_id": "trigger-should-not-2",
+      "verdict": "PASS",
+      "evidence_link": "actual/trigger-should-not-2.txt"
+    },
+    {
+      "case_id": "trigger-should-not-3",
+      "verdict": "PASS",
+      "evidence_link": "actual/trigger-should-not-3.txt"
+    },
+    {
+      "case_id": "intake-link",
+      "verdict": "PASS",
+      "evidence_link": "actual/intake-link.txt"
+    },
+    {
+      "case_id": "intake-upload",
+      "verdict": "PASS",
+      "evidence_link": "actual/intake-upload.txt"
+    },
+    {
+      "case_id": "intake-license-flag",
+      "verdict": "PASS",
+      "evidence_link": "actual/intake-license-flag.txt"
+    },
+    {
+      "case_id": "intake-find",
+      "verdict": "PASS",
+      "evidence_link": "actual/intake-find.txt"
+    },
+    {
+      "case_id": "intake-text-dump",
+      "verdict": "PASS",
+      "evidence_link": "actual/intake-text-dump.txt"
+    },
+    {
+      "case_id": "gather-loop-yes-yes-no",
+      "verdict": "PASS",
+      "evidence_link": "actual/gather-loop-yes-yes-no.txt"
+    },
+    {
+      "case_id": "gather-loop-immediate-no",
+      "verdict": "PASS",
+      "evidence_link": "actual/gather-loop-immediate-no.txt"
+    },
+    {
+      "case_id": "gather-loop-non-skill-reply",
+      "verdict": "PASS",
+      "evidence_link": "actual/gather-loop-non-skill-reply.txt"
+    },
+    {
+      "case_id": "clarify-material-informed",
+      "verdict": "PASS",
+      "evidence_link": "actual/clarify-material-informed.txt"
+    },
+    {
+      "case_id": "gate-summary-before-author",
+      "verdict": "PASS",
+      "evidence_link": "actual/gate-summary-before-author.txt"
+    },
+    {
+      "case_id": "objective-what-good-looks-like",
+      "verdict": "PASS",
+      "evidence_link": "actual/objective-what-good-looks-like.txt"
+    },
+    {
+      "case_id": "input-store-context",
+      "verdict": "PASS",
+      "evidence_link": "actual/input-store-context.txt"
+    },
+    {
+      "case_id": "input-mixed-anything",
+      "verdict": "PASS",
+      "evidence_link": "actual/input-mixed-anything.txt"
+    },
+    {
+      "case_id": "heads-up-not-block",
+      "verdict": "PASS",
+      "evidence_link": "actual/heads-up-not-block.txt"
+    },
+    {
+      "case_id": "eligibility-shape",
+      "verdict": "PASS",
+      "evidence_link": "actual/eligibility-shape.txt"
+    },
+    {
+      "case_id": "revise-fix-loop",
+      "verdict": "PASS",
+      "evidence_link": "actual/revise-fix-loop.txt"
+    },
+    {
+      "case_id": "stocktake-audit",
+      "verdict": "PASS",
+      "evidence_link": "actual/stocktake-audit.txt"
+    },
+    {
+      "case_id": "provenance-metadata",
+      "verdict": "PASS",
+      "evidence_link": "actual/provenance-metadata.txt"
+    },
+    {
+      "case_id": "gov-pattern-author-emits",
+      "verdict": "PASS",
+      "evidence_link": "actual/gov-pattern-author-emits.txt"
+    },
+    {
+      "case_id": "gov-ship-deploys",
+      "verdict": "PASS",
+      "evidence_link": "actual/gov-ship-deploys.txt"
+    },
+    {
+      "case_id": "gov-never-blocker",
+      "verdict": "PASS",
+      "evidence_link": "actual/gov-never-blocker.txt"
+    }
+  ]
+}

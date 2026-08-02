@@ -1,0 +1,41 @@
+## Trial complete — **NOT SHIP**
+
+I trialed `process-engine-trial` v1.8.1 using:
+
+- 4 scenario cases: happy path, gray zone, escalation, boundary
+- 10 should-trigger queries
+- 10 should-not-trigger near-misses
+- With-package executor run
+- Without-package baseline run
+- Independent verification of both reports
+
+### Results
+
+| Area | Result |
+|---|---:|
+| With-package should-trigger recall | **10/10 PASS** |
+| With-package should-not-trigger precision | **10/10 PASS** |
+| Scenario cases | **FAIL verification** — full case transcripts were not independently inspectable |
+| Without-package baseline | Expectedly weaker: **0/10 should-trigger**, **10/10 should-not-trigger** |
+| Context-cost comparison | **Not established** — token and duration telemetry unavailable |
+| Mirrored role-swapped qualification | **Incomplete** |
+| Operator approval | **Not recorded** |
+
+> [!WARNING]
+> The skill’s behavioral direction looks correct, but the evidence does not satisfy its own release gate. Shipping it now would contradict the skill’s instructions.
+
+Trial evidence was recorded and JSON-validated at:
+
+```text
+evals/process-engine-trial-v1.8.1-trial-2026-08-02.json
+```
+
+### Ship blockers
+
+1. The four scenario cases lacked independently inspectable full transcripts.
+2. The required mirrored executor/verifier role swap was not completed.
+3. Token counts and durations were unavailable, so context cost remains unproven.
+4. Immutable run identifiers and transcript paths were unavailable.
+5. Operator sign-off has not been recorded.
+
+**Verdict: REVISE / NOT SHIP.**

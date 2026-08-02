@@ -1,0 +1,2 @@
+Tier: standard
+Heads-up: I can't treat that repo as reusable until the license is confirmed. Can you share the LICENSE file or exact license text?

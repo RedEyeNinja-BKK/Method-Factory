@@ -1,0 +1,3 @@
+Absolutely. I’ll generate a professional package for a release-notes-writing skill, including the skill instructions, supporting references, verification criteria, and a review/trial path before anything is considered shippable.
+
+**Want to give me anything to work from?** A link, pasted release notes, a file, your project’s changelog format, examples you like, or anything else that would help.

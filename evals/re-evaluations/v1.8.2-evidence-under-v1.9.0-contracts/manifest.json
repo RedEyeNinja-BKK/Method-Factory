@@ -1,0 +1,154 @@
+{
+  "re_evaluation_id": "v1.8.2-evidence-under-v1.9.0-contracts",
+  "source_bundle": "release-v1.8.2-r1",
+  "original_verdict": "34/34 under v1.8.2-era evaluator contracts",
+  "restored_contract_verdict": {
+    "run_a": "30/34",
+    "run_b": "32/34"
+  },
+  "evaluator_version": "process-engine-evaluator-v1.9.0",
+  "re_evaluated_at": "2026-08-02T14:34:15Z",
+  "source_transcript_hashes": {
+    "run-a-hermes-exec/boundary-nonpackage": "c131824521fc65b5a6b70726d26ef6bacba865fee99c46420d1c52a735eca6e5",
+    "run-a-hermes-exec/clarify-material-informed": "e35d647e7d071c58ed4d9b7e29e87ebbbea4eb94b4124a65c8cd0ca0fb305c06",
+    "run-a-hermes-exec/eligibility-shape": "c609cd278dd88edcf6aa692ea596646e7e90cec0d4a72a1bc001448caea4bf58",
+    "run-a-hermes-exec/escalation-risk": "b95c38a26423c60ea215fc12aa2cfe4944a261cfe556583cb363576e2e395117",
+    "run-a-hermes-exec/gate-summary-before-author": "4f996f5bedd3cc4a300473a6417c497b6d6f4b0e5ea237578f522765f803dd07",
+    "run-a-hermes-exec/gather-loop-immediate-no": "00986aaee45c8c0e8ff836286f2fec8d66bc471c3007695f90f10375c5871b00",
+    "run-a-hermes-exec/gather-loop-non-skill-reply": "b5868f45c4f4ecca5c493853f617fc59c55bbcc67bb5a40be3749fcdf6ba7735",
+    "run-a-hermes-exec/gather-loop-yes-yes-no": "d2415c9f72e7aca44f6975b7178011ac7092777ce4ec19110f211e419432b51f",
+    "run-a-hermes-exec/gov-never-blocker": "5f6dbb7e218a2b74b551b7b49e9a50aae98548a42eb4319f2454846546880734",
+    "run-a-hermes-exec/gov-pattern-author-emits": "33e367b9c4897d985fa422d3296d1f18e7616f255f5f6b82687d40e07d066f08",
+    "run-a-hermes-exec/gov-ship-deploys": "0909d242502cdce534766efe097befc001759099a774f7b16d529627474ec977",
+    "run-a-hermes-exec/gray-ambiguous": "80f513525cae7166753c33c7ec21afe1395ee777159a975838f4a1274ae98df3",
+    "run-a-hermes-exec/happy-pattern": "410b3a747175534b9a2c6e3bad82fa4a1aa773370e4bc8189259a238c6d39c31",
+    "run-a-hermes-exec/heads-up-not-block": "9c50782a8c4c9e25baf4345e66d9e55b653e8a2b5a105207da9a8b92a73437b2",
+    "run-a-hermes-exec/input-mixed-anything": "22e6cd3101c4e3121ec627c4b8fad0255e24500c2e1b022198a5ff3d76baeff9",
+    "run-a-hermes-exec/input-store-context": "76f8b4521cfef0cc1555185b095de932fab8894e427fabc4baa627728aa44b30",
+    "run-a-hermes-exec/intake-find": "9d906d6fd1665939580dbb25d1766a743e96cd02d99bf5ddd8512765059454e1",
+    "run-a-hermes-exec/intake-license-flag": "b573a3a832de9d9b654c2f0c57d2be04c4f47c644c9d1a7e4f3b55ca0216ad57",
+    "run-a-hermes-exec/intake-link": "b817090aae3e6d6946a2b5ee5443fd8eb62d88e2c4a859cd56833f36cdc04cd4",
+    "run-a-hermes-exec/intake-text-dump": "324092581f9b82a23fdf22969384293339b0256768e4934f3eb83302cc1004bb",
+    "run-a-hermes-exec/intake-upload": "ca1e049acafadbc43aca8d37edfc9c05d78329af02b09d70c5a238e6e8ef4cbf",
+    "run-a-hermes-exec/objective-what-good-looks-like": "993adf6f3da761e2ff8f64543c16a7f5fcba5335bbfe6431054ebb473964dcfc",
+    "run-a-hermes-exec/provenance-metadata": "c383bc87fadd3ab961284851d4a1051c75106bfb015800d174672522c3d8cbe0",
+    "run-a-hermes-exec/revise-fix-loop": "7a895a2db9a13c375cbca9640c6f03d7a16af97a51d3d373396c0ffa6e31a3fd",
+    "run-a-hermes-exec/stocktake-audit": "bcd9063483162811af905b2260f7e479ed5c8c65d891f1ae9b73b0a7228b6d72",
+    "run-a-hermes-exec/trigger-should-1": "945e237f26d294fba2c901c3f6ed62597fe7a40e6427abf50e70c222db9db613",
+    "run-a-hermes-exec/trigger-should-2": "7f7d17d7296cc40c9fed034ab2b797a696fb7f364fa5b85d9051ac4ed4707c3b",
+    "run-a-hermes-exec/trigger-should-3": "50e517e70d3f9a72f0301770745cbb1876ab398fdd10883edf81db6afd9a4cba",
+    "run-a-hermes-exec/trigger-should-4": "69b7d15684a2180965f644aa1f4ee20f7463a95a192de450f7eb83f4a98a97ea",
+    "run-a-hermes-exec/trigger-should-5": "7f2a14171d3a87a508005c26efc73629393d39e80c526ad1bfd7a1ae02d65d18",
+    "run-a-hermes-exec/trigger-should-6": "1271aa33963b09e00d3be4684573eaa9f22528edcb5ff178fdd769424b1cb92c",
+    "run-a-hermes-exec/trigger-should-not-1": "7aa948b1ea19f387ccf37de4acbefcfed2d8aa5474446601c10bb42fd0fffd69",
+    "run-a-hermes-exec/trigger-should-not-2": "5b4f759f2d0f52ca02a33f1d829803e789e69ce8254bbc7fd41f266c613a4a22",
+    "run-a-hermes-exec/trigger-should-not-3": "c131824521fc65b5a6b70726d26ef6bacba865fee99c46420d1c52a735eca6e5",
+    "run-b-openclaw-exec/boundary-nonpackage": "c131824521fc65b5a6b70726d26ef6bacba865fee99c46420d1c52a735eca6e5",
+    "run-b-openclaw-exec/clarify-material-informed": "d3aeed2be425f9cf68565a60c96dda26ccf77699f97eaf240b24d913f8bfd748",
+    "run-b-openclaw-exec/eligibility-shape": "537af7c2abfd42df8325129c368d4ef6e807dff5d94cd3e2468142880b383fa3",
+    "run-b-openclaw-exec/escalation-risk": "4ed986dcad4b4e0ec025bfe09fe8e96dc92347d9625494123bdc4c97ef72b845",
+    "run-b-openclaw-exec/gate-summary-before-author": "f99e3083d50a676cc1073b9ee3c4d2c457cea96fcbd7666d8d64626760891870",
+    "run-b-openclaw-exec/gather-loop-immediate-no": "826889416bd2e8f70e2714c8e8b66af78eb941f97fd2caeb95bd3ac3fb0fad25",
+    "run-b-openclaw-exec/gather-loop-non-skill-reply": "aa1da2f87e65b436612d6850f6ef5af8b7766e2480f878d674936477b09c0764",
+    "run-b-openclaw-exec/gather-loop-yes-yes-no": "302cb9ab7de21c83bdb95b0682570c909f5bbf345e81010d8fc9be7a817f9e3c",
+    "run-b-openclaw-exec/gov-never-blocker": "6620771e137a41cbf7f8e37b15ad8145c26041a636dd4bda985f513136ceb636",
+    "run-b-openclaw-exec/gov-pattern-author-emits": "73f5b35508087e163f3dffe993b8086994e1ee9584420b69b4bb73105dcb34b8",
+    "run-b-openclaw-exec/gov-ship-deploys": "7e2194e635f2509623dd5d289366be7543fad37d37eae9ad15a6db4689c3e9d2",
+    "run-b-openclaw-exec/gray-ambiguous": "075c9ad93f59ca0bedfb6247cfbc8cd2fcc8b9665b45309945c1378682caea59",
+    "run-b-openclaw-exec/happy-pattern": "f94e18806afef7340f2101e8608b54dffcebdfc3e69a6a076905468cb8138533",
+    "run-b-openclaw-exec/heads-up-not-block": "f0e80c2bb68c4de5d0fa6713d31b61ca01edad5b0e814b70cb32f538880ba2fe",
+    "run-b-openclaw-exec/input-mixed-anything": "09434b09f8ec3ec527777e4274a1a77b098eeae45a6dc0443e5fc95b854ce3aa",
+    "run-b-openclaw-exec/input-store-context": "88f81d792ad202d3bf911eb3d797a78c7112e331d2918228bd8a6e9b65bca9ea",
+    "run-b-openclaw-exec/intake-find": "81621ec1eb41349def64bacde39f1a669c4646f812e936b9521fa2e23fa28ab1",
+    "run-b-openclaw-exec/intake-license-flag": "9ffc100ac40a6b6e82958f81b39d57a961b786b71562133cbbbc4f484f0e1941",
+    "run-b-openclaw-exec/intake-link": "d78e770b823b7634d485bf7728a5035113408bb335973e927296ba55f9124311",
+    "run-b-openclaw-exec/intake-text-dump": "a3141791123dfdc042705e9bbf81f47c6843c0aacc2dbf54047c28b3086e51ab",
+    "run-b-openclaw-exec/intake-upload": "11428cf598b62764df1008167e734923a7f8c610f5d7701375c25dcb271226a7",
+    "run-b-openclaw-exec/objective-what-good-looks-like": "c7820b9bb5aa3670bfa041baf34e7ba399e8baa6d8c3a4c8a6fe8d681a0c413e",
+    "run-b-openclaw-exec/provenance-metadata": "92e583f2563ceb84059f9b55ef649f1f4fb0a6248d23e2f26590727624b0f4ea",
+    "run-b-openclaw-exec/revise-fix-loop": "fa4f5ae7325e757d69a92d49e7d4a6be1014d629aee400d4a214a2a96a4d00aa",
+    "run-b-openclaw-exec/stocktake-audit": "bcd9063483162811af905b2260f7e479ed5c8c65d891f1ae9b73b0a7228b6d72",
+    "run-b-openclaw-exec/trigger-should-1": "457daf41dbd2c95186d022d410a1b3e19b5efb0875c559fd5959886e92384f7b",
+    "run-b-openclaw-exec/trigger-should-2": "5585f1e5ca7240874f4ef89e436b30351c01cfcb7bb7a06901d4824886870a83",
+    "run-b-openclaw-exec/trigger-should-3": "b0a2d49e09e7ff29acacc667aef63ff3ec0ad7e72f1b6eb5232839283895b614",
+    "run-b-openclaw-exec/trigger-should-4": "b3ab86e5724c4e4871c77a5e552846c33ad81143b3b71ce2df753c731db752e2",
+    "run-b-openclaw-exec/trigger-should-5": "11876c5b7108568fc9a2a9525ce53ef1fd31e607ebd3754aaa0e15cfc7c6baa4",
+    "run-b-openclaw-exec/trigger-should-6": "7bc8b2e6c4608596ff1208c0bfc46b7f01a3d94e33567d6ba7482b921e6cea76",
+    "run-b-openclaw-exec/trigger-should-not-1": "f647094d6fb31293ca729923df57383d0b6ec6204b45a38e3b82976d80783afa",
+    "run-b-openclaw-exec/trigger-should-not-2": "c131824521fc65b5a6b70726d26ef6bacba865fee99c46420d1c52a735eca6e5",
+    "run-b-openclaw-exec/trigger-should-not-3": "5b4f759f2d0f52ca02a33f1d829803e789e69ce8254bbc7fd41f266c613a4a22"
+  },
+  "note": "This artifact re-evaluates v1.8.2-era transcripts under v1.9.0 restored evaluator contracts. The original bundle recorded 34/34 under its former contract. This is a separate re-evaluation, not a retroactive change to the historical record.",
+  "run_a": {
+    "passed": 30,
+    "failed": 4,
+    "failing_cases": [
+      {
+        "gather-loop-immediate-no": [
+          [
+            "collect-invites",
+            "FAIL"
+          ]
+        ]
+      },
+      {
+        "gray-ambiguous": [
+          [
+            "no-assumption",
+            "FAIL"
+          ]
+        ]
+      },
+      {
+        "input-store-context": [
+          [
+            "summary-gate",
+            "FAIL"
+          ],
+          [
+            "operator-gate",
+            "FAIL"
+          ]
+        ]
+      },
+      {
+        "trigger-should-not-1": [
+          [
+            "plain-answer",
+            "FAIL"
+          ]
+        ]
+      }
+    ]
+  },
+  "run_b": {
+    "passed": 32,
+    "failed": 2,
+    "failing_cases": [
+      {
+        "gov-pattern-author-emits": [
+          [
+            "helper-posture",
+            "FAIL"
+          ]
+        ]
+      },
+      {
+        "input-store-context": [
+          [
+            "store-domain-context",
+            "FAIL"
+          ],
+          [
+            "heads-up-not-block",
+            "FAIL"
+          ],
+          [
+            "provenance-recorded",
+            "FAIL"
+          ]
+        ]
+      }
+    ]
+  }
+}

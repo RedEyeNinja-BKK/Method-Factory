@@ -1,0 +1,1 @@
+Working from: user prompt and two links marked as source placeholders. Intent: meal planning skill. Good looks like: scoped skill package with meal-plan workflow, outputs, guardrails, and operator-visible governance. Generate?

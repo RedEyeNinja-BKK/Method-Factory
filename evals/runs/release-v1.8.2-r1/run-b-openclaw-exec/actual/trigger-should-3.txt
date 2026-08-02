@@ -1,0 +1,3 @@
+This is a **package-feedback triage** request. I’ll inspect the issue, identify whether it is a defect, ambiguity, scope problem, or improvement request, and trace it to the affected package stage.
+
+Please share the issue link or paste the issue text.

@@ -1,0 +1,5 @@
+I’ll treat the pasted volume-based tracker as **user-provided, source unknown**. I’ll extract its useful behavior and author original instructions rather than copy it. You can also provide any other material—links, files, or notes—if helpful; I’ll record each input and gate with you before incorporating anything.
+
+**Heads-up:** workout tracking touches wellness and injury-related decisions, so the skill should avoid diagnosis or prescriptive medical claims; this never blocks — we proceed; you decide. The prompt policy is content-only with no tool_gate; the advisory judge rules are operator-visible, reversible, never silent blockers.
+
+What does **“good”** look like for this tracker—what should it help someone reliably record, understand, or improve?

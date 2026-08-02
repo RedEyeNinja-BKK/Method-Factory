@@ -1,0 +1,3 @@
+I’ll route this as a **quality review of the currently deployed skills**, checking spec compliance, descriptions/triggers, evidence and provenance, lifecycle coverage, safeguards, evals, and regression risks. I’ll report findings with severity and recommended fixes—no changes will be made without your approval.
+
+**Should I audit every deployed Process Engine skill, or a specific subset?** You may also provide links, files, or notes to include as audit material; I’ll record and assess each input.

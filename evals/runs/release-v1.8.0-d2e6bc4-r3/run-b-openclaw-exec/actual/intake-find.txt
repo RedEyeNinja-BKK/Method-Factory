@@ -1,0 +1,1 @@
+I'll search for existing CSV-cleanup skills, validate the candidates, and return a provenance-backed shortlist for operator choice. I'll gate with you before choosing anything.

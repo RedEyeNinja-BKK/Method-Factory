@@ -1,0 +1,1 @@
+Heads-up: policy limits are surfaced early and never silently block - this never blocks; we proceed; you decide. The governance artifacts are advisory, no tool_gate, operator-visible, reversible - never silent blockers. Collect-first: I need the package context and the limiting policy signal before I adapt it. I'll gate with you before incorporating anything.

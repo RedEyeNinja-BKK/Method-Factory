@@ -1,0 +1,5 @@
+I can generate that package, but first I need to establish its shape: **should this be a project package for the complete tool, a persona for the advice-giving assistant, a set of skills, or another artifact?**
+
+Heads-up: financial guidance can create regulatory, suitability, and consumer-harm risks. This is **non-blocking—we proceed; you decide**. The package will include explicit scope limits, evidence requirements, uncertainty handling, escalation to qualified professionals, and trials before shipping. **The prompt policy is content-only with no tool_gate; the advisory judge rules are operator-visible, reversible, never silent blockers.**
+
+You may also provide anything useful to work from—links, pasted text, files, example tools, or constraints. I’ll extract and attribute techniques rather than copy external content, and I’ll gate incorporation with you before using it.

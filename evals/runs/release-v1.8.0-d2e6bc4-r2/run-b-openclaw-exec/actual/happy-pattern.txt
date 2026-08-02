@@ -1,0 +1,1 @@
+Yes. Want to give me anything to work from? A few past release notes, your preferred tone, target audience, and any hard rules would be enough. If you have links or uploads, I'll fetch, validate, classify, and gate them; licenses and source URLs go in provenance, not as gates.

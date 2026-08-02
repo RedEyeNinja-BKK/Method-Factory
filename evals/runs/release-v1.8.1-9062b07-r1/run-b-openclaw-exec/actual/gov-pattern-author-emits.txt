@@ -1,0 +1,5 @@
+I’ll generate a **skill package** for a database-backup operator, then take it through **Pattern → Review → Trial → Ship**. The package will include the skill instructions, references, acceptance criteria, and verification procedures; **the prompt policy is content-only with no tool_gate; the advisory judge rules are operator-visible, reversible, never silent blockers.**
+
+You can provide any material you want me to work from—links, pasted procedures, files, example runbooks, or platform details. I’ll record and assess each item, extract behavior rather than copy text, and gate incorporation with you.
+
+**Which database and operating environment should the skill target first**—for example PostgreSQL on Docker/VM, MySQL, SQLite, managed cloud databases, or a multi-database operator?

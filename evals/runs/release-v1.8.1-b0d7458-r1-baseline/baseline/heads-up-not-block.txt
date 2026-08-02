@@ -1,0 +1,55 @@
+Absolutely. I can help design a package that turns your product information into polished wellness-product listings.
+
+## First, define what “good” looks like
+
+Please send whatever you already have—product links, notes, supplier descriptions, photos, existing listings, brand guidelines, or examples you like. Nothing needs to be tidy.
+
+I need these decisions:
+
+1. **Store platform:** Etsy, Shopify, Amazon, your own site, or multiple platforms?
+2. **Product categories:** For example:
+   - Herbal teas
+   - Bath and body products
+   - Aromatherapy
+   - Crystals or spiritual wellness
+   - Supplements
+   - Journals or self-care tools
+3. **Listing outputs:** Should each listing include:
+   - SEO title
+   - Description
+   - Tags or keywords
+   - Product benefits
+   - Ingredients/materials
+   - Usage instructions
+   - Safety notes
+   - Image/alt-text suggestions
+   - FAQ
+   - Social-media caption
+4. **Brand voice:** Calm, clinical, earthy, luxurious, friendly, spiritual, minimalist, or something else?
+5. **Compliance boundary:** Should the package avoid medical claims and use cautious wellness language such as “may support relaxation” rather than “treats anxiety”?
+6. **Workflow:** Do you want:
+   - One listing generated at a time
+   - Batch generation from a spreadsheet
+   - Drafts for review
+   - Export-ready files such as CSV or Markdown?
+7. **Language and market:** Which country/countries and languages will you sell to?
+
+A sensible first version could be:
+
+```text
+Product facts
+    ↓
+Claims and safety check
+    ↓
+SEO keyword selection
+    ↓
+Listing title + description
+    ↓
+Tags, FAQs, image text, and social caption
+    ↓
+Human review
+    ↓
+Platform-ready export
+```
+
+The package would generate **drafts only** until you approve them, with unsupported medical claims flagged rather than invented.

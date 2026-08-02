@@ -1,0 +1,5 @@
+I’m ready to ship, but I need the **approved package ID or manifest path** to verify the correct artifact and its gates.
+
+I will confirm **review PASS**, **trial PASS**, and this operator approval before deployment. The prompt policy is content-only with no `tool_gate`; the advisory judge rules are operator-visible, reversible, never silent blockers. After shipping, the governance artifacts are deployed and verified by read-back.
+
+**Which package ID or manifest should I ship?**

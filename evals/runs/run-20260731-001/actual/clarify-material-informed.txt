@@ -1,0 +1,5 @@
+Got it — you want to create a **workout-tracking skill**, and you’ve provided a **volume-based tracker skill** as source material.
+
+I’ll treat that pasted skill as an example to analyze and improve on, not copy verbatim.
+
+Anything else you’d like to give me to work from? A link, more pasted text, a file, or an example of how you currently track workouts is all useful.

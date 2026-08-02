@@ -1,0 +1,3 @@
+Please provide the package link, upload, or pasted text so I can intake and validate it. I’ll record its source and license when available, extract original behavior rather than copy it, and identify any policy limits.
+
+**Heads-up:** policy restrictions may affect what can be incorporated; this is non-blocking—we’ll proceed and you decide at the review gate.

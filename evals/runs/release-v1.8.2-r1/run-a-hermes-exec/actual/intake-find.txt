@@ -1,0 +1,1 @@
+I’ll search the available skill catalog and registry for CSV-cleanup skills, validate the candidates, and return a provenance-backed shortlist showing each skill’s source, capabilities, and limitations. You’ll choose which one to use; I won’t load or adopt anything without your approval.

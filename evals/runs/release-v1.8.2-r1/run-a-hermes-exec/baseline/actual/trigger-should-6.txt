@@ -1,0 +1,1 @@
+I can ship it only after verifying a recorded review PASS, an all-PASS trial including trigger and baseline results, operator approval, and a rollback plan. Provide the approved package and manifest so I can verify those gates before deployment.

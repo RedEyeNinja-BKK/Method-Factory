@@ -1,0 +1,1 @@
+A good changelog skill should turn PR descriptions into clear user-facing release notes, group changes by category, and handle missing or vague PR text gracefully. I can draft that.

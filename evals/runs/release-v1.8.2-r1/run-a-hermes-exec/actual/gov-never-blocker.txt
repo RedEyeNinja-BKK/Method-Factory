@@ -1,0 +1,1 @@
+Heads-up: the package's policy may constrain some behavior. This never blocks - we proceed. What do you want this package to accomplish?

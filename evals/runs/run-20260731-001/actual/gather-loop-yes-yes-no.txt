@@ -1,0 +1,4 @@
+I’ll build a **workout-tracking skill** that uses the linked example as a reference and incorporates the progressive-overload approach you provided.
+
+One clarification first: **Where will you use the skill, and what should it track for each workout?**  
+For example: exercises, sets, reps, weight, RPE/RIR, rest time, notes, progression decisions, and personal records.

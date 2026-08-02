@@ -1,0 +1,12 @@
+This is an **incoming feedback / issue triage** request.
+
+Please send the issue in any form that is easiest:
+
+- a GitHub issue link,
+- pasted issue text,
+- a file or screenshot,
+- or a short description of what went wrong.
+
+I’ll record it as intake material, classify the finding, trace it to the generated package, and recommend whether it needs clarification, revision, a new trial, or no change. **I’ll gate any package change with you before incorporating it.**
+
+Anything else you want included with the issue?

@@ -1,0 +1,3 @@
+Which package do you want me to use, and what should it produce or accomplish?
+
+Heads-up: any policy limitations will be recorded and respected where applicable; this is non-blocking—we can proceed, and you decide how to handle the trade-offs.

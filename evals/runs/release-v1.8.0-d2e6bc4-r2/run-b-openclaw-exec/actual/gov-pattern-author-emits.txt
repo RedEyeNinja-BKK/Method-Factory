@@ -1,0 +1,1 @@
+I can build that package, but I need the source shape first: what backup target and environment is this for, and do you want a local operator, scheduled operator, or recovery-only operator? Once you give the shape, I'll collect inputs and then present the summary gate.

@@ -1,0 +1,10 @@
+Got it — collection is closed, and I’ll proceed with a **skill artifact** for writing release notes.
+
+The package will include:
+- An Agent Skills–compliant `SKILL.md`
+- Supporting references and templates where useful
+- Explicit acceptance criteria and trial cases
+- A **content-only prompt policy with no `tool_gate`**
+- **Advisory judge rules that are operator-visible, reversible, and never silent blockers**
+
+What does **“good” release notes** look like to you—for example, concise customer-facing notes, detailed engineering changelogs, or a skill that can produce both?

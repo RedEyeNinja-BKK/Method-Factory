@@ -1,0 +1,1 @@
+Intake path. I can validate provenance, check the license, classify it, and extract only original material. Anything else?

@@ -1,0 +1,13 @@
+Understood — I’ll treat “get on with it” as closing collection with no additional source material.
+
+**Provisional package objective:** create a professional database-backup operator skill that safely plans, executes, verifies, records, and reports backups; handles restore testing; avoids destructive or irreversible actions without explicit approval; and works across database engines through clearly marked adapter points.
+
+**Working from:** 0 links + 0 text blocks (0 unknown sources)  
+**Intent:** database-backup operator skill package  
+**Good looks like:** a spec-compliant, operationally useful skill with explicit safety controls, acceptance criteria, review gates, trial cases, and no unsupported claims.
+
+**Heads-up:** backup operations can affect production data and recovery capability; I’ll make safeguards and verification central, but this is non-blocking—we proceed; you decide.
+
+For governance, **the prompt policy is content-only with no tool_gate; the advisory judge rules are operator-visible, reversible, never silent blockers.**
+
+Working from: 0 links + 0 text blocks (0 sources unknown). Intent: database-backup operator skill. Good looks like: the objective above. **Generate?**

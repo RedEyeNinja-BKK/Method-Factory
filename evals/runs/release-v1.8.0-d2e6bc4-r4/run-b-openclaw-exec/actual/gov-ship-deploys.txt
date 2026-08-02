@@ -1,0 +1,1 @@
+I require review PASS + trial PASS + operator approval before shipping, and I won't ship without all three. For the shipped package, I'll name the governance artifacts explicitly: the prompt policy is content-only with no tool_gate; the advisory judge rules are operator-visible, reversible, and never silent blockers.

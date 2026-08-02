@@ -1,0 +1,5 @@
+Yes — I’ll generate a **skill package for writing project release notes**, then take it through **Pattern → Review → Trial → Ship**. Nothing will ship without your review and approval.
+
+You can give me anything useful to work from—release-note examples, project conventions, a changelog format, links, or pasted text. I’ll extract and attribute techniques rather than copy external content.
+
+**What does “good” release-note output look like to you?**

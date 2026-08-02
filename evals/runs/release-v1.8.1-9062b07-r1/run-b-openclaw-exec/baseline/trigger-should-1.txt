@@ -1,0 +1,30 @@
+Please send me the idea or source material you want turned into a skill package.
+
+Any format is fine:
+
+- Rough notes or a brain dump
+- A link
+- Existing prompts or instructions
+- A document or uploaded file
+- A description of the agent/persona you want
+- Examples of desired inputs and outputs
+
+Also tell me, if you already know:
+
+1. **Purpose:** What should the skill help an agent accomplish?
+2. **Users:** Who or what will use it?
+3. **Good outcome:** What does success look like?
+4. **Boundaries:** What must it never do?
+5. **Deployment target:** Turnstone, Hermes, OpenClaw, or a portable package?
+
+I’ll turn the material into an original package containing, as appropriate:
+
+- Skill name and description
+- Persona or operating role
+- System prompt / `SKILL.md`
+- Procedures and decision rules
+- Input/output contract
+- Safety and authority boundaries
+- Tool permissions
+- Trial scenarios and evidence criteria
+- README and installation/usage guidance

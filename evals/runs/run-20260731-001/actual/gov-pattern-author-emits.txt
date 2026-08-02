@@ -1,0 +1,3 @@
+I’ll build a professional package for a **database-backup operator skill**—a domain-agnostic package structure with an operator persona, one or more spec-compliant skills, safety boundaries, verification procedures, and review/trial gates.
+
+Would you like to give me anything to work from? A link, pasted text, file, existing runbook, preferred database/platform, or example skill—anything that helps.

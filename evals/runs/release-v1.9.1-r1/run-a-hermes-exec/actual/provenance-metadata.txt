@@ -1,0 +1,1 @@
+I have 1 link to fetch, validate, classify, and gate before using it as source material. Heads-up: incident response is a high-assurance operational domain; governance remains content-only, advisory, and reversible. What should good incident-response guidance achieve?

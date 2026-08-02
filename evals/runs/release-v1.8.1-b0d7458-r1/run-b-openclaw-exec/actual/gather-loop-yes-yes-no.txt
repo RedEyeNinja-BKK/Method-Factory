@@ -1,0 +1,14 @@
+I’ll create a **workout-tracking skill** that records sessions, exercises, sets, reps, load, effort, and progress over time, using the progressive-overload approach you provided as input.
+
+- **Skill material:** I’ll fetch, validate, and classify the linked example when the actual URL is available; I’ll extract its useful behavior and author original instructions rather than copy it. Known source URL, access date, and license will be recorded as provenance metadata in the generated `SKILL.md` frontmatter. I’ll gate with you before incorporating anything.
+- **Text block:** recorded as **user-provided, source unknown**. I’ll extract the approach rather than copy it.
+- **Heads-up:** workout guidance touches wellness and injury risk. The skill will include sensible scope limits—tracking and progression support, not medical diagnosis or individualized clinical advice. This never blocks—we proceed; you decide.
+- For the generated package, **the prompt policy is content-only with no tool_gate; the advisory judge rules are operator-visible, reversible, never silent blockers.**
+
+### Summary gate
+
+**Working from:** 1 link reference with URL currently unavailable + 1 text block (1 source unknown).  
+**Intent:** Create a skill for tracking workouts and applying the supplied progressive-overload approach.  
+**Good looks like:** A practical, consistent tracker that captures workout history, makes progression easy to review, and avoids unsafe or unsupported claims.
+
+**Generate the package?**

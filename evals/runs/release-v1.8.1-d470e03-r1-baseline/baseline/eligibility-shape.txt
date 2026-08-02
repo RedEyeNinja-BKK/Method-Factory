@@ -1,0 +1,58 @@
+Absolutely. We can shape this into a **shop operating package** rather than guessing whether one persona or one skill is enough.
+
+A useful package might contain:
+
+1. **Shop manager persona** — voice, judgment, priorities, boundaries.
+2. **Core skill** — repeatable operating procedure for running the shop.
+3. **Specialist skills**, if needed:
+   - Product/listing SEO
+   - Titles, tags, descriptions, and attributes
+   - Customer messages and support
+   - Promotion and merchandising
+   - Product research and trend analysis
+   - Shop audits and improvement plans
+   - Content/social media
+4. **Templates and reference files** — listing templates, response templates, brand voice, pricing rules, product catalog, and policies.
+5. **Testing plan** — a small trial before we treat the package as ready.
+
+To design the right package, please send me whatever you already have. Links, text, screenshots, files, rough notes, or existing prompts are all useful.
+
+### First, tell me:
+
+**1. What shop is this?**  
+- Platform: Etsy, Shopify, Amazon, another platform?
+- Shop link, if public:
+- What do you sell?
+- Who is the target customer?
+- What country or markets do you serve?
+
+**2. What should the package help with?**  
+For example:
+- Create and improve listings
+- Generate SEO titles/tags/descriptions
+- Manage customer conversations
+- Plan products and collections
+- Increase traffic or conversion
+- Handle daily shop operations
+- Review analytics
+- Produce marketing content
+- Something else
+
+**3. What does “good” look like?**  
+Examples:
+- “I want ready-to-publish Etsy listings.”
+- “I want the assistant to act as my experienced shop manager.”
+- “I want it to tell me what to do each week.”
+- “I want consistent brand voice across everything.”
+- “I want it to challenge weak ideas rather than blindly agree.”
+
+**4. How autonomous should it be?**
+
+| Level | Behaviour |
+|---|---|
+| **Advisor** | Recommends; you do everything |
+| **Copilot** | Drafts and prepares; you approve |
+| **Operator** | Performs approved shop tasks |
+| **Manager** | Maintains plans, priorities, and recurring workflows |
+
+Nothing should be treated as ready for real use until we trial it on actual shop material and review the results together.

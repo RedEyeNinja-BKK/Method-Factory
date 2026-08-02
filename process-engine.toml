@@ -1,0 +1,32 @@
+# Process Engine — canonical release manifest
+# Source of truth for release facts consumed by tooling (convert.py,
+# validate.py, CI) and the evals run bundle. Skill frontmatter is stamped
+# from these values at generation time. README/docs/CHANGELOG still carry
+# hand-maintained release lines (checked by validate.py for drift); full
+# manifest-driven generation of all surfaces is a future step.
+# Do not hand-edit version/lineage/counts in skills — change them here,
+# then regenerate/validate.
+
+version = "1.9.1"
+engine = "process-engine 1.9.1"
+qualification_status = "pending"
+# v1.9.1 content released; qualification pending.
+# latest_qualified_run = "release-v1.8.2-r1" (historical first-response, 30/34 A, 32/34 B)
+# qualification_candidate_run = "release-v1.9.1-r2" (prompt-bound transcripts, frozen)
+# latest_candidate_re_evaluation = "v1.9.1-hybrid-re-evaluation" (live-judged under hybrid evaluator)
+compatibility = "Turnstone 1.8.x or any Agent Skills-compatible client"
+author = "RedEyeNinja-BKK"
+
+# Content lineage (bump when engine content changes)
+lineage = "v7.2"
+
+# Release facts (validated by convert.py / CI against every surface)
+skill_count = 6
+reference_count = 7
+template_count = 6
+eval_case_count = 34
+# First-response qualification evidence (historical and candidate)
+latest_eval_run = "release-v1.8.2-r1"
+latest_qualified_run = "release-v1.8.2-r1"
+qualification_candidate_run = "release-v1.9.1-r2"
+latest_candidate_re_evaluation = "v1.9.1-hybrid-re-evaluation"

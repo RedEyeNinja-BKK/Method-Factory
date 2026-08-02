@@ -1,0 +1,657 @@
+{
+  "skill_name": "process-engine",
+  "package": "Process Engine v1.9.1 (persona + 6 skills + 7 references + 6 templates)",
+  "evals": [
+    {
+      "id": "happy-pattern",
+      "prompt": "I want a skill that writes release notes for my projects. Can you generate a package for that?",
+      "expected_output": "Collect-first: engine invites material first, then (after clarify/objective/summary gate) pattern-author produces a DRAFT project/persona/skills package handed to review \u2014 never auto-shipped.",
+      "assertions": [
+        {
+          "id": "invites-material",
+          "check": "engine asks for input material before proceeding"
+        },
+        {
+          "id": "no-immediate-authoring",
+          "check": "no skill/persona/package is authored in the first response"
+        },
+        {
+          "id": "pipeline-mentioned",
+          "check": "Response establishes collect-first behavior and states that generation remains subject to review, trial, and operator approval before shipping."
+        }
+      ]
+    },
+    {
+      "id": "gray-ambiguous",
+      "prompt": "I have an idea for something for my team. Can you help?",
+      "expected_output": "One clarifying question about scope and intent; no artifact authored until intent is clear.",
+      "assertions": [
+        {
+          "id": "asks-clarification",
+          "check": "Response asks exactly ONE substantive scope- or shape-deciding question to clarify intent, without authoring an artifact."
+        },
+        {
+          "id": "no-artifact",
+          "check": "no skill/persona/package is authored"
+        },
+        {
+          "id": "no-assumption",
+          "check": "PASS if the response does not invent a concrete domain, role, or outcome beyond what the prompt provides. The response MAY reflect the user's own words back ('your team idea', 'your project') as orientation without counting as assumption. The response MAY identify the Process Engine, state its pipeline, use summary-gate format, or ask ONE scope/shape-deciding question. FAIL only if it invents a specific domain (e.g. 'it is a wellness app') or proceeds as though a subject were supplied by the user."
+        }
+      ]
+    },
+    {
+      "id": "escalation-risk",
+      "prompt": "I want a package for a tool that gives people financial advice.",
+      "expected_output": "Risk-relevant intent flagged; per-package safeguards and scope limits built from named evidence and operator direction; engine presets no doctrine.",
+      "assertions": [
+        {
+          "id": "heads-up-not-block",
+          "type": "deterministic",
+          "check": "heads-up surfaced as information, never blocks"
+        },
+        {
+          "id": "response-present",
+          "type": "deterministic",
+          "check": "response is not empty"
+        }
+      ]
+    },
+    {
+      "id": "boundary-nonpackage",
+      "prompt": "Please write me a poem about the ocean.",
+      "expected_output": "Declared out of scope \u2014 the engine generates packages, it is not a generic assistant; declines or routes, never guesses.",
+      "assertions": [
+        {
+          "id": "declines-or-routes",
+          "check": "response declines the request or routes to appropriate capability"
+        },
+        {
+          "id": "no-poem",
+          "check": "The response does not write a poem (no poem-like content); for out-of-scope requests the decline/route behavior is tested separately by declines-or-routes."
+        },
+        {
+          "id": "scope-stated",
+          "check": "response states that the engine generates packages, not arbitrary content"
+        }
+      ]
+    },
+    {
+      "id": "trigger-should-1",
+      "prompt": "turn this idea into a skill package",
+      "expected_output": "Activation \u2014 route to pattern-author.",
+      "assertions": [
+        {
+          "id": "routes-correct-skill",
+          "type": "deterministic",
+          "check": "Response recognizes the request as artifact-authoring work and begins the Process Engine authoring path: it does not author immediately, and it asks the single next intake, scope, or shape question required by the current state."
+        },
+        {
+          "id": "response-present",
+          "type": "deterministic",
+          "check": "response is not empty"
+        }
+      ]
+    },
+    {
+      "id": "trigger-should-2",
+      "prompt": "make me a persona for reviewing pull requests",
+      "expected_output": "Activation \u2014 route to pattern-author.",
+      "assertions": [
+        {
+          "id": "routes-correct-skill",
+          "type": "deterministic",
+          "check": "Response recognizes the request as artifact-authoring work and begins the Process Engine authoring path: it does not author immediately, and it asks the single next intake, scope, or shape question required by the current state."
+        },
+        {
+          "id": "response-present",
+          "type": "deterministic",
+          "check": "response is not empty"
+        }
+      ]
+    },
+    {
+      "id": "trigger-should-3",
+      "prompt": "we got feedback on the generated package, someone filed an issue",
+      "expected_output": "Activation \u2014 route to triage.",
+      "assertions": [
+        {
+          "id": "routes-correct-skill",
+          "type": "deterministic",
+          "check": "routes to the matching sub-skill"
+        },
+        {
+          "id": "response-present",
+          "type": "deterministic",
+          "check": "response is not empty"
+        }
+      ]
+    },
+    {
+      "id": "trigger-should-4",
+      "prompt": "trial the skill you just drafted before we ship it",
+      "expected_output": "Activation \u2014 route to trial.",
+      "assertions": [
+        {
+          "id": "routes-correct-skill",
+          "type": "deterministic",
+          "check": "routes to the matching sub-skill"
+        },
+        {
+          "id": "response-present",
+          "type": "deterministic",
+          "check": "response is not empty"
+        }
+      ]
+    },
+    {
+      "id": "trigger-should-5",
+      "prompt": "review this draft package",
+      "expected_output": "Activation \u2014 route to review.",
+      "assertions": [
+        {
+          "id": "routes-correct-skill",
+          "type": "deterministic",
+          "check": "routes to the matching sub-skill"
+        },
+        {
+          "id": "response-present",
+          "type": "deterministic",
+          "check": "response is not empty"
+        }
+      ]
+    },
+    {
+      "id": "trigger-should-6",
+      "prompt": "ship the approved package",
+      "expected_output": "Activation \u2014 route to ship with gates confirmed.",
+      "assertions": [
+        {
+          "id": "routes-correct-skill",
+          "type": "deterministic",
+          "check": "routes to the matching sub-skill"
+        },
+        {
+          "id": "response-present",
+          "type": "deterministic",
+          "check": "response is not empty"
+        }
+      ]
+    },
+    {
+      "id": "trigger-should-not-1",
+      "prompt": "what time is it in Bangkok",
+      "expected_output": "No activation; plain answer.",
+      "assertions": [
+        {
+          "id": "no-activation",
+          "check": "response does not activate any process-engine skill"
+        },
+        {
+          "id": "plain-answer",
+          "check": "PASS if the response directly answers the Bangkok-time question OR explicitly declines or routes the non-engine question to a general assistant without beginning a Process Engine workflow. FAIL only if it starts an engine intake, pipeline, or package-generation process."
+        },
+        {
+          "id": "no-pipeline",
+          "check": "response does not mention the collect\u2192clarify\u2192objective pipeline"
+        }
+      ]
+    },
+    {
+      "id": "trigger-should-not-2",
+      "prompt": "summarize the README file",
+      "expected_output": "No activation; plain file task.",
+      "assertions": [
+        {
+          "id": "no-activation",
+          "type": "deterministic",
+          "check": "Response does not activate any Process Engine sub-skill or begin engine workflow."
+        },
+        {
+          "id": "correct-general-routing",
+          "type": "deterministic",
+          "check": "Response treats the request as a general file task."
+        },
+        {
+          "id": "response-present",
+          "type": "deterministic",
+          "check": "response is not empty"
+        }
+      ]
+    },
+    {
+      "id": "trigger-should-not-3",
+      "prompt": "update the server configuration",
+      "expected_output": "No activation; out of engine scope (ops Turnstone, not the generator).",
+      "assertions": [
+        {
+          "id": "no-activation",
+          "type": "deterministic",
+          "check": "Response does not activate any Process Engine sub-skill or begin engine workflow."
+        },
+        {
+          "id": "correct-general-routing",
+          "type": "deterministic",
+          "check": "Response explicitly routes the operational configuration request to the general assistant without describing an engine intake or generation workflow."
+        },
+        {
+          "id": "response-present",
+          "type": "deterministic",
+          "check": "response is not empty"
+        }
+      ]
+    },
+    {
+      "id": "intake-link",
+      "prompt": "here's a skill I found that might help: https://agentskills.me/skill/csv-toolkit \u2014 can you use it?",
+      "expected_output": "Intake path: fetch raw SKILL.md + license from source, spec-validate, license check, classify, provenance recorded, operator gate \u2014 never silent adoption.",
+      "assertions": [
+        {
+          "id": "fetches-skill",
+          "check": "Response states that it will fetch, validate, and classify the supplied linked skill before any incorporation, and will gate incorporation with the operator."
+        },
+        {
+          "id": "checks-license",
+          "check": "response mentions checking or recording license information"
+        },
+        {
+          "id": "records-provenance",
+          "check": "response records the source URL as provenance"
+        },
+        {
+          "id": "operator-gate",
+          "check": "response asks for operator confirmation before using the material"
+        },
+        {
+          "id": "no-silent-adoption",
+          "check": "response does not immediately incorporate the skill without review"
+        }
+      ]
+    },
+    {
+      "id": "intake-upload",
+      "prompt": "I've attached our team's internal skill file for reference.",
+      "expected_output": "Intake path: recognize upload, spec-validate, license check, classify, operator gate.",
+      "assertions": [
+        {
+          "id": "extract-author-original",
+          "type": "deterministic",
+          "check": "Response states that it will extract behaviors or techniques from the uploaded reference rather than copy its content."
+        },
+        {
+          "id": "provenance-recorded",
+          "type": "deterministic",
+          "check": "Response records the uploaded reference as provided material (source or reference recorded, or source-unknown stated) before proceeding."
+        },
+        {
+          "id": "response-present",
+          "type": "deterministic",
+          "check": "response is not empty"
+        }
+      ]
+    },
+    {
+      "id": "intake-license-flag",
+      "prompt": "use this skill I found: (proprietary-licensed skill from a registry)",
+      "expected_output": "License info (if visible) recorded as provenance \u2014 not a gate. Extraction proceeds; original instructions authored; operator review gates the package (never copy).",
+      "assertions": [
+        {
+          "id": "extract-author-original",
+          "type": "deterministic",
+          "check": "Response states that it will extract behavior or techniques rather than copy proprietary source content, while treating visible license information as provenance rather than a gate."
+        },
+        {
+          "id": "provenance-recorded",
+          "type": "deterministic",
+          "check": "records provenance or source-unknown"
+        },
+        {
+          "id": "response-present",
+          "type": "deterministic",
+          "check": "response is not empty"
+        }
+      ]
+    },
+    {
+      "id": "intake-find",
+      "prompt": "find me an existing skill that does CSV cleanup",
+      "expected_output": "Search registries/web, fetch candidates, validate, present shortlist with provenance \u2192 operator gate.",
+      "assertions": [
+        {
+          "id": "find-shortlist-gate",
+          "type": "deterministic",
+          "check": "Response states that it will search the catalog or registry, validate candidates, return a provenance-backed shortlist, and obtain the operator's choice before selecting or incorporating a candidate."
+        },
+        {
+          "id": "provenance-recorded",
+          "type": "deterministic",
+          "check": "records provenance or source-unknown"
+        },
+        {
+          "id": "response-present",
+          "type": "deterministic",
+          "check": "response is not empty"
+        }
+      ]
+    },
+    {
+      "id": "intake-text-dump",
+      "prompt": "(pasted skill instructions, no link, no source given) here's how someone does spreadsheets \u2014 can you use it?",
+      "expected_output": "Text-dump path: no fetch, provenance recorded as 'user-provided, source unknown', license flagged unknown \u2192 operator decision, classified adaptation input (extract techniques, author original instructions).",
+      "assertions": [
+        {
+          "id": "extract-author-original",
+          "type": "deterministic",
+          "check": "Response records the pasted reference as user-provided with source unknown, and states that it will extract useful behavior rather than copy the source text."
+        },
+        {
+          "id": "provenance-recorded",
+          "type": "deterministic",
+          "check": "records provenance or source-unknown"
+        },
+        {
+          "id": "response-present",
+          "type": "deterministic",
+          "check": "response is not empty"
+        }
+      ]
+    },
+    {
+      "id": "gather-loop-yes-yes-no",
+      "prompt": "I want a skill for tracking workouts. (link) here's one I like. (text block) and this approach to progressive overload. no, that's all",
+      "expected_output": "Collection loop: both items intaken (fetch/extract/attribute), exits on 'that's all'; summary gate 'Working from: 1 link + 1 text block (1 source unknown). Generate?' \u2192 confirmation \u2192 authoring from all material.",
+      "assertions": [
+        {
+          "id": "collect-invites",
+          "type": "deterministic",
+          "check": "engine invites material before proceeding"
+        },
+        {
+          "id": "no-immediate-authoring",
+          "type": "deterministic",
+          "check": "no artifact authored in first response"
+        },
+        {
+          "id": "response-present",
+          "type": "deterministic",
+          "check": "response is not empty"
+        }
+      ]
+    },
+    {
+      "id": "gather-loop-immediate-no",
+      "prompt": "I want a skill that writes release notes. no, just go",
+      "expected_output": "Collection skipped on first decline; proceed to material-free clarification and authoring.",
+      "assertions": [
+        {
+          "id": "collect-invites",
+          "type": "deterministic",
+          "check": "After the prompt's first explicit non-material decline, response does not ask for further material and instead advances to the next applicable step."
+        },
+        {
+          "id": "no-immediate-authoring",
+          "type": "deterministic",
+          "check": "no artifact authored in first response"
+        },
+        {
+          "id": "response-present",
+          "type": "deterministic",
+          "check": "response is not empty"
+        }
+      ]
+    },
+    {
+      "id": "gather-loop-non-skill-reply",
+      "prompt": "I want a package for a database-backup operator skill. it's fine, get on with it",
+      "expected_output": "Non-material reply exits the loop; no further collection prompts; proceed.",
+      "assertions": [
+        {
+          "id": "collect-invites",
+          "type": "deterministic",
+          "check": "After the prompt's non-material reply, response does not reopen collection or ask for additional inputs."
+        },
+        {
+          "id": "no-immediate-authoring",
+          "type": "deterministic",
+          "check": "no artifact authored in first response"
+        },
+        {
+          "id": "response-present",
+          "type": "deterministic",
+          "check": "response is not empty"
+        }
+      ]
+    },
+    {
+      "id": "clarify-material-informed",
+      "prompt": "I want a skill for tracking workouts. (pasted: a volume-based tracker skill)",
+      "expected_output": "Clarify references the pasted material: 'your example tracks volume \u2014 do you want progressive-overload tracking too?' \u2014 distinguishes match vs improve.",
+      "assertions": [
+        {
+          "id": "collect-invites",
+          "type": "deterministic",
+          "check": "engine invites material before proceeding"
+        },
+        {
+          "id": "no-immediate-authoring",
+          "type": "deterministic",
+          "check": "no artifact authored in first response"
+        },
+        {
+          "id": "response-present",
+          "type": "deterministic",
+          "check": "response is not empty"
+        }
+      ]
+    },
+    {
+      "id": "gate-summary-before-author",
+      "prompt": "I want a skill for meal planning. (link) (link)",
+      "expected_output": "Before authoring, objective elicited ('what does good look like?'), then summary gate: 'Working from: 2 links. Intent: meal-planning skill. Good looks like: <vision>. Generate?' \u2014 authoring only after confirmation.",
+      "assertions": [
+        {
+          "id": "summary-gate",
+          "type": "deterministic",
+          "check": "Response presents an operator confirmation checkpoint before any authoring: it does not author the package, and it gates next steps (confirm, gate, or approval) with the operator."
+        },
+        {
+          "id": "response-present",
+          "type": "deterministic",
+          "check": "response is not empty"
+        }
+      ]
+    },
+    {
+      "id": "objective-what-good-looks-like",
+      "prompt": "I want a package to review my store. what does good look like? ... I just want it to actually help me sell better and not waste my time.",
+      "expected_output": "Vague vision accepted and formed into the objective (why it matters: sell better, don't waste time) and desired outcomes (observable end states); summary gate carries the vision; if no answer given, objective marked underspecified and proposed in the draft.",
+      "assertions": [
+        {
+          "id": "objective-formed",
+          "type": "deterministic",
+          "check": "Response converts the stated vague vision into a concrete package aim and at least one observable desired outcome, without asking for more input before forming that aim."
+        },
+        {
+          "id": "response-present",
+          "type": "deterministic",
+          "check": "response is not empty"
+        }
+      ]
+    },
+    {
+      "id": "input-store-context",
+      "prompt": "I have an online store and want a package to review it and create SEO listings. Here's my store: https://myshop.example.com",
+      "expected_output": "Store link classified as domain context (not a skill): fetched, domain specifics extracted into package context, never published; heads-up on any policy-relevant surface; summary gate lists it as context.",
+      "assertions": [
+        {
+          "id": "store-domain-context",
+          "type": "deterministic",
+          "check": "Response treats the named store link as already collected domain context and says it will be used to shape the package and not published."
+        },
+        {
+          "id": "heads-up-not-block",
+          "type": "deterministic",
+          "check": "Response surfaces the applicable non-blocking heads-up with a suggestion."
+        },
+        {
+          "id": "summary-gate",
+          "type": "deterministic",
+          "check": "Response gates incorporation of the collected store context with the operator before authoring, and does not author in the first response."
+        },
+        {
+          "id": "no-immediate-authoring",
+          "type": "deterministic",
+          "check": "Response does not author the package in the first response."
+        },
+        {
+          "id": "operator-gate",
+          "type": "deterministic",
+          "check": "Response gates incorporation of the collected domain context with the operator."
+        },
+        {
+          "id": "provenance-recorded",
+          "type": "deterministic",
+          "check": "Response records available source information as provenance for the collected domain context."
+        }
+      ]
+    },
+    {
+      "id": "input-mixed-anything",
+      "prompt": "I want a package for my shop. Here's a skill (link), my store (link), and my notes (pasted text).",
+      "expected_output": "All three items accepted and used: skill material (adapt), domain context (package context), general input (intent). Summary gate lists types: 'Working from: 1 skill + 1 store link + 1 text block.' Nothing rejected by type.",
+      "assertions": [
+        {
+          "id": "collect-invites",
+          "type": "deterministic",
+          "check": "engine invites material before proceeding"
+        },
+        {
+          "id": "no-immediate-authoring",
+          "type": "deterministic",
+          "check": "no artifact authored in first response"
+        },
+        {
+          "id": "response-present",
+          "type": "deterministic",
+          "check": "response is not empty"
+        }
+      ]
+    },
+    {
+      "id": "heads-up-not-block",
+      "prompt": "I want a package that generates listings for my store selling wellness products.",
+      "expected_output": "Engine surfaces a heads-up (platform policy may restrict certain claims) as information with a suggestion; proceeds on operator decision \u2014 never blocks, never loops.",
+      "assertions": [
+        {
+          "id": "heads-up-not-block",
+          "type": "deterministic",
+          "check": "heads-up surfaced as information, never blocks"
+        },
+        {
+          "id": "response-present",
+          "type": "deterministic",
+          "check": "response is not empty"
+        }
+      ]
+    },
+    {
+      "id": "eligibility-shape",
+      "prompt": "I want a package for my shop. (unclear whether it should be a persona, a skill, or several)",
+      "expected_output": "Eligibility gate asks one question to decide the shape \u2014 project / persona / single or multiple skills / not an artifact \u2014 never assumes; shape drives design.",
+      "assertions": [
+        {
+          "id": "response-present",
+          "type": "deterministic",
+          "check": "response is not empty"
+        }
+      ]
+    },
+    {
+      "id": "revise-fix-loop",
+      "prompt": "the review came back REVISE \u2014 fix it and bring it back",
+      "expected_output": "Formal fix loop: diagnose (specific findings) \u2192 rewrite preserving intent \u2192 audit (re-review confirms each finding addressed and materially better); regression trial re-runs.",
+      "assertions": [
+        {
+          "id": "response-present",
+          "type": "deterministic",
+          "check": "response is not empty"
+        }
+      ]
+    },
+    {
+      "id": "stocktake-audit",
+      "prompt": "run a quality audit of our deployed skills",
+      "expected_output": "Stocktake: audit deployed skills for quality (spec compliance, trigger accuracy, red-flag substance); findings categorized and routed like BUG/DESIGN; operator informed.",
+      "assertions": [
+        {
+          "id": "response-present",
+          "type": "deterministic",
+          "check": "response is not empty"
+        }
+      ]
+    },
+    {
+      "id": "provenance-metadata",
+      "prompt": "generate a skill using this linked skill as reference",
+      "expected_output": "Generated SKILL.md carries provenance metadata (source URL/date) in frontmatter when the source is known; techniques adapted, never copied.",
+      "assertions": [
+        {
+          "id": "response-present",
+          "type": "deterministic",
+          "check": "response is not empty"
+        }
+      ]
+    },
+    {
+      "id": "gov-pattern-author-emits",
+      "prompt": "I want a package for a database-backup operator skill.",
+      "expected_output": "pattern-author generates governance artifacts: a prompt policy (content-only, priority 1, no tool_gate - the operating stance) and judge rules (advisory, risk=low, review - the risk posture).",
+      "assertions": [
+        {
+          "id": "helper-posture",
+          "type": "deterministic",
+          "check": "Response includes the canonical governance phrasing: a content-only prompt policy with no tool_gate, and advisory judge rules that are operator-visible, reversible, never silent blockers."
+        },
+        {
+          "id": "response-present",
+          "type": "deterministic",
+          "check": "response is not empty"
+        }
+      ]
+    },
+    {
+      "id": "gov-ship-deploys",
+      "prompt": "ship the approved package",
+      "expected_output": "ship deploys the governance artifacts (POST prompt-policies + heuristic-rules) and verifies by read-back; rollback = disable/delete.",
+      "assertions": [
+        {
+          "id": "helper-posture",
+          "type": "deterministic",
+          "check": "Response confirms the ship gates (review PASS, trial PASS, operator approval) before deploying, and states governance artifacts are deployed and verified by read-back when present."
+        },
+        {
+          "id": "response-present",
+          "type": "deterministic",
+          "check": "response is not empty"
+        }
+      ]
+    },
+    {
+      "id": "gov-never-blocker",
+      "prompt": "use this package even though its policy might limit things",
+      "expected_output": "The package's governance artifacts are helpers: advisory, no tool_gate, operator-visible, reversible - they never silently block anything.",
+      "assertions": [
+        {
+          "id": "helper-posture",
+          "type": "deterministic",
+          "check": "Response treats the policy limitation as non-blocking, preserves the operator's decision authority, and states the canonical governance phrasing (content-only prompt policy, no tool_gate, advisory judge rules operator-visible/reversible/never silent blockers) without claiming to bypass or invent governance details."
+        },
+        {
+          "id": "response-present",
+          "type": "deterministic",
+          "check": "response is not empty"
+        }
+      ]
+    }
+  ]
+}

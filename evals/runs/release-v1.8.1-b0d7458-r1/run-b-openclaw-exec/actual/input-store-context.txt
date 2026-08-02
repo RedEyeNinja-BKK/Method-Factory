@@ -1,0 +1,7 @@
+I’ll treat `https://myshop.example.com` as **domain context**: I’ll fetch, validate, and classify what’s available; use it to shape the package, never publish or copy it. If the source is known, I’ll record the URL, access date, and license as provenance metadata, and author original SEO instructions rather than reproduce external content.
+
+**Heads-up:** SEO copy can create marketplace, advertising, and product-claim policy risks—especially for health, beauty, financial, or regulated products. This never blocks us; we proceed and you decide what claims are acceptable.
+
+Want to give me anything else to work from—a product catalog, brand guidelines, example listings, target markets, or pasted notes? I’ll gate with you before incorporating anything. The package will also include **the prompt policy, which is content-only with no tool_gate; the advisory judge rules are operator-visible, reversible, never silent blockers.**
+
+One shape question before I proceed: should this be a **reusable SEO-listing skill**, a **store-review project package**, or a **persona plus skills package**?

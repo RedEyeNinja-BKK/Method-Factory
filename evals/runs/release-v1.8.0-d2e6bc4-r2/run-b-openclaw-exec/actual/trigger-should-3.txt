@@ -1,0 +1,1 @@
+Send me the package, the feedback, and the issue link or text. I'll diagnose it, rewrite while preserving intent, audit the changes, and re-run regression trials. Governance note: the prompt policy is content-only, no tool_gate, and the advisory judge rules are operator-visible, reversible, and never silent blockers.

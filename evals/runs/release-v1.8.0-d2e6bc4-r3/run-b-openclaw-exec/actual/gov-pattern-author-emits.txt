@@ -1,0 +1,1 @@
+I can collect for a database-backup operator skill, but I need one shape decision first: should this package target a specific stack and backup mode, or stay vendor-neutral and generic? Paste any source material, constraints, or examples you want me to use, and I'll record it as collection input.

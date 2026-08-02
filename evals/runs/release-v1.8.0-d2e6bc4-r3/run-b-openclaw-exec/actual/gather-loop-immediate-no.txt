@@ -1,0 +1,1 @@
+Recorded as user-provided, source unknown. Intent: a release-notes writer package. Good looks like a package that turns change lists into concise, audience-aware release notes with a repeatable review gate. Should it optimize for public-facing release notes or an internal engineering changelog?

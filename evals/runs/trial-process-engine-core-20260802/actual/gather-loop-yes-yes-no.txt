@@ -1,0 +1,11 @@
+## Working summary
+
+- **Skill material:** one workout-tracking link, to be fetched, validated, and classified; I’ll extract the useful behavior rather than copy it. I’ll record its URL, access date, and license as provenance when available.
+- **User-provided text:** the progressive-overload approach, recorded as user-provided material; I’ll author original instructions from it rather than reproduce it.
+- **Artifact shape:** a workout-tracking skill.
+- **Intent:** help users log workouts and apply progressive overload consistently.
+- **Provisional “good” outcome:** a practical, easy-to-follow skill that captures exercises, sets, reps, load, effort, and progression decisions, while making uncertainty and safety limits clear.
+- **Heads-up:** workout guidance touches wellness and injury risk; this is non-blocking—we proceed, and the package will include appropriate scope limits and safety prompts.
+- **Governance:** the prompt policy is content-only with no `tool_gate`; the advisory judge rules are operator-visible, reversible, never silent blockers.
+
+After your confirmation, I’ll create the manifest, author the draft through the Pattern stage, then present it for Review before any trial or shipping. **Generate?**

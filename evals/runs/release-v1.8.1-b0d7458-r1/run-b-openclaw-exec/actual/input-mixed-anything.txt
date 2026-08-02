@@ -1,0 +1,17 @@
+I can build a professional package for your shop.
+
+I’ll treat the inputs as:
+
+- **Skill material:** fetch, validate, extract the useful behavior, and attribute the source rather than copy it.
+- **Store link:** domain context used to shape the package, never published as part of it.
+- **Pasted notes:** general input incorporated into the package; if a source is not supplied, it will be recorded as **user-provided, source unknown**.
+
+For any known source, I’ll record the URL, access date, and license as provenance metadata. I’ll gate incorporation with you before using the material.
+
+> **Heads-up:** marketplace policies and product-claim rules may affect how the shop package describes benefits or results. This is non-blocking—we proceed, and you decide the boundaries.
+
+The package will go through **Pattern → Review → Trial → Ship**. If governance artifacts are included, **the prompt policy is content-only with no `tool_gate`; the advisory judge rules are operator-visible, reversible, never silent blockers.**
+
+**One shape question:** should this be a **shop operations project**, a **shop-manager persona**, a set of **shop skills**, or another kind of package?
+
+Please also replace the placeholders with the actual skill link, store link, and pasted notes when ready.

@@ -1,0 +1,1 @@
+I'll treat the store as domain context only-used in the package, never published. Heads-up: pricing, promotional, health, regulated-product, and customer-data recommendations need advisory handling rather than silent automation. What store URL should I review?

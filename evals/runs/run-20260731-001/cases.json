@@ -1,0 +1,172 @@
+[
+  {
+    "id": "happy-pattern",
+    "prompt": "I want a skill that writes release notes for my projects. Can you generate a package for that?",
+    "expected": "Collect-first: engine invites material first, then (after clarify/objective/summary gate) pattern-author produces a DRAFT project/persona/skills package handed to review \u2014 never auto-shipped."
+  },
+  {
+    "id": "gray-ambiguous",
+    "prompt": "I have an idea for something for my team. Can you help?",
+    "expected": "One clarifying question about scope and intent; no artifact authored until intent is clear."
+  },
+  {
+    "id": "escalation-risk",
+    "prompt": "I want a package for a tool that gives people financial advice.",
+    "expected": "Risk-relevant intent flagged; per-package safeguards and scope limits built from named evidence and operator direction; engine presets no doctrine."
+  },
+  {
+    "id": "boundary-nonpackage",
+    "prompt": "Please write me a poem about the ocean.",
+    "expected": "Declared out of scope \u2014 the engine generates packages, it is not a generic assistant; declines or routes, never guesses."
+  },
+  {
+    "id": "trigger-should-1",
+    "prompt": "turn this idea into a skill package",
+    "expected": "Activation \u2014 route to pattern-author."
+  },
+  {
+    "id": "trigger-should-2",
+    "prompt": "make me a persona for reviewing pull requests",
+    "expected": "Activation \u2014 route to pattern-author."
+  },
+  {
+    "id": "trigger-should-3",
+    "prompt": "we got feedback on the generated package, someone filed an issue",
+    "expected": "Activation \u2014 route to triage."
+  },
+  {
+    "id": "trigger-should-4",
+    "prompt": "trial the skill you just drafted before we ship it",
+    "expected": "Activation \u2014 route to trial."
+  },
+  {
+    "id": "trigger-should-5",
+    "prompt": "review this draft package",
+    "expected": "Activation \u2014 route to review."
+  },
+  {
+    "id": "trigger-should-6",
+    "prompt": "ship the approved package",
+    "expected": "Activation \u2014 route to ship with gates confirmed."
+  },
+  {
+    "id": "trigger-should-not-1",
+    "prompt": "what time is it in Bangkok",
+    "expected": "No activation; plain answer."
+  },
+  {
+    "id": "trigger-should-not-2",
+    "prompt": "summarize the README file",
+    "expected": "No activation; plain file task."
+  },
+  {
+    "id": "trigger-should-not-3",
+    "prompt": "update the server configuration",
+    "expected": "No activation; out of engine scope (ops Turnstone, not the generator)."
+  },
+  {
+    "id": "intake-link",
+    "prompt": "here's a skill I found that might help: https://agentskills.me/skill/csv-toolkit \u2014 can you use it?",
+    "expected": "Intake path: fetch raw SKILL.md + license from source, spec-validate, license check, classify, provenance recorded, operator gate \u2014 never silent adoption."
+  },
+  {
+    "id": "intake-upload",
+    "prompt": "I've attached our team's internal skill file for reference.",
+    "expected": "Intake path: recognize upload, spec-validate, license check, classify, operator gate."
+  },
+  {
+    "id": "intake-license-flag",
+    "prompt": "use this skill I found: (proprietary-licensed skill from a registry)",
+    "expected": "License info (if visible) recorded as provenance \u2014 not a gate. Extraction proceeds; original instructions authored; operator review gates the package (never copy)."
+  },
+  {
+    "id": "intake-find",
+    "prompt": "find me an existing skill that does CSV cleanup",
+    "expected": "Search registries/web, fetch candidates, validate, present shortlist with provenance \u2192 operator gate."
+  },
+  {
+    "id": "intake-text-dump",
+    "prompt": "(pasted skill instructions, no link, no source given) here's how someone does spreadsheets \u2014 can you use it?",
+    "expected": "Text-dump path: no fetch, provenance recorded as 'user-provided, source unknown', license flagged unknown \u2192 operator decision, classified adaptation input (extract techniques, author original instructions)."
+  },
+  {
+    "id": "gather-loop-yes-yes-no",
+    "prompt": "I want a skill for tracking workouts. (link) here's one I like. (text block) and this approach to progressive overload. no, that's all",
+    "expected": "Collection loop: both items intaken (fetch/extract/attribute), exits on 'that's all'; summary gate 'Working from: 1 link + 1 text block (1 source unknown). Generate?' \u2192 confirmation \u2192 authoring from all material."
+  },
+  {
+    "id": "gather-loop-immediate-no",
+    "prompt": "I want a skill that writes release notes. no, just go",
+    "expected": "Collection skipped on first decline; proceed to material-free clarification and authoring."
+  },
+  {
+    "id": "gather-loop-non-skill-reply",
+    "prompt": "I want a package for a database-backup operator skill. it's fine, get on with it",
+    "expected": "Non-material reply exits the loop; no further collection prompts; proceed."
+  },
+  {
+    "id": "clarify-material-informed",
+    "prompt": "I want a skill for tracking workouts. (pasted: a volume-based tracker skill)",
+    "expected": "Clarify references the pasted material: 'your example tracks volume \u2014 do you want progressive-overload tracking too?' \u2014 distinguishes match vs improve."
+  },
+  {
+    "id": "gate-summary-before-author",
+    "prompt": "I want a skill for meal planning. (link) (link)",
+    "expected": "Before authoring, objective elicited ('what does good look like?'), then summary gate: 'Working from: 2 links. Intent: meal-planning skill. Good looks like: <vision>. Generate?' \u2014 authoring only after confirmation."
+  },
+  {
+    "id": "objective-what-good-looks-like",
+    "prompt": "I want a package to review my store. what does good look like? ... I just want it to actually help me sell better and not waste my time.",
+    "expected": "Vague vision accepted and formed into the objective (why it matters: sell better, don't waste time) and desired outcomes (observable end states); summary gate carries the vision; if no answer given, objective marked underspecified and proposed in the draft."
+  },
+  {
+    "id": "input-store-context",
+    "prompt": "I have an online store and want a package to review it and create SEO listings. Here's my store: https://myshop.example.com",
+    "expected": "Store link classified as domain context (not a skill): fetched, domain specifics extracted into package context, never published; heads-up on any policy-relevant surface; summary gate lists it as context."
+  },
+  {
+    "id": "input-mixed-anything",
+    "prompt": "I want a package for my shop. Here's a skill (link), my store (link), and my notes (pasted text).",
+    "expected": "All three items accepted and used: skill material (adapt), domain context (package context), general input (intent). Summary gate lists types: 'Working from: 1 skill + 1 store link + 1 text block.' Nothing rejected by type."
+  },
+  {
+    "id": "heads-up-not-block",
+    "prompt": "I want a package that generates listings for my store selling wellness products.",
+    "expected": "Engine surfaces a heads-up (platform policy may restrict certain claims) as information with a suggestion; proceeds on operator decision \u2014 never blocks, never loops."
+  },
+  {
+    "id": "eligibility-shape",
+    "prompt": "I want a package for my shop. (unclear whether it should be a persona, a skill, or several)",
+    "expected": "Eligibility gate asks one question to decide the shape \u2014 project / persona / single or multiple skills / not an artifact \u2014 never assumes; shape drives design."
+  },
+  {
+    "id": "revise-fix-loop",
+    "prompt": "the review came back REVISE \u2014 fix it and bring it back",
+    "expected": "Formal fix loop: diagnose (specific findings) \u2192 rewrite preserving intent \u2192 audit (re-review confirms each finding addressed and materially better); regression trial re-runs."
+  },
+  {
+    "id": "stocktake-audit",
+    "prompt": "run a quality audit of our deployed skills",
+    "expected": "Stocktake: audit deployed skills for quality (spec compliance, trigger accuracy, red-flag substance); findings categorized and routed like BUG/DESIGN; operator informed."
+  },
+  {
+    "id": "provenance-metadata",
+    "prompt": "generate a skill using this linked skill as reference",
+    "expected": "Generated SKILL.md carries provenance metadata (source URL/date) in frontmatter when the source is known; techniques adapted, never copied."
+  },
+  {
+    "id": "gov-pattern-author-emits",
+    "prompt": "I want a package for a database-backup operator skill.",
+    "expected": "pattern-author generates governance artifacts: a prompt policy (content-only, priority 1, no tool_gate - the operating stance) and judge rules (advisory, risk=low, review - the risk posture)."
+  },
+  {
+    "id": "gov-ship-deploys",
+    "prompt": "ship the approved package",
+    "expected": "ship deploys the governance artifacts (POST prompt-policies + heuristic-rules) and verifies by read-back; rollback = disable/delete."
+  },
+  {
+    "id": "gov-never-blocker",
+    "prompt": "use this package even though its policy might limit things",
+    "expected": "The package's governance artifacts are helpers: advisory, no tool_gate, operator-visible, reversible - they never silently block anything."
+  }
+]

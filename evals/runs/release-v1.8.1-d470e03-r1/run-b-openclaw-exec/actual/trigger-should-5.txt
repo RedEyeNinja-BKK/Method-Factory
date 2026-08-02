@@ -1,0 +1,1 @@
+Please paste, upload, or provide the path to the draft package you want reviewed. I’ll assess its structure, evidence/provenance, scope honesty, Agent Skills format compliance, acceptance criteria, safeguards, and readiness for the **Pattern → Review → Trial → Ship** pipeline.

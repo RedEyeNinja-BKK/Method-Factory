@@ -1,0 +1,9 @@
+I’ll build a **meal-planning skill** through the Process Engine pipeline: **Pattern → Review → Trial → Ship**.
+
+I can intake the two links as reference material—fetch, validate, classify, extract the underlying behavior rather than copy it, and record each known URL, access date, and license as provenance metadata. **I’ll gate with you before incorporating anything.**
+
+> **Heads-up:** meal planning can touch nutrition and wellness claims; we’ll keep scope and safety limits explicit. This never blocks—we proceed; you decide.
+
+For governance, **the prompt policy is content-only with no tool_gate; the advisory judge rules are operator-visible, reversible, never silent blockers.**
+
+Please paste the two actual URLs.

@@ -1,0 +1,7 @@
+I’ll build a **Process Engine package** for generating wellness-product store listings—original instructions, evidence-aware claims, platform-conscious wording, and review/trial gates rather than unsupported health promises.
+
+**Heads-up:** wellness listings can cross into regulated or misleading health claims. This never blocks us—we proceed, and I’ll make the package distinguish product descriptions from medical claims and flag wording that needs verification.
+
+You can give me anything to work from—store links, existing listings, product details, brand guidelines, target marketplace rules, or pasted examples. I’ll treat links as domain context, extract behavior rather than copy, and record known sources as provenance. I’ll gate with you before incorporating anything. The prompt policy is content-only with no tool_gate; the advisory judge rules are operator-visible, reversible, never silent blockers.
+
+Should the package produce **one reusable listing-generation skill**, a **complete store-listing project/persona**, or **a small set of specialized skills** (for example, copywriting, claims checking, and listing review)?

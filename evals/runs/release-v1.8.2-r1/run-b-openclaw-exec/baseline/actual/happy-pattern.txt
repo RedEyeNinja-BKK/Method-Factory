@@ -1,0 +1,1 @@
+Yes. I can help design that skill. I'd structure it to capture standup notes in a consistent format, store them by date and team, and generate a weekly summary with blockers, action items, and wins. If you want, I can draft the skill spec next.

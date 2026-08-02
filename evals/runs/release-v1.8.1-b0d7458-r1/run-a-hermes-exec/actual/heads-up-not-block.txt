@@ -1,0 +1,13 @@
+I can build that package as a reusable listing-generation system, following **Pattern → Review → Trial → Ship**.
+
+**One scope question:** should the package be a **reusable skill**, a **store-manager persona**, or a **full project bundle** containing both?
+
+Please send anything useful to work from—store or marketplace links, product details, existing listings, brand voice, customer profile, platform requirements, or pasted examples. I’ll treat:
+
+- Skill material as behavior to extract and attribute, not copy.
+- Store/product links as domain context used to shape the package, never published.
+- Pasted material without a source as **user-provided, source unknown**, and proceed.
+
+**Heads-up:** wellness-product listings can cross into health, safety, and marketplace-claim policies. I’ll flag unsupported claims and build evidence and scope safeguards into the package; **this never blocks — we proceed; you decide**.
+
+For any package we author, **the prompt policy is content-only with no tool_gate; the advisory judge rules are operator-visible, reversible, never silent blockers.** I’ll gate with you before incorporating material, and nothing ships without your review and a successful trial.

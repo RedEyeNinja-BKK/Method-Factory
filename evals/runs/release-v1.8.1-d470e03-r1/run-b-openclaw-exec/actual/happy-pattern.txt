@@ -1,0 +1,5 @@
+Yes — I’ll generate a **skill package for writing project release notes**, following **Pattern → Review → Trial → Ship**. The package will include explicit acceptance criteria, source attribution, verification steps, and Agent Skills–compliant structure. If governance helpers are included, **the prompt policy is content-only with no `tool_gate`; the advisory judge rules are operator-visible, reversible, never silent blockers.**
+
+You can give me anything useful to work from: example release notes, a preferred format, repository conventions, links, pasted text, or project files. I’ll extract the behavior rather than copy external material, and I’ll gate incorporation with you before using it.
+
+**What does “good” release-note writing look like to you?**

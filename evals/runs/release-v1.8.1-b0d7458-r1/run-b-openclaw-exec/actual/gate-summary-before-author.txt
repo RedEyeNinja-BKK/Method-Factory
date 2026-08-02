@@ -1,0 +1,15 @@
+I can build a **meal-planning skill** through the Process Engine pipeline: **Pattern → Review → Trial → Ship**.
+
+I see two link placeholders, but not the actual URLs. Please send the links (or upload/paste the material) you want me to work from. I’ll:
+
+- fetch, validate, and classify each source;
+- record the URL, access date, and license as provenance when known;
+- extract useful behavior and author original instructions rather than copying;
+- treat any product/store pages as domain context, never as content to publish;
+- gate with you before incorporating anything.
+
+> **Heads-up:** Meal planning can touch nutrition, allergies, medical conditions, and wellness claims. This is non-blocking—we proceed, and I’ll build appropriate scope limits and safety boundaries into the draft for your review.
+
+The generated package will explicitly include **a prompt policy that is content-only with no `tool_gate`; the advisory judge rules are operator-visible, reversible, never silent blockers.**
+
+Please send the two actual URLs.

@@ -1,0 +1,1 @@
+I'll diagnose each REVISE finding, rewrite the package while preserving the original intent, audit the corrections, and re-run any affected regression trials. I won't recommend shipping while required cases remain failed or unrun.

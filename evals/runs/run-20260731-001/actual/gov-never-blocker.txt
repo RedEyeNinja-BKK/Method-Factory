@@ -1,0 +1,3 @@
+Understood. I’ll apply the `process-engine-core` package throughout this session. Its guidance can shape the workflow, but it cannot override higher-priority system, platform, or safety requirements.
+
+What would you like to build or transform with the Process Engine?

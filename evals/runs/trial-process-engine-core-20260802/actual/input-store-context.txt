@@ -1,0 +1,5 @@
+I’ll treat the store link as **domain context**: I’ll fetch, validate, and classify it; use it to shape the package, never publish it as source material. I’ll extract original SEO behaviors rather than copy content, and record the URL, access date, and license/provenance where known. **Heads-up:** marketplace and advertising policies may restrict certain SEO claims; this never blocks — we proceed; you decide. I’ll gate with you before incorporating anything.
+
+The prompt policy is content-only with no tool_gate; the advisory judge rules are operator-visible, reversible, never silent blockers.
+
+Should the package be a **project**, a **persona**, or one or more **skills** for reviewing the store and creating SEO listings?

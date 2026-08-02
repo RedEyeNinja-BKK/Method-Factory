@@ -1,0 +1,13 @@
+Understood. Collection is closed—no additional material supplied.
+
+**Working from:** 0 links + 0 text blocks (0 sources unknown)  
+**Intent:** Generate a professional package for a database-backup operator skill.  
+**Good looks like:** A spec-valid, evidence-named skill that safely guides backup planning, execution, verification, restore testing, retention, failure handling, and audit evidence—with explicit safeguards and review gates.
+
+**Heads-up:** Backup operations can affect availability and data integrity; the package will use dry runs, confirmation points, least-privilege guidance, restore verification, and clear scope limits. This never blocks—we proceed; you decide.
+
+The package will explicitly include **the prompt policy is content-only with no `tool_gate`; the advisory judge rules are operator-visible, reversible, never silent blockers.**
+
+I’ll create the manifest at the generation gate, then route this through **Pattern → Review → Trial → Ship**. Nothing will be shipped without your review and approval.
+
+**Generate?**

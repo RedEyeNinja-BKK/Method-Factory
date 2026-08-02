@@ -1,0 +1,3 @@
+Yes—I can use pasted spreadsheet instructions. I’ll record them as **user-provided, source unknown**, extract the behavior rather than copy it, and gate with you before incorporating anything.
+
+No spreadsheet instructions came through in the message yet. **Do you want this turned into a reusable spreadsheet skill, or applied to one specific spreadsheet task?**

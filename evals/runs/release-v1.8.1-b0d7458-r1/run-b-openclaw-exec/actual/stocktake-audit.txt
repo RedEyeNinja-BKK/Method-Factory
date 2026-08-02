@@ -1,0 +1,17 @@
+I’ll treat this as a **review/audit request** for the currently deployed Process Engine skills, not as a new-package generation task.
+
+I’ll inspect the deployed skill inventory and their source artifacts, then check:
+
+- Agent Skills format and frontmatter compliance
+- trigger descriptions and routing coverage
+- lifecycle coverage: Pattern → Review → Trial → Ship
+- evidence/provenance, scope honesty, privacy, and anti-rationalization
+- review gates, acceptance criteria, and manifest continuity
+- consistency between deployed/API metadata and canonical skill files
+- regression/evaluation coverage and any release-blocking findings
+
+I’ll use the 3-agent separation where appropriate: independent technical review, execution of any fixes only if requested/approved, and orchestration here. **Nothing will be changed or shipped as part of the audit without your explicit approval.**
+
+> **Heads-up:** this is an audit of deployed skill artifacts and metadata; it can identify drift or gaps, but it does not by itself prove domain-specific effectiveness. I’ll label evidence, uncertainty, and severity clearly.
+
+Do you want the audit to cover **all deployed Process Engine skills**, or a specific subset?

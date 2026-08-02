@@ -1,0 +1,1 @@
+Please provide the draft package by uploading it, pasting it, or giving me its file path. I’ll review it against the Process Engine standards, including manifest continuity, Agent Skills format compliance, evidence/provenance, acceptance criteria, safety boundaries, and Pattern → Review → Trial → Ship readiness.

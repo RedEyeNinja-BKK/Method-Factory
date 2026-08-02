@@ -1,0 +1,3 @@
+I can create a **persona for reviewing pull requests**—focused on finding defects, regression risks, missing tests, security concerns, and maintainability issues while keeping feedback clear and actionable. The package will include explicit review criteria, acceptance checks, and a **Pattern → Review → Trial → Ship** path. The prompt policy will be **content-only with no `tool_gate`**; the advisory judge rules will be **operator-visible, reversible, and never silent blockers**.
+
+Want to give me anything to work from—a review checklist, repository conventions, example reviews, links, or pasted text?

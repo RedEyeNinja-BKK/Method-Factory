@@ -1,0 +1,1 @@
+Heads-up: this external skill reference needs source, license, and suitability validation before it can inform a package; that validation is non-blocking. What outcome do you want this CSV skill to support?

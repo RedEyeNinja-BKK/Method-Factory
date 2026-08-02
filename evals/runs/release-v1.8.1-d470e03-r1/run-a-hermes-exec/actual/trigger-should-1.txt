@@ -1,0 +1,3 @@
+What idea should the skill package turn into—what should the skill help someone accomplish?
+
+When you share it, I’ll shape it through **Pattern → Review → Trial → Ship**. The package will also include governance artifacts: **the prompt policy is content-only with no `tool_gate`; the advisory judge rules are operator-visible, reversible, never silent blockers.**

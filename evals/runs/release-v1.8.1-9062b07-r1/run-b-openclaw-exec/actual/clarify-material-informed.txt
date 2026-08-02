@@ -1,0 +1,5 @@
+I’ll create a **workout-tracking skill**. I’ve recorded the pasted “volume-based tracker skill” as **user-provided, source unknown**; I’ll extract its behavior and author original instructions rather than copy it.
+
+**Heads-up:** workout tracking can touch wellness and health-related claims. This is non-blocking—we’ll keep the skill focused on logging, calculations, and trends, not diagnosis or medical advice; you decide the boundaries.
+
+You can add links, files, or notes if useful. Should the new skill **match the pasted tracker’s approach or improve on it**?

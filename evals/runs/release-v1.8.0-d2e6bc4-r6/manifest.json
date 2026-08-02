@@ -1,0 +1,20 @@
+{
+  "run_id": "release-v1.8.0-d2e6bc4-r6",
+  "commit": "d2a26d0bed62ad0dd054a46b5203661bb433518c",
+  "engine_version": "1.8.0",
+  "protocol": "mirrored-dual-source",
+  "run_a": {
+    "executor": "hermes-agent",
+    "verifier": "openclaw-main",
+    "model": "gpt-5.6-terra",
+    "result": "34/34 PASS"
+  },
+  "run_b": {
+    "executor": "openclaw-main",
+    "verifier": "hermes-gateway",
+    "model": "gpt-5.6-terra",
+    "result": "34/34 PASS"
+  },
+  "note": "Both independent mirrored runs converged to 34/34 PASS. Evidence: per-run immutable transcripts + judgments + summaries + manifests, sealed to the current commit.",
+  "sealed_at": "785c7d4"
+}

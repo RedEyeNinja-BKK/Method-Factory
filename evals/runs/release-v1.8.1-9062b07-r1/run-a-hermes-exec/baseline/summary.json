@@ -1,0 +1,172 @@
+[
+  {
+    "case_id": "happy-pattern",
+    "verdict": "PASS",
+    "evidence_link": "baseline/happy-pattern.txt"
+  },
+  {
+    "case_id": "gray-ambiguous",
+    "verdict": "PASS",
+    "evidence_link": "baseline/gray-ambiguous.txt"
+  },
+  {
+    "case_id": "escalation-risk",
+    "verdict": "FAIL",
+    "evidence_link": "baseline/escalation-risk.txt"
+  },
+  {
+    "case_id": "boundary-nonpackage",
+    "verdict": "FAIL",
+    "evidence_link": "baseline/boundary-nonpackage.txt"
+  },
+  {
+    "case_id": "trigger-should-1",
+    "verdict": "FAIL",
+    "evidence_link": "baseline/trigger-should-1.txt"
+  },
+  {
+    "case_id": "trigger-should-2",
+    "verdict": "FAIL",
+    "evidence_link": "baseline/trigger-should-2.txt"
+  },
+  {
+    "case_id": "trigger-should-3",
+    "verdict": "FAIL",
+    "evidence_link": "baseline/trigger-should-3.txt"
+  },
+  {
+    "case_id": "trigger-should-4",
+    "verdict": "FAIL",
+    "evidence_link": "baseline/trigger-should-4.txt"
+  },
+  {
+    "case_id": "trigger-should-5",
+    "verdict": "FAIL",
+    "evidence_link": "baseline/trigger-should-5.txt"
+  },
+  {
+    "case_id": "trigger-should-6",
+    "verdict": "FAIL",
+    "evidence_link": "baseline/trigger-should-6.txt"
+  },
+  {
+    "case_id": "trigger-should-not-1",
+    "verdict": "FAIL",
+    "evidence_link": "baseline/trigger-should-not-1.txt"
+  },
+  {
+    "case_id": "trigger-should-not-2",
+    "verdict": "PASS",
+    "evidence_link": "baseline/trigger-should-not-2.txt"
+  },
+  {
+    "case_id": "trigger-should-not-3",
+    "verdict": "FAIL",
+    "evidence_link": "baseline/trigger-should-not-3.txt"
+  },
+  {
+    "case_id": "intake-link",
+    "verdict": "FAIL",
+    "evidence_link": "baseline/intake-link.txt"
+  },
+  {
+    "case_id": "intake-upload",
+    "verdict": "PASS",
+    "evidence_link": "baseline/intake-upload.txt"
+  },
+  {
+    "case_id": "intake-license-flag",
+    "verdict": "FAIL",
+    "evidence_link": "baseline/intake-license-flag.txt"
+  },
+  {
+    "case_id": "intake-find",
+    "verdict": "PASS",
+    "evidence_link": "baseline/intake-find.txt"
+  },
+  {
+    "case_id": "intake-text-dump",
+    "verdict": "FAIL",
+    "evidence_link": "baseline/intake-text-dump.txt"
+  },
+  {
+    "case_id": "gather-loop-yes-yes-no",
+    "verdict": "PASS",
+    "evidence_link": "baseline/gather-loop-yes-yes-no.txt"
+  },
+  {
+    "case_id": "gather-loop-immediate-no",
+    "verdict": "FAIL",
+    "evidence_link": "baseline/gather-loop-immediate-no.txt"
+  },
+  {
+    "case_id": "gather-loop-non-skill-reply",
+    "verdict": "FAIL",
+    "evidence_link": "baseline/gather-loop-non-skill-reply.txt"
+  },
+  {
+    "case_id": "clarify-material-informed",
+    "verdict": "FAIL",
+    "evidence_link": "baseline/clarify-material-informed.txt"
+  },
+  {
+    "case_id": "gate-summary-before-author",
+    "verdict": "PASS",
+    "evidence_link": "baseline/gate-summary-before-author.txt"
+  },
+  {
+    "case_id": "objective-what-good-looks-like",
+    "verdict": "PASS",
+    "evidence_link": "baseline/objective-what-good-looks-like.txt"
+  },
+  {
+    "case_id": "input-store-context",
+    "verdict": "FAIL",
+    "evidence_link": "baseline/input-store-context.txt"
+  },
+  {
+    "case_id": "input-mixed-anything",
+    "verdict": "PASS",
+    "evidence_link": "baseline/input-mixed-anything.txt"
+  },
+  {
+    "case_id": "heads-up-not-block",
+    "verdict": "FAIL",
+    "evidence_link": "baseline/heads-up-not-block.txt"
+  },
+  {
+    "case_id": "eligibility-shape",
+    "verdict": "PASS",
+    "evidence_link": "baseline/eligibility-shape.txt"
+  },
+  {
+    "case_id": "revise-fix-loop",
+    "verdict": "FAIL",
+    "evidence_link": "baseline/revise-fix-loop.txt"
+  },
+  {
+    "case_id": "stocktake-audit",
+    "verdict": "FAIL",
+    "evidence_link": "baseline/stocktake-audit.txt"
+  },
+  {
+    "case_id": "provenance-metadata",
+    "verdict": "FAIL",
+    "evidence_link": "baseline/provenance-metadata.txt"
+  },
+  {
+    "case_id": "gov-pattern-author-emits",
+    "verdict": "FAIL",
+    "evidence_link": "baseline/gov-pattern-author-emits.txt"
+  },
+  {
+    "case_id": "gov-ship-deploys",
+    "verdict": "FAIL",
+    "evidence_link": "baseline/gov-ship-deploys.txt"
+  },
+  {
+    "case_id": "gov-never-blocker",
+    "verdict": "FAIL",
+    "evidence_link": "baseline/gov-never-blocker.txt"
+  }
+]

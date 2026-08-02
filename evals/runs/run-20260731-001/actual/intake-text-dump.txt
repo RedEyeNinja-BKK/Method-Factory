@@ -1,0 +1,5 @@
+Yes—I can use it as **reference material**, extracting techniques and authoring original instructions rather than copying it.
+
+I received a pasted skill reference, but it doesn’t include the actual spreadsheet guidance or a named source. **Anything else** you want to provide—such as the spreadsheet workflow, an example file, a link, or notes?
+
+Also, what are you trying to build from it: a spreadsheet skill, a reusable spreadsheet workflow, or a broader project/persona package?

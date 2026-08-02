@@ -1,0 +1,9 @@
+Collection closed — no additional material provided.
+
+**Working from:** 0 links + 0 text blocks (0 sources unknown)  
+**Intent:** Create a skill that writes clear, accurate release notes.  
+**Good looks like:** A spec-valid Agent Skill that turns changelogs, commits, and issue summaries into structured release notes, distinguishes facts from inference, preserves important breaking changes, and produces publication-ready Markdown.
+
+The package will include review and trial gates before shipping. For governance, **the prompt policy is content-only with no `tool_gate`; the advisory judge rules are operator-visible, reversible, never silent blockers.**
+
+**Generate the package?**

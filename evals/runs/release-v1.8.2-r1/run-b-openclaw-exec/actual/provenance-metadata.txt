@@ -1,0 +1,5 @@
+I can generate an original, spec-compliant skill using the reference material—extracting its behavior rather than copying it. I’ll validate the reference, record its source URL, access date, and license as provenance metadata in the generated `SKILL.md` frontmatter, and gate incorporation with you before proceeding.
+
+Please provide the skill link (or upload/paste the reference if the link was omitted).
+
+The prompt policy is content-only with no `tool_gate`; the advisory judge rules are operator-visible, reversible, never silent blockers.

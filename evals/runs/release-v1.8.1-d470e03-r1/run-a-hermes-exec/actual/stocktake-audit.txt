@@ -1,0 +1,3 @@
+I’ll route this as a **quality review of the currently deployed skills**—not a deployment or modification. I’ll check inventory, Agent Skills format compliance, descriptions and triggers, source/provenance, safety and governance boundaries, lifecycle coverage, and available trial/evaluation evidence, then report findings with severity and recommended fixes.
+
+**Should I audit every currently deployed skill, or only a named subset?**

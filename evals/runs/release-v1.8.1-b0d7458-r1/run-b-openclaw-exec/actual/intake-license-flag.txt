@@ -1,0 +1,3 @@
+I’ll treat this as **skill material from a registry**: I’ll search the catalog, fetch and validate the candidate, record its proprietary license and provenance, and extract its behavior rather than copy it. **The license is not a gate**; I’ll gate with you before incorporating anything.
+
+Please send the registry link, skill name, or registry ID—and tell me what you want the resulting skill/package to accomplish. Anything else you want me to work from (pasted text, files, or examples) is welcome.

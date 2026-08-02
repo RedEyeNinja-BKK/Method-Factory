@@ -1,0 +1,7 @@
+I can turn this into a **store-review package** designed to identify the few changes most likely to improve sales, while filtering out low-value busywork. “Good” currently means: **actionable recommendations prioritized by likely impact and effort, with clear evidence and a way to verify whether each change helped.**
+
+You can give me anything useful to work from—your store link, screenshots, listings, notes, customer feedback, or examples. I’ll treat store links as **domain context**: used to shape the package, never published. Any skill or reference material will be extracted and attributed rather than copied.
+
+**Heads-up:** marketplace policies and product-claim rules may affect recommendations; this is non-blocking—we proceed, and you decide. The prompt policy will be content-only with no `tool_gate`; the advisory judge rules will be operator-visible, reversible, and never silent blockers.
+
+What shape should this package take: **a reusable review skill, a store-review project/workflow, or a persona that performs the reviews?**

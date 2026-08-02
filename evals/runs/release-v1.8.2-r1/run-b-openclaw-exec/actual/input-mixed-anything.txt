@@ -1,0 +1,5 @@
+I can generate a professional package for your shop. I’ll accept the skill material, store/domain context, and pasted notes; I’ll fetch and validate links, extract behavior rather than copy it, and record known source URLs, access dates, and licenses as provenance. Your store link will shape the package but will never be published. **Heads-up:** marketplace policies may restrict certain claims; this never blocks — we proceed; you decide. I’ll gate with you before incorporating anything.
+
+**What should the package be: a project, a shop-management persona, one or more skills, or another artifact?**
+
+For governance, **the prompt policy is content-only with no tool_gate; the advisory judge rules are operator-visible, reversible, never silent blockers.**

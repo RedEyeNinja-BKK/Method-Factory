@@ -1,0 +1,7 @@
+I’ll generate a **database-backup operator skill package**. No source materials were provided, so I’ll author original instructions and document the evidence and assumptions used. The package will cover safe backup execution, validation, restore testing, retention, failure handling, logging, and explicit operator approval points.
+
+Heads-up: backup operations can affect data availability and recovery confidence; this is non-blocking — we proceed, and the operator reviews the safeguards before anything ships.
+
+The package will include governance artifacts: **the prompt policy is content-only with no tool_gate; the advisory judge rules are operator-visible, reversible, never silent blockers.**
+
+Working from: 0 links + 0 text blocks (0 sources unknown). Intent: create a database-backup operator skill package. Good looks like: a standards-compliant, evidence-named, safety-first skill that guides reliable backups and proves recoverability through verification and restore trials before deployment. Generate?

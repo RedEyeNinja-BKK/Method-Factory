@@ -1,0 +1,12 @@
+I couldn’t find an existing enabled skill for CSV cleanup in the catalog.
+
+The closest available skills are general-purpose engineering/review skills, but none specifically handle CSV tasks such as:
+
+- Removing duplicate rows
+- Normalizing headers and values
+- Handling missing data
+- Validating column types
+- Detecting malformed rows
+- Exporting a cleaned CSV with an audit report
+
+I can help you create a dedicated CSV-cleanup skill if you’d like.

@@ -1,0 +1,3 @@
+Understood — no additional material. I’ll proceed with a **skill artifact** for writing release notes.
+
+What does “good” look like to you—for example, concise customer-facing notes, technically detailed changelogs, or both?

@@ -1,0 +1,24 @@
+Good — the objective is clear:
+
+> **A store-review package that identifies the changes most likely to improve sales, prioritizes them by impact and effort, and avoids wasting your time on low-value advice.**
+
+I’ll design it to produce practical outputs such as:
+
+- the biggest sales blockers,
+- prioritized recommendations,
+- specific actions rather than vague criticism,
+- a distinction between **must-fix**, **worth testing**, and **leave alone**,
+- evidence or reasoning behind each recommendation,
+- a short action plan focused on the highest-return work.
+
+To work from, please send anything you have — for example:
+
+- your store link,
+- the platform or marketplace,
+- product listings,
+- screenshots,
+- your current shop description or branding,
+- sales or traffic information,
+- examples of stores you like.
+
+Anything else you want the package to consider?

@@ -1,0 +1,17 @@
+{
+  "run_id": "trial-process-engine-core-20260802",
+  "commit": "867ba670d7d89a9bad25f36dd594d2729fb0949b",
+  "engine_version": "1.8.1",
+  "persona": "process-engine",
+  "skill": "process-engine-core",
+  "runner": "turnstone-workstream-trial",
+  "model": "gpt-5.6-luna",
+  "provider": "openai",
+  "case_count": 34,
+  "passed": 14,
+  "failed": 20,
+  "start": "2026-08-02T07:11:52.680937+07:00",
+  "completion": "2026-08-02T07:22:08.012830+07:00",
+  "baseline_status": "not-executed",
+  "notes": "Live workstream triage; heuristic grading is NOT an independent judge."
+}

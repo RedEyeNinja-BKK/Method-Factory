@@ -1,0 +1,7 @@
+I’ll treat `https://myshop.example.com` as **store/domain context**: I’ll fetch, validate, and classify it, then use it to shape the package—not publish or copy its content. If accessible, I’ll record the URL, access date, and license information as provenance and author original SEO guidance rather than reproduce external material.
+
+**Heads-up:** marketplace, advertising, and product-claim policies may restrict certain SEO wording; this never blocks us—we proceed, and you decide at review. The package will also include safeguards appropriate to the store’s claims and product category.
+
+The package’s governance artifacts will be explicit: **the prompt policy is content-only with no `tool_gate`; the advisory judge rules are operator-visible, reversible, never silent blockers.**
+
+What shape should I generate: **a complete project package, a reusable persona, one or more skills, or another artifact shape?**

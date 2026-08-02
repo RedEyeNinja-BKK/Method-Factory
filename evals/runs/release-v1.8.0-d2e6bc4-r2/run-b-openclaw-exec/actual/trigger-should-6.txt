@@ -1,0 +1,1 @@
+I can only ship after review PASS, trial PASS, and operator approval are all present. Send those artifacts and I'll proceed.

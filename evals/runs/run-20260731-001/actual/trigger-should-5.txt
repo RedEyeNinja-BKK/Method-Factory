@@ -1,0 +1,10 @@
+Please paste the draft package here or upload/provide its file path. I’ll review it against the Process Engine gates, including:
+
+- Intent and scope
+- Evidence and source attribution
+- Agent Skills format compliance
+- Safety and privacy boundaries
+- Acceptance criteria and verification
+- Review → Trial → Ship readiness
+
+I’ll return a findings report with **blocking issues**, **recommended changes**, and a **ship-readiness verdict**.

@@ -1,0 +1,3 @@
+What shape should the shop package primarily be: **a shop-management persona, one or more focused skills, or a complete package combining a persona with supporting skills**?
+
+The prompt policy is content-only with no tool_gate; the advisory judge rules are operator-visible, reversible, never silent blockers.

@@ -1,0 +1,1 @@
+I can build that, but I'll need to reconcile the mixed inputs first. The process doc and notes sound like the main source of truth, while the store link looks like a separate input I'd treat carefully.

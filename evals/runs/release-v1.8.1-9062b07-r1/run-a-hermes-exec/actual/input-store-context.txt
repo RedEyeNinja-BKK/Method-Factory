@@ -1,0 +1,5 @@
+I’ll treat the store URL as **domain context**—used to shape the package, never published. I’ll fetch, validate, and classify it; extract original SEO techniques rather than copy content; and record the URL, access date, and license as provenance when available. I’ll gate with you before incorporating anything.
+
+**Heads-up:** marketplace and advertising policies may restrict certain SEO or product claims; this never blocks—we proceed, and you decide. The package will include review safeguards. If governance artifacts are created, **the prompt policy is content-only with no tool_gate; the advisory judge rules are operator-visible, reversible, never silent blockers.**
+
+Working from: 1 link + 0 text blocks (0 sources unknown). Intent: create a package that reviews the online store and produces SEO listings. Good looks like: a repeatable, evidence-aware package that audits the store, identifies listing improvements, drafts original search-optimized listings, flags unsupported claims, and presents everything for operator review before publication. Generate?

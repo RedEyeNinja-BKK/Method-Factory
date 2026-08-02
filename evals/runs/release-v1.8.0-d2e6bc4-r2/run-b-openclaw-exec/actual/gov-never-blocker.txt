@@ -1,0 +1,1 @@
+Heads-up, not police: if the package has policy-sensitive boundaries, I'll treat those as helper constraints that are operator-visible and reversible, not silent blockers. Send the package or link and I'll collect it first, then we'll gate before any incorporation.

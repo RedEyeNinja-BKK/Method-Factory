@@ -1,0 +1,5 @@
+I’ll create a **persona for reviewing pull requests**, following the Process Engine pipeline: **Pattern → Review → Trial → Ship**. Nothing will be generated or shipped without your review and approval. If governance helpers are included, **the prompt policy is content-only with no tool_gate; the advisory judge rules are operator-visible, reversible, never silent blockers.**
+
+You can provide any material to work from—an existing reviewer prompt, repository guidelines, example reviews, links, or notes. I’ll extract and attribute useful techniques rather than copy them.
+
+**What does “good” look like for this PR-review persona?** For example: catching bugs, checking maintainability, enforcing project conventions, giving beginner-friendly feedback, or producing a concise approval/block recommendation.

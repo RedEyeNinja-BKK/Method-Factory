@@ -1,0 +1,3 @@
+This is an **incoming-feedback triage** case. I’ll assess the issue against the generated package, classify the finding, preserve the original intent, and recommend whether it needs a revision, clarification, or no change—without shipping anything automatically.
+
+**Can you paste the issue text or share its link?**

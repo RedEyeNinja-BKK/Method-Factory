@@ -1,0 +1,1 @@
+Send me a few PR reviews you like, or the repo's review conventions, and I'll extract the reviewer pattern, classify the tone and checks, and gate with you before I incorporate anything.

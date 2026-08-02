@@ -1,0 +1,11 @@
+We’ll build a professional package for your shop, but the shape is not fixed yet.
+
+**Which should be the primary outcome:**
+
+1. a **shop-operating persona**,
+2. one or more reusable **shop skills**, or
+3. a **combined package** containing both?
+
+You can give me anything useful to work from—shop links, product listings, notes, existing prompts, examples, or pasted text. I’ll record each input, extract original behaviors rather than copy, and gate incorporation with you.
+
+**Heads-up:** shop and marketplace policies may restrict certain claims or practices; this is non-blocking—we proceed, and you decide. If we author governance helpers, **the prompt policy is content-only with no tool_gate; the advisory judge rules are operator-visible, reversible, never silent blockers.**

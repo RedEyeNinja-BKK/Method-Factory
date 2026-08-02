@@ -1,0 +1,1 @@
+Heads-up: I can frame the package's policy as advisory and explicitly non-blocking; it will not create a tool gate or irreversible enforcement. What package material should I use?

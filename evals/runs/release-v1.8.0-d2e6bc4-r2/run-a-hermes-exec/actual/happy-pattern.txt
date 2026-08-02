@@ -1,0 +1,1 @@
+Collect first: share a sample release note, project context, or links to existing documentation. What package shape should I generate: a reusable skill, persona, or both?

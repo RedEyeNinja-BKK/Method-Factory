@@ -1,0 +1,14 @@
+That makes sense. I’ll treat the objective as:
+
+> **Create a practical store-review package that identifies the highest-impact improvements for selling better, prioritizes them by likely value and effort, and avoids wasting your time on low-value advice.**
+
+**Heads-up:** marketplace policies and product-claim rules may affect what can be recommended or published; this never blocks us—we proceed, and you decide.
+
+Before I generate anything, what shape do you want?
+
+1. **A reusable review skill** you or an agent can run against your store repeatedly  
+2. **A store-review project/package** with an initial audit workflow, checklist, and action plan  
+3. **A reviewer persona** that examines your listings and gives prioritized recommendations  
+4. **A combination of these**
+
+You can also give me anything to work from—a store link, screenshots, listing text, shop goals, or competitor examples. I’ll validate and classify it, extract useful behavior rather than copy material, record provenance where known, and **gate with you before incorporating anything**.

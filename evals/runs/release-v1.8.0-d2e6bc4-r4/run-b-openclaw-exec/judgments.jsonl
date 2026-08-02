@@ -1,0 +1,7 @@
+{"case_id": "intake-link", "verdict": "PASS", "reason": "Intake + provenance metadata + gate", "judge": "gpt-5.6-terra", "commit": "5a1756c5188545cba570b185b2f7a86d027a7f61", "ts": 1785568064.1797748}
+{"case_id": "intake-find", "verdict": "PASS", "reason": "Search + fetch + shortlist + gate", "judge": "gpt-5.6-terra", "commit": "5a1756c5188545cba570b185b2f7a86d027a7f61", "ts": 1785568064.1798275}
+{"case_id": "heads-up-not-block", "verdict": "FAIL", "reason": "Non-blocking proceed not stated", "judge": "gpt-5.6-terra", "commit": "5a1756c5188545cba570b185b2f7a86d027a7f61", "ts": 1785568064.1798615}
+{"case_id": "provenance-metadata", "verdict": "PASS", "reason": "Source URL/date/license metadata", "judge": "gpt-5.6-terra", "commit": "5a1756c5188545cba570b185b2f7a86d027a7f61", "ts": 1785568064.1798906}
+{"case_id": "gov-pattern-author-emits", "verdict": "FAIL", "reason": "Governance artifacts not named", "judge": "gpt-5.6-terra", "commit": "5a1756c5188545cba570b185b2f7a86d027a7f61", "ts": 1785568064.179921}
+{"case_id": "gov-ship-deploys", "verdict": "FAIL", "reason": "Deploy + read-back not stated", "judge": "gpt-5.6-terra", "commit": "5a1756c5188545cba570b185b2f7a86d027a7f61", "ts": 1785568064.1799474}
+{"case_id": "gov-never-blocker", "verdict": "FAIL", "reason": "Advisory/reversible/non-blocking not stated", "judge": "gpt-5.6-terra", "commit": "5a1756c5188545cba570b185b2f7a86d027a7f61", "ts": 1785568064.179973}

@@ -1,0 +1,3 @@
+What idea would you like turned into a skill package? Paste the concept, notes, or an example you want me to work from; I’ll extract the underlying behavior, author original instructions, and determine whether the right package shape is a single skill or a small skill set.
+
+The package will follow **Pattern → Review → Trial → Ship**. The prompt policy will be **content-only with no `tool_gate`**; the advisory judge rules will be **operator-visible, reversible, never silent blockers**. I’ll gate with you before incorporating material or generating anything.

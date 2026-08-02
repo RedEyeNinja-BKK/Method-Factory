@@ -1,0 +1,14 @@
+## Summary gate
+
+- **Working from:** 0 links + 0 text blocks; 0 sources unknown
+- **Intent:** Create a skill that writes release notes
+- **Good looks like:** Not specified yet. I’ll draft a professional, source-grounded release-notes skill that:
+  - extracts changes from supplied commits, issues, PRs, or changelogs;
+  - separates user-facing changes from internal implementation details;
+  - avoids inventing facts;
+  - flags missing or uncertain information;
+  - produces consistently structured notes for the intended audience.
+
+The package will follow **Pattern → Review → Trial → Ship**. The draft will require your review before anything is considered ready.
+
+**Generate this draft?**

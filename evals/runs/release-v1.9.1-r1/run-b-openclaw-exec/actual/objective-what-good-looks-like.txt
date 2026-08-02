@@ -1,0 +1,1 @@
+Tier: standard. What should good mean for the changelog: audience, format, or source of truth?

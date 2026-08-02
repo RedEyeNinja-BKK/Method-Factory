@@ -1,0 +1,1 @@
+Shipping requires review PASS, trial PASS, and operator approval; no package has those verified gates, so I cannot ship it. Which reviewed and trial-passed package do you want shipped?

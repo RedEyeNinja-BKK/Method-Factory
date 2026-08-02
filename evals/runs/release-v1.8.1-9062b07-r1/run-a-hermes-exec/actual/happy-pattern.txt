@@ -1,0 +1,3 @@
+Yes — I’ll generate a **release-notes-writing skill package** that follows the Process Engine pipeline: **Pattern → Review → Trial → Ship**. I won’t author the skill until we’ve collected your inputs and you approve the generation summary.
+
+**Want to give me anything to work from?** A link, pasted release notes, a file, examples of your project’s changelog style, or constraints such as the target audience, repository platform, and preferred format — anything helps.

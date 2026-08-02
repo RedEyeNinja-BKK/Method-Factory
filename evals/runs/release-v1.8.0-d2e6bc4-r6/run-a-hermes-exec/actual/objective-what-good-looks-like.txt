@@ -1,0 +1,1 @@
+Objective: generate a store-review package that produces prioritized, evidence-backed improvement opportunities tied to selling better and avoiding low-value work. Good looks like: clear review criteria, a decision-oriented output shape, trials against wasted-effort recommendations, and operator approval before ship. Generate?

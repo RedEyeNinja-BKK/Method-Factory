@@ -1,0 +1,1 @@
+I'll diagnose the REVISE findings, rewrite while preserving intent, audit the revision, and re-run regression trials. I'll gate with you before incorporating anything.

@@ -1,0 +1,5 @@
+I’ll treat the store URL as **domain context**: I’ll fetch, validate, and review its structure and products, then use it to shape original SEO-listing instructions—not publish or copy store content. I’ll record the URL, access date, and license/provenance status, and gate incorporation with you first.
+
+**Heads-up:** marketplace and advertising policies may restrict certain SEO claims, product assertions, or health-related wording; this never blocks us—we proceed and you decide.
+
+For the package shape, do you want a **reusable SEO-listing skill**, a **full store-review project/persona**, or **both**? You can also give me anything else to work from—a link, pasted text, file, or product notes. The prompt policy will be content-only with no `tool_gate`; the advisory judge rules will be operator-visible, reversible, and never silent blockers.

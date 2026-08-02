@@ -1,0 +1,1 @@
+Please provide the draft package—upload it, paste it here, or share its workspace path/link. I’ll review it against the Process Engine standards, including structure, provenance, scope honesty, acceptance criteria, Agent Skills compliance, and readiness for the **Pattern → Review → Trial → Ship** pipeline.

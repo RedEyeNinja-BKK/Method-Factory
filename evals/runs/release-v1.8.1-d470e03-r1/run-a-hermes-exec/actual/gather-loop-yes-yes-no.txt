@@ -1,0 +1,11 @@
+I’ll create a **workout-tracking skill**. I’ve recorded:
+
+- **1 link item** — to be fetched, validated, and classified when the actual URL is available; its source, access date, and license will be recorded as provenance.
+- **1 text block** describing the progressive-overload approach — recorded as user-provided material; I’ll extract the behavior and author original instructions rather than copy it.
+- Your “no, that’s all” closes collection.
+
+**Heads-up:** workout guidance can affect health and injury risk. This is non-blocking—we’ll proceed, but the skill will use clear scope limits and avoid pretending to provide medical or individualized clinical advice.
+
+The package will include a prompt policy that is **content-only with no `tool_gate`**; the advisory judge rules will be **operator-visible, reversible, never silent blockers**. I’ll gate the result with you before anything is incorporated or shipped.
+
+**What does “good” look like for this workout-tracking skill?**
