@@ -8,7 +8,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  validate:
+  gate:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -20,21 +20,29 @@ jobs:
       - name: Install deps
         run: pip install pyyaml
 
-      - name: Structural integrity gate (version counts, links, frontmatter)
-        # v0.1.0: structural checks only. The 4 eval-run commit-history FAILs
-        # are expected — the committed eval evidence references Process Engine
-        # git commits that don't exist in this fresh repo. Accept them.
-        # Once Method Factory has its own code-based validation, this entire
-        # validate.py call is replaced.
-        run: python3 scripts/validate.py --repo . --no-diff || true
+      - name: Unit tests (hard gate)
+        run: python -m unittest discover -s core/tests -t .
 
-      - name: Regeneration idempotence (drift check)
+      - name: Identity sweep — no stale PE references in new content
         run: |
-          set -euo pipefail
-          if [ -d ./drafts ]; then
-            python3 scripts/convert.py --repo . --drafts ./drafts
-          fi
-          if ! git diff --exit-code -- skills references templates persona.md evals; then
-            echo "::error::Generated content drift detected — regenerate and commit."
-            exit 1
-          fi
+          # Zero-tolerance: new Method Factory content (prompts/ + core/ +
+          # action envelope spec) must not carry any Process Engine identity.
+          # Legacy source material (skills/, templates/, references/, evals/,
+          # scripts/) is Phase 5 quarantine work — exempt (ADR-0009).
+          # ADRs and manifest-contract document the migration and are exempt.
+          STALE='Process Engine|process-engine|v1\.9\.1|lineage v7\.2'
+          SCOPE="prompts/ core/ docs/action-envelope.md"
+
+          FAIL=0
+          while IFS= read -r pattern; do
+            [ -z "$pattern" ] && continue
+            matches=$(grep -rIn "$pattern" $SCOPE --include='*.md' --include='*.py' 2>/dev/null || true)
+            if [ -n "$matches" ]; then
+              echo "::error::Stale PE reference in new content: $pattern"
+              echo "$matches"
+              FAIL=1
+            fi
+          done <<EOF
+          $(echo "$STALE" | tr '|' '\n')
+          EOF
+          exit $FAIL
