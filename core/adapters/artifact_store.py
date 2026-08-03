@@ -1,18 +1,15 @@
-"""Filesystem ArtifactStore — digest-addressed content (ADR-0007).
-
-Content is stored under <root>/<package_id>/<logical_path>. The manifest
-references artifacts by code-computed digest; the store never trusts a
-caller-supplied hash.
-"""
+"""Filesystem ArtifactStore — immutable content-addressed blobs (ADR-0007)."""
 
 from __future__ import annotations
 
 from pathlib import Path
+import re
 
 from ..domain.errors import InvalidPayloadError
-from ..manifest.hashing import digest_bytes, digest_text
+from ..manifest.hashing import digest_bytes
 
 LOGICAL_PATH_BLOCKED = ("..", "/", "\\")
+DIGEST_RE = re.compile(r"^[0-9a-f]{64}$")
 
 
 def validate_logical_path(logical_path: str) -> str:
@@ -31,28 +28,43 @@ class ArtifactStore:
     def __init__(self, root: Path | str) -> None:
         self.root = Path(root)
         self.root.mkdir(parents=True, exist_ok=True)
+        self.blobs = self.root / "blobs"
+        self.blobs.mkdir(parents=True, exist_ok=True)
 
-    def _dest(self, package_id: str, logical_path: str) -> Path:
-        return self.root / package_id / validate_logical_path(logical_path)
+    def _blob_path(self, digest: str) -> Path:
+        if not isinstance(digest, str) or not DIGEST_RE.fullmatch(digest):
+            raise InvalidPayloadError(f"invalid artifact digest: {digest!r}")
+        return self.blobs / digest
 
     def put(self, package_id: str, logical_path: str, content: str) -> tuple[str, int]:
+        """Store content once under its SHA-256 digest.
+
+        ``package_id`` and ``logical_path`` remain API context for callers, but
+        are deliberately not part of the storage address.
+        """
+        del package_id
+        validate_logical_path(logical_path)
         data = content.encode("utf-8")
-        dest = self._dest(package_id, logical_path)
-        dest.parent.mkdir(parents=True, exist_ok=True)
-        dest.write_bytes(data)
-        return digest_bytes(data), len(data)
-
-    def get(self, package_id: str, logical_path: str) -> str:
-        dest = self._dest(package_id, logical_path)
-        return dest.read_text(encoding="utf-8")
-
-    def verify(self, package_id: str, logical_path: str, digest: str) -> bool:
+        digest = digest_bytes(data)
+        dest = self._blob_path(digest)
         try:
-            dest = self._dest(package_id, logical_path)
-            return digest_bytes(dest.read_bytes()) == digest
+            fd = dest.open("xb")
+        except FileExistsError:
+            return digest, len(data)
+        with fd:
+            fd.write(data)
+            fd.flush()
+        return digest, len(data)
+
+    def get(self, digest: str) -> str:
+        return self._blob_path(digest).read_text(encoding="utf-8")
+
+    def verify(self, digest: str) -> bool:
+        try:
+            dest = self._blob_path(digest)
+            return dest.is_file() and digest_bytes(dest.read_bytes()) == digest
         except (OSError, InvalidPayloadError):
             return False
 
-    def artifact_bytes(self, package_id: str, logical_path: str) -> bytes:
-        dest = self._dest(package_id, logical_path)
-        return dest.read_bytes()
+    def artifact_bytes(self, digest: str) -> bytes:
+        return self._blob_path(digest).read_bytes()

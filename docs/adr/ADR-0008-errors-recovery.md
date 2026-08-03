@@ -15,11 +15,15 @@ strategy, compare-and-swap rule, or stale-action behavior.
 - **Mutations fail fast, before any write.** Order of checks:
   1. envelope parse + schema validation
   2. manifest load + integrity verification
-  3. `expected_revision` comparison
-  4. action legality for current state
-  5. action-id idempotency / reuse
+  3. action-id idempotency/reuse **before** revision check
+  4. `expected_revision` comparison
+  5. action legality for current state
   6. gate predicates (evidence, digest binding)
   7. build next manifest → validate → **one atomic commit** (CAS) or none
+
+  Idempotency is checked first so an exact retry can replay after a stale-action
+  failure — the caller resubmits with updated expected_revision and the same
+  action_id, which replays rather than failing.
 - **Read-only validation collects all errors** (used by `mf validate` and
   CI): report every schema, digest, and invariant violation without changing
   state.
@@ -36,13 +40,17 @@ strategy, compare-and-swap rule, or stale-action behavior.
 | `MANIFEST_INVALID` | missing/corrupt manifest or digest-chain break |
 | `CONCURRENCY` | could not acquire the package write lock in time |
 
-- **Persistence:** package-scoped lock; validate new manifest in memory;
-  write temp file in same filesystem; `fsync`; atomic `os.replace`; `fsync`
-  parent dir; release lock. Append-only event log alongside the snapshot,
-  each event carrying `resulting_manifest_sha256`.
-- **Restart/reload** verifies schema, event-chain continuity, snapshot
-  digest, and referenced artifact digests. Any failure opens **read-only
-  recovery mode** — never infer or auto-repair state.
+- **Persistence:** package-scoped lock; validate the new manifest in memory;
+  append an event containing the complete `manifest_snapshot`, `fsync` the
+  event journal, then write the package JSON snapshot as a cache using a temp
+  file, `fsync`, atomic `os.replace`, and parent-directory `fsync`. The event
+  journal is canonical; a crash after the event append but before the cache
+  update is recovered by replaying the journal. Orphaned artifact blobs are
+  retained and harmless until referenced by a committed manifest.
+- **Restart/reload** replays and verifies the complete event chain: contiguous
+  revisions, state continuity, previous-manifest digests, snapshot digests, and
+  referenced artifact digests. Any failure raises `MANIFEST_INVALID`; recovery
+  is detection-only in this phase and never infers or auto-repairs state.
 
 ## Consequences
 

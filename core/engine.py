@@ -1,8 +1,8 @@
 """PipelineEngine — fail-fast application of validated action envelopes.
 
 Order of checks (ADR-0008): parse+validate envelope → load+verify manifest →
-revision check → legality → idempotency → gates → build next manifest →
-validate → atomic CAS + event. No partial writes.
+action-id idempotency/reuse → revision check → legality → gates → build next
+manifest → validate → event-journal-first CAS. No partial writes.
 """
 
 from __future__ import annotations
@@ -46,6 +46,8 @@ class PipelineEngine:
     ) -> None:
         self.store = store
         self.artifacts = artifact_store
+        if getattr(self.store, "artifact_store", None) is None:
+            self.store.artifact_store = artifact_store
         self._now = now or utcnow
 
     # ── public API ─────────────────────────────────────────────────────
@@ -60,11 +62,13 @@ class PipelineEngine:
         manifest = self.store.load(env.package_id)  # MANIFEST_INVALID if missing/corrupt
 
         # 2. Idempotency / reuse BEFORE revision comparison: a retry of an
-        #    already-committed action is not a stale action. Identical
-        #    envelope (same action_id AND same content, including
-        #    expected_revision) replays the recorded outcome; a changed
-        #    envelope under the same action_id is ACTION_ID_REUSE.
-        action_sha256 = digest_json(env.as_dict())
+        #    already-committed action is not a stale action. The action's
+        #    semantic content excludes expected_revision so a caller can
+        #    retry with an updated revision and the same action_id; a changed
+        #    action under the same action_id is ACTION_ID_REUSE.
+        action_content = env.as_dict()
+        action_content.pop("expected_revision", None)
+        action_sha256 = digest_json(action_content)
         prior = self.store.find_event(env.package_id, env.action_id)
         if prior is not None:
             if prior.get("action_sha256") == action_sha256:
@@ -102,7 +106,8 @@ class PipelineEngine:
         check_action_gate(action, manifest, env)
 
         # 6. Build next manifest.
-        next_manifest = self._mutate(manifest, env, action)
+        event_id = "evt_" + uuid.uuid4().hex
+        next_manifest = self._mutate(manifest, env, action, event_id)
         next_manifest["revision"] = manifest["revision"] + 1
         next_manifest["previous_manifest_sha256"] = digest_json(manifest)
         next_manifest["updated_at"] = self._now()
@@ -117,7 +122,7 @@ class PipelineEngine:
             )
 
         event = {
-            "event_id": "evt_" + uuid.uuid4().hex,
+            "event_id": event_id,
             "action": env.action,
             "action_id": env.action_id,
             "revision": next_manifest["revision"],
@@ -153,7 +158,9 @@ class PipelineEngine:
         }
 
     # ── mutation ───────────────────────────────────────────────────────
-    def _mutate(self, manifest: dict, env: ActionEnvelope, action: Action) -> dict:
+    def _mutate(
+        self, manifest: dict, env: ActionEnvelope, action: Action, event_id: str
+    ) -> dict:
         from copy import deepcopy
 
         next_m = deepcopy(manifest)
@@ -230,4 +237,5 @@ class PipelineEngine:
         # CANCEL: state change only (handled by transition table target).
 
         next_m["transition"]["last_action_id"] = env.action_id
+        next_m["transition"]["last_event_id"] = event_id
         return next_m

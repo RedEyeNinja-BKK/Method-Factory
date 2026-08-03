@@ -220,7 +220,7 @@ class SliceCompletionTests(EngineFixture):
         manifest = store2.load(PKG)
         art = manifest["artifacts"][0]
         self.assertTrue(
-            artifacts2.verify(PKG, art["logical_path"], art["sha256"])
+            artifacts2.verify(art["sha256"])
         )
 
     def test_no_forward_scope_creep(self):
@@ -301,10 +301,10 @@ class SliceCompletionTests(EngineFixture):
         manifest = self.store.load(PKG)
         art = manifest["artifacts"][0]
         self.assertEqual(
-            self.artifacts.get(PKG, art["logical_path"]),
+            self.artifacts.get(art["sha256"]),
             "# Standup Notes\nCapture daily standup notes.\n",
         )
-        self.assertTrue(self.artifacts.verify(PKG, art["logical_path"], art["sha256"]))
+        self.assertTrue(self.artifacts.verify(art["sha256"]))
 
 
 if __name__ == "__main__":
