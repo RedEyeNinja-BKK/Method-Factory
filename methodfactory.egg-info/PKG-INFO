@@ -1,0 +1,94 @@
+Metadata-Version: 2.4
+Name: methodfactory
+Version: 2.0.0
+Summary: Method Factory — prompt+code pipeline generator producing tested, portable agent packages
+License: MIT
+Keywords: agents,skills,pipeline,state-machine,prompts
+Classifier: Development Status :: 3 - Alpha
+Classifier: Intended Audience :: Developers
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Programming Language :: Python :: 3
+Classifier: Programming Language :: Python :: 3.11
+Classifier: Programming Language :: Python :: 3.12
+Requires-Python: >=3.11
+Description-Content-Type: text/markdown
+License-File: LICENSE
+Dynamic: license-file
+
+# Method Factory
+
+**A prompt+code system for producing tested, portable agent packages — with deterministic enforcement in code and lighter, conversation-first prompts.**
+
+Method Factory is the successor to [Process Engine](https://github.com/RedEyeNinja-BKK/Process-Engine). Process Engine proved the pipeline works through prompt-only experimentation and a successful end-to-end case study. Method Factory takes that proven design and adds a code layer: the state machine, gate enforcement, and manifest integrity are **deterministic code**. The prompts are lighter — conversation and content generation only, never enforcement.
+
+> **Process Engine** remains the philosophical reference at its own repository (v1.9.5-prompt-only). The migrated snapshot that seeded this repo is quarantined under [`evidence/process-engine/`](evidence/process-engine/) — nothing deleted (ADR-0009).
+
+**v2.0.0** is a clean break from Process Engine development (ADR-0011): version reset, all code-review findings remediated, legacy quarantined, documentation aligned.
+
+---
+
+## What v2.0.0 does (current slice)
+
+The core is a stdlib-only Python package `methodfactory` (Python 3.11+, no runtime dependencies) plus a thin `mf` CLI.
+
+The current slice takes an operator intent through one gated loop:
+
+```
+Intent → record inputs → objective → canonical summary → operator confirmation → one draft artifact → DRAFT_READY
+```
+
+Implemented and proven (125+ tests, hard CI gate):
+
+- **State machine** — `INTAKE → SUMMARY_PENDING → AUTHORING_AUTHORIZED → DRAFT_READY`, terminal `CANCELLED`. A pure transition table is the sole legality authority.
+- **Action Envelope protocol** — the only way a caller proposes a state change is a schema-validated JSON envelope. Prose is never parsed for state-changing intent. Strict: unknown fields rejected, `action_id` idempotent, approvals bind exact digests.
+- **Manifest store** — event-journal-first, atomic compare-and-swap, fsync'd writes, full chain verification (revision, state continuity, digests, artifacts), crash-tolerant (torn-tail tolerated, stale locks reclaimed).
+- **Artifact store** — digest-addressed immutable blobs; reads and duplicate writes verify content; path guards enforce the relative-path contract.
+- **CLI** — `mf create / apply / status / summary / validate` with stable machine-readable error codes (`--version` → 2.0.0).
+
+**Not yet implemented (future phases):** Review / Trial / Ship / Triage stages, the code-driven trial harness, runtime adapters beyond the CLI, and the package generator. The states exist in the vocabulary but are deliberately unreachable until their transitions are implemented (ADR-0003).
+
+---
+
+## Architecture
+
+```
+Code owns:   state machine, transition legality, gates, manifest I/O,
+             integrity checks, artifact verification, atomic persistence
+Prompts own: conversation, clarifying questions, content generation, tone
+```
+
+Design principle: **the model proposes; code validates, authorizes, persists, and verifies.** The model should not be responsible for enforcing its own constraints.
+
+- [Architecture](docs/architecture.md)
+- [Action Envelope spec](docs/action-envelope.md)
+- [Manifest Contract v0.1](docs/manifest-contract-v0.1.md)
+- [ADRs](docs/adr/) — ADR-0001..0011
+- [Migration from Process Engine](docs/migration-from-process-engine.md)
+
+---
+
+## Quick start
+
+```bash
+pip install -e .            # installs the mf console script (dev)
+python -m unittest discover -s methodfactory/tests -t .   # 125+ tests
+```
+
+```bash
+mf create pkg_demo_001 "Build a standup-notes skill."
+# apply record_input / set_objective / prepare_summary envelopes (docs/action-envelope.md)
+mf summary pkg_demo_001     # prints the canonical summary to confirm
+# confirm_summary (binds the digest) then record_draft_artifact -> DRAFT_READY
+```
+
+The store root defaults to `./.mf`; override with `--store`.
+
+---
+
+## Status
+
+**v2.0.0 (clean slate).** Core slice implemented, reviewed (29 findings remediated), tested, packaged. Legacy Process Engine content quarantined. Publication is operator-gated pending review of this release.
+
+## License
+
+MIT — see [LICENSE](LICENSE).
