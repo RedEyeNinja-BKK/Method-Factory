@@ -17,24 +17,6 @@ from methodfactory.manifest.store import ManifestStore
 PKG = "pkg_r3_001"
 
 
-def _snapshot(pkg: str = PKG) -> dict:
-    return {
-        "schema_version": "0.1",
-        "package_id": pkg,
-        "revision": 0,
-        "state": "INTAKE",
-        "created_at": "2026-08-06T00:00:00+00:00",
-        "updated_at": "2026-08-06T00:00:00+00:00",
-        "previous_manifest_sha256": None,
-        "intent": {"raw": "x", "clarified": None},
-        "inputs": [],
-        "objective": {"statement": "", "desired_outcomes": []},
-        "summary": None,
-        "artifacts": [],
-        "transition": {"last_event_id": None, "last_action_id": None},
-    }
-
-
 class Round3StoreTests(unittest.TestCase):
     def _make_store(self, root: Path) -> ManifestStore:
         return ManifestStore(root, artifact_store=ArtifactStore(root / "artifacts"))
@@ -105,10 +87,10 @@ class Round3StoreTests(unittest.TestCase):
             with self.assertRaises(ManifestInvalidError):
                 store.load(PKG)
 
-    def test_torn_tail_truncation_is_chunked(self):
-        """perf-1: truncating a large torn tail must not do one syscall per
-        byte (chunked backward scan). Behavior: large torn tail then append
-        must still repair the journal."""
+    def test_large_torn_tail_repair(self):
+        """Functional: a 200KB garbage torn tail is repaired (truncated) on the
+        next append. (Perf property of chunked scan is covered by code review,
+        not this functional test.)"""
         with tempfile.TemporaryDirectory() as td:
             root = Path(td)
             store = self._make_store(root)

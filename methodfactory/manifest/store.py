@@ -65,12 +65,12 @@ def _pid_alive(pid: int) -> bool:
 
 
 def _parses_as_json(data: bytes) -> bool:
-    """True when the bytes decode and parse as a single JSON value (used to
-    decide whether an unterminated journal tail is a committed record)."""
+    """True when the bytes decode and parse as a JSON OBJECT (event records are
+    always objects; a scalar like 123/null is not a committed record)."""
     try:
-        json.loads(data.decode("utf-8"))
-        return True
-    except (UnicodeDecodeError, json.JSONDecodeError, RecursionError, ValueError):
+        value = json.loads(data.decode("utf-8"))
+        return isinstance(value, dict)
+    except (UnicodeDecodeError, json.JSONDecodeError, RecursionError):
         return False
 
 
@@ -146,7 +146,8 @@ class ManifestStore:
 
         if events and all("manifest_snapshot" in event for event in events):
             data = self._verify_and_replay(package_id, events)
-            if self._cache_moved_ahead(package_id, path, data, events):
+            moved, cache_digest = self._cache_moved_ahead(package_id, path, data, events)
+            if moved:
                 # The caller's events were stale relative to the cache (a
                 # concurrent writer committed). Re-read fresh and confirm the
                 # cache digest appears in the fresh journal: if it does, the
@@ -156,8 +157,9 @@ class ManifestStore:
                 events = self.read_events(package_id)
                 if events and all("manifest_snapshot" in event for event in events):
                     fresh_known = {e.get("resulting_manifest_sha256") for e in events}
-                    cache_digest = self._cache_digest(path)
-                    if cache_digest is not None and cache_digest not in fresh_known:
+                    # A malformed cache (None) is treated as not-in-fresh too,
+                    # so a corrupt cache is flagged consistently (sec-5).
+                    if cache_digest is None or cache_digest not in fresh_known:
                         raise ManifestInvalidError(
                             f"manifest cache corrupt for {package_id}: does not match any journal snapshot",
                             package_id=package_id,
@@ -186,25 +188,27 @@ class ManifestStore:
 
     def _cache_digest(self, path: Path) -> Optional[str]:
         """Read and canonical-digest the cache file, or None on any parse
-        failure (JSONDecodeError/OSError/RecursionError) — single source for
-        the cache-digest membership checks (q-2/perf-3)."""
+        failure (JSONDecodeError/UnicodeDecodeError/OSError/RecursionError) —
+        single source for the cache-digest membership checks (q-2/perf-3)."""
         try:
             return digest_json(json.loads(path.read_text(encoding="utf-8")))
-        except (json.JSONDecodeError, OSError, RecursionError):
+        except (json.JSONDecodeError, UnicodeDecodeError, OSError, RecursionError):
             return None
 
     def _cache_moved_ahead(
         self, package_id: str, path: Path, canonical: dict, events: list[dict]
-    ) -> bool:
-        """True when the on-disk cache digest is not among the caller's events
-        (a concurrent writer committed after the caller's read_events)."""
+    ) -> tuple[bool, Optional[str]]:
+        """Return (moved, cache_digest): moved is True when the on-disk cache
+        digest is not among the caller's events (a concurrent writer committed
+        after the caller's read_events). Returns the digest so callers reuse it
+        instead of re-reading the cache (perf-4)."""
         if not path.exists():
-            return False
+            return False, None
         cache_digest = self._cache_digest(path)
         if cache_digest is None:
-            return False
+            return False, None
         known = {event.get("resulting_manifest_sha256") for event in events}
-        return cache_digest not in known
+        return cache_digest not in known, cache_digest
 
     def _verify_and_replay(self, package_id: str, events: list[dict]) -> dict:
         previous = None
@@ -243,7 +247,7 @@ class ManifestStore:
             digest = digest_json(snapshot)
             if event.get("resulting_manifest_sha256") != digest:
                 self._chain_error(package_id, index, "resulting_manifest_sha256 does not match manifest_snapshot")
-            errors = validate_manifest(snapshot)
+            errors = validate_manifest(snapshot, check_controls=False)
             if errors:
                 self._chain_error(package_id, index, "invalid manifest_snapshot: " + "; ".join(errors))
             if snapshot.get("package_id") != package_id:
@@ -312,7 +316,7 @@ class ManifestStore:
             raise ManifestInvalidError(f"manifest missing for {package_id}", package_id=package_id)
         try:
             data = json.loads(path.read_text(encoding="utf-8"))
-        except (json.JSONDecodeError, OSError) as exc:
+        except (json.JSONDecodeError, UnicodeDecodeError, OSError) as exc:
             raise ManifestInvalidError(
                 f"manifest corrupt for {package_id}: {exc}", package_id=package_id
             ) from exc
@@ -320,7 +324,7 @@ class ManifestStore:
             raise ManifestInvalidError(
                 f"manifest corrupt for {package_id}: JSON nesting too deep", package_id=package_id
             ) from exc
-        errors = validate_manifest(data)
+        errors = validate_manifest(data, check_controls=False)
         if errors:
             raise ManifestInvalidError(
                 f"manifest invalid for {package_id}: " + "; ".join(errors), package_id=package_id
@@ -393,8 +397,9 @@ class ManifestStore:
         return manifest
 
     def _read_last_event(self, package_id: str) -> Optional[dict]:
-        """Read only the final committed journal record (O(1) in file size).
-        Falls back to a full read when the tail is torn or unparseable."""
+        """Read only the final committed journal record via a backward scan
+        (O(last record) in bytes, not O(file) — perf-2). Falls back to a full
+        read when the tail is torn or unparseable."""
         path = self._events_path(package_id)
         if not path.exists():
             return None
@@ -403,18 +408,27 @@ class ManifestStore:
             if size == 0:
                 return None
             with open(path, "rb") as fh:
-                window = min(size, MAX_ENVELOPE_BYTES)
-                fh.seek(size - window)
-                chunk = fh.read()
-            text = chunk.decode("utf-8", errors="replace")
-            # The last committed record is the final complete line.
-            idx = text.rstrip("\n").rfind("\n")
-            candidate = text[idx + 1 :] if idx >= 0 else text
-            candidate = candidate.strip()
+                # Backward chunked scan to the last '\n'.
+                pos = size
+                chunk = 8192
+                tail_start = 0
+                last_newline = -1
+                while pos > 0:
+                    start = max(pos - chunk, 0)
+                    fh.seek(start)
+                    buf = fh.read(pos - start)
+                    idx = buf.rfind(b"\n")
+                    if idx >= 0:
+                        last_newline = start + idx
+                        tail_start = last_newline + 1
+                        break
+                    pos = start
+                fh.seek(tail_start)
+                candidate = fh.read().strip()
             if candidate:
                 try:
                     return json.loads(candidate)
-                except (json.JSONDecodeError, RecursionError):
+                except (json.JSONDecodeError, UnicodeDecodeError, RecursionError):
                     pass  # torn tail: fall through to full read
             return self._last_event_full(package_id)
         except OSError as exc:
@@ -492,11 +506,13 @@ class ManifestStore:
         fd_open = True
         try:
             # A crashed writer may have left an unterminated partial line.
-            # Distinguish (bug-2/q-1): a parseable tail is COMMITTED (write the
-            # missing '\n' separator); an unparseable tail is uncommitted
-            # garbage (truncate back to the last newline). Use a separate read
-            # fd opened with the same O_NOFOLLOW and verified by inode so a
-            # symlink swap cannot influence the truncation (sec-4).
+            # Distinguish (bug-2/q-1): a parseable OBJECT tail is COMMITTED
+            # (write the missing '\n' separator); anything else is uncommitted
+            # garbage (truncate back to the last newline). The read fd is
+            # verified by inode against the append fd so a symlink swap cannot
+            # influence the truncation (sec-4; POSIX-only — builtin open passes
+            # no O_NOFOLLOW, the inode check is the actual guard); the tail read
+            # is bounded by MAX_ENVELOPE_BYTES (perf-1).
             if os.fstat(fd).st_size:
                 with open(path, "rb", buffering=0) as rf:
                     if not hasattr(os, "O_NOFOLLOW") or (
@@ -506,19 +522,18 @@ class ManifestStore:
                         size = rf.seek(0, os.SEEK_END)
                         rf.seek(max(size - 1, 0))
                         if rf.read(1) != b"\n":
-                            # Read the whole tail (bounded by the max record
-                            # size; the journal cannot exceed the raw cap in
-                            # practice) and decide committed-vs-garbage.
-                            tail = self._read_tail(rf, size)
-                            if _parses_as_json(tail):
+                            tail, tail_start = self._read_tail(rf, size)
+                            if len(tail) <= MAX_ENVELOPE_BYTES and _parses_as_json(tail):
                                 # Committed record without its trailing newline:
                                 # keep it and write the missing separator.
                                 os.ftruncate(fd, size)  # no-op; ensure EOF at tail end
                                 os.lseek(fd, 0, os.SEEK_END)
                                 os.write(fd, b"\n")
                             else:
-                                cut = self._last_newline_offset(rf, size)
-                                os.ftruncate(fd, cut)
+                                # Uncommitted garbage (or tail too large to be a
+                                # single committed record): truncate to the last
+                                # newline (tail_start) — cut == size - len(tail).
+                                os.ftruncate(fd, tail_start)
             with os.fdopen(fd, "a", encoding="utf-8") as fh:
                 fd_open = False
                 fh.write(json.dumps(event, sort_keys=True, ensure_ascii=True) + "\n")
@@ -532,11 +547,11 @@ class ManifestStore:
                     pass
             raise
 
-    def _read_tail(self, rf, size: int) -> bytes:
-        """Read the trailing unterminated segment (from after the last '\n'
-        to EOF)."""
+    def _read_tail(self, rf, size: int) -> tuple[bytes, int]:
+        """Return (tail, tail_start): the trailing unterminated segment (from
+        after the last '\n' to EOF) and its start offset. Single chunked
+        backward scan (perf-1/q-3)."""
         rf.seek(0, os.SEEK_END)
-        # Find the last newline by chunked backward scan.
         pos = size
         chunk = 8192
         while pos > 0:
@@ -547,24 +562,10 @@ class ManifestStore:
             if idx >= 0:
                 tail_start = start + idx + 1
                 rf.seek(tail_start)
-                return rf.read()
+                return rf.read(), tail_start
             pos = start
         rf.seek(0)
-        return rf.read()
-
-    def _last_newline_offset(self, rf, size: int) -> int:
-        """Return the offset just after the last '\n' (or 0 if none)."""
-        pos = size
-        chunk = 8192
-        while pos > 0:
-            start = max(pos - chunk, 0)
-            rf.seek(start)
-            buf = rf.read(pos - start)
-            idx = buf.rfind(b"\n")
-            if idx >= 0:
-                return start + idx + 1
-            pos = start
-        return 0
+        return rf.read(), 0
 
     # ── internals ──────────────────────────────────────────────────────
     def _atomic_write(self, path: Path, data: dict) -> None:

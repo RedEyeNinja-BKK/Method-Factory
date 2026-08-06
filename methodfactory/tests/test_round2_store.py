@@ -4,7 +4,6 @@ q-8, sec-1, sec-2, bug-6, perf-1, sec-6).
 
 from __future__ import annotations
 
-import json
 import tempfile
 import unittest
 from pathlib import Path
@@ -79,7 +78,7 @@ class Round2StoreTests(unittest.TestCase):
 
     def test_handwritten_journal_with_unicode_separator_parses(self):
         """Defense-in-depth: a hand-written journal line containing a raw
-        U+2028 (that bypassed the boundary) must still parse (split('\\n'),
+        U+2028 byte (that bypassed the boundary) must still parse (split('\\n'),
         not splitlines())."""
         import json as _json
 
@@ -91,11 +90,12 @@ class Round2StoreTests(unittest.TestCase):
             events = store.read_events(PKG)
             event = events[0]
             event["manifest_snapshot"]["intent"]["raw"] = "line\u2028sep"
-            line = _json.dumps(event, sort_keys=True, ensure_ascii=True)
+            # Write with ensure_ascii=False so the FILE really contains the raw
+            # U+2028 UTF-8 byte sequence; a splitlines() regression would then
+            # split the record and fail the parse.
+            line = _json.dumps(event, sort_keys=True, ensure_ascii=False)
             ev_path.write_text(line + "\n", encoding="utf-8")
-            # ensure_ascii=True writes \\u2028, so the raw file has no U+2028;
-            # a raw one would still parse with split('\\n').
-            self.assertNotIn("\u2028", ev_path.read_text(encoding="utf-8"))
+            self.assertIn("\u2028", ev_path.read_text(encoding="utf-8"))
             loaded = store.read_events(PKG)
             self.assertEqual(len(loaded), 1)
 

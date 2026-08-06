@@ -46,9 +46,9 @@ intent. Typed tool calls are adapter bindings of the same envelope.
 Enforced at the parse boundary (fail fast) and in manifest schema
 validation (authoritative for on-disk manifests). Character-policy
 (control-character rejection) is enforced at the parse boundary and in
-`validate_logical_path`; on-disk manifests are additionally validated for
-schema shape but control characters in already-persisted content are not
-re-scanned (the parse boundary is the gate for new input).
+`validate_logical_path`; persisted content is **not** re-scanned on read —
+the parse boundary is the gate for new input, so old journals remain
+loadable (ADR-0008).
 
 | Field | Limit |
 |---|---|

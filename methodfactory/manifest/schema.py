@@ -71,8 +71,14 @@ def new_manifest(package_id: str, intent_raw: str, created_at: str) -> dict:
     }
 
 
-def validate_manifest(manifest: dict) -> list[str]:
-    """Collect all schema/invariant violations (read-only; no state change)."""
+def validate_manifest(manifest: dict, check_controls: bool = True) -> list[str]:
+    """Collect all schema/invariant violations (read-only; no state change).
+
+    ``check_controls`` gates the control-character policy on new-input fields
+    (intent.raw). Read paths (replay, snapshot) pass False so persisted content
+    is not re-scanned (bug-1/q-2): the parse boundary is the gate for new
+    input, and an old journal that legitimately stored U+2028 stays loadable.
+    """
     errors: list[str] = []
 
     if not isinstance(manifest, dict):
@@ -110,7 +116,7 @@ def validate_manifest(manifest: dict) -> list[str]:
         errors.append("intent.raw must be a string")
     elif len(intent["raw"]) > MAX_INTENT_CHARS:
         errors.append(f"intent.raw exceeds {MAX_INTENT_CHARS} chars")
-    elif contains_control_chars(intent["raw"]):
+    elif check_controls and contains_control_chars(intent["raw"]):
         errors.append("intent.raw must not contain control characters")
 
     inputs = manifest.get("inputs")
@@ -214,6 +220,8 @@ def validate_manifest(manifest: dict) -> list[str]:
                 errors.append(f"{tag}.kind invalid")
             elif len(art["kind"]) > MAX_ID_CHARS:
                 errors.append(f"{tag}.kind exceeds {MAX_ID_CHARS} chars")
+            elif check_controls and contains_control_chars(art["kind"]):
+                errors.append(f"{tag}.kind must not contain control characters")
             if not isinstance(art.get("logical_path"), str) or not art["logical_path"]:
                 errors.append(f"{tag}.logical_path invalid")
             elif len(art["logical_path"]) > MAX_LOGICAL_PATH_CHARS:

@@ -238,6 +238,8 @@ def _validate_payload_types(action: str, payload: dict, basis: dict) -> None:
             raise InvalidEnvelopeError("record_draft_artifact requires kind")
         if len(payload["kind"]) > MAX_ID_CHARS:
             raise InvalidEnvelopeError("record_draft_artifact kind too long")
+        if contains_control_chars(payload["kind"]):
+            raise InvalidEnvelopeError("record_draft_artifact kind must not contain control characters")
         if not isinstance(payload.get("logical_path"), str) or not payload["logical_path"]:
             raise InvalidEnvelopeError("record_draft_artifact requires logical_path")
         if len(payload["logical_path"]) > MAX_LOGICAL_PATH_CHARS:

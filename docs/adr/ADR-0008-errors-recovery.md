@@ -77,10 +77,16 @@ strategy, compare-and-swap rule, or stale-action behavior.
   the incomplete line. A terminated non-JSON line remains genuine
   corruption and raises `MANIFEST_INVALID`. **Append-time repair:** on the
   next append (under the exclusive lock), if the trailing unterminated
-  segment parses as JSON it is a committed record that lost only its
-  newline — the separator is written and the record preserved; if it does
-  not parse it is uncommitted garbage and is truncated back to the last
-  newline before the append.
+  segment parses as a JSON **object** it is a committed record that lost
+  only its newline — the separator is written and the record preserved
+  (a scalar tail such as `123`/`null` is NOT a record and is truncated);
+  if it does not parse as a JSON object it is uncommitted garbage and is
+  truncated back to the last newline before the append.
+- **Control-character policy is a new-input gate.** `intent.raw` (and other
+  identifier/reason fields) reject control characters at the envelope/schema
+  boundary on creation. Read paths do **not** re-scan persisted content, so
+  a round-2-era journal that legitimately stored a raw U+2028 in `intent.raw`
+  remains loadable (no migration required).
 - **CAS tail-verify:** when the engine passes its already-verified manifest,
   `compare_and_swap` tail-checks the last journal digest under the O_EXCL
   lock instead of a second full replay. The lock excludes concurrent
