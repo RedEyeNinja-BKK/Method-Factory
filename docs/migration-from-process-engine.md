@@ -1,57 +1,58 @@
 # Migration from Process Engine
 
-**Date:** 2026-08-03  
-**Source:** [Process Engine](https://github.com/RedEyeNinja-BKK/Process-Engine) at tag `v1.9.1` — commit `240520e`  
-**Split point:** Process Engine at commit `69de7bc` — the version behind the [Etsy store case study](https://github.com/RedEyeNinja-BKK/Process-Engine/blob/main/evals/case-study-first-run.md)
+This document records how Method Factory came to exist and how the Process
+Engine material in this repository is treated. It is historical narrative,
+not a contract. Contracts live in `docs/adr/`.
 
----
+## Origin
 
-## Why the split?
+Method Factory is the prompt+code successor to Process Engine. Process
+Engine proved a gated authoring pipeline through prompt-only experimentation
+(split point: v1.6.0 at `69de7bc`) and a real end-to-end case study. The
+evaluator era (v1.7.0 → v1.9.1) became the specification for the code layer.
 
-Process Engine was built as a prompt-only system. The core skill began at 92 lines — a clean pipeline: Orient → Collect → Clarify → Objective → Summary Gate → Route. That version produced a successful end-to-end package for an Etsy store.
+On 2026-08-03 this repository was seeded from the Process Engine v1.9.1
+snapshot (`240520e`) as `v0.1.0-migration` (`cd2767f`). Method Factory was
+developed from that snapshot: contracts frozen (ADR-0001..0010), vertical
+slice built (`b7d5dca`), prompts reoptimized (`49b6756`), CI hard gate
+(`6c2fc58`), integrity reconciliation (`fb5641c`, tagged `v0.1.2-integrity`).
 
-What followed was the evaluator era. The core skill grew to 220 lines — most of that growth was enforcement logic: First-Response Discipline rules, governance boilerplate, manifest mechanics, tier systems. The prompts were doing the code's job.
+## v2.0.0 clean slate (2026-08-06)
 
-The split separates two concerns:
+A full code-review of the generated-and-pushed surface produced 29 verified
+findings (6 blocking). The operator directed a wholesale clean-slate update:
 
-1. **Process Engine** — stripped back to its early essence. Prompts only, Turnstone-native. The philosophical reference.
-2. **Method Factory** — takes the domain knowledge from the full evaluator-era Process Engine and adds a code layer for deterministic enforcement, lighter prompts, and platform-agnostic operation.
+- version reset to **2.0.0**, signalling a clean break from Process Engine
+  development (ADR-0011);
+- all 29 findings remediated with regression tests;
+- legacy quarantine executed (ADR-0009);
+- documentation aligned (this document, README, CHANGELOG, architecture,
+  action-envelope spec, prompts).
 
----
+The v0.1.x tags remain in git history as the pre-clean-slate record.
 
-## What migrated
+## What was quarantined
 
-| From Process Engine | Purpose in Method Factory |
+All migrated Process Engine material now lives under
+[`evidence/process-engine/`](../evidence/process-engine/), **nothing was
+deleted**:
+
+| Path | What it is |
 |---|---|
-| All 6 skills | Source material for prompt+code design |
-| All 7 references | Portable knowledge — unchanged |
-| All 6 templates | Adapted for new paradigm |
-| `scripts/convert.py` | Code — pipeline foundation |
-| `scripts/validate.py` | Code — deterministic enforcement |
-| `scripts/evaluate*.py` | Reference for code-based evaluation design |
-| `scripts/test_*.py` | Reference for deterministic test patterns |
-| `evals/` (34 cases, runs) | Historical evidence |
-| `docs/portability-test-*` | Portability design reference |
-| `docs/package-manifest-schema.md` | Becomes code-enforced manifest schema |
-| `docs/evaluator-freeze-policy.md` | Historical record |
-| `docs/provenance-schema.md` | Design reference |
-| `docs/spec-compliance.md` | Design reference |
-| `.github/workflows/release-gate.yml` | CI foundation (adapted for Method Factory) |
-| `CHANGELOG.md` | Full history preserved |
-| `persona.md` | Reoptimized for new paradigm |
+| `evals/` | 34 historical cases + runs (evaluator-era evidence) |
+| `scripts/` | convert/validate/evaluate/trial tooling (historical reference) |
+| `skills/` | six Process Engine skills (reference content) |
+| `templates/` | six session starters |
+| `references/` | seven reference docs incl. governance |
+| `persona.md`, `process-engine.toml` | PE identity and release manifest |
+| `docs/` (subset) | package-manifest-schema, provenance-schema, evaluator-freeze-policy, governance-usage, spec-compliance, standards, portability tests |
 
----
+Active Method Factory content does not reference quarantined paths except
+through this narrative (ADR-0009).
 
-## What stayed in Process Engine
+## Process Engine remains the reference
 
-Process Engine was stripped back to its early core — the pipeline, routing, and gate. No First-Response Discipline, no governance canon, no manifest mechanics, no tier system, no evaluator. All enforcement responsibility moved to Turnstone's native governance mechanisms (prompt policy, advisory judge). The case study remains as the origin story.
-
----
-
-## Design principles
-
-1. **Code owns the state machine** — phase transitions, gate checks, manifest I/O
-2. **Prompts own the conversation** — tone, clarifying questions, content generation
-3. **Platform-agnostic** — not bound to Turnstone governance
-4. **Clean slate** — fresh git history, no evaluator baggage
-5. **Process Engine is the reference** — always go back to it when in doubt
+Process Engine itself continues at
+[`RedEyeNinja-BKK/Process-Engine`](https://github.com/RedEyeNinja-BKK/Process-Engine)
+(v1.9.5-prompt-only) as the philosophical anchor. This repo's quarantine is
+for the migrated snapshot, not a replacement for the reference.

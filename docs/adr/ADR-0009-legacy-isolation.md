@@ -32,3 +32,17 @@ None of it is authoritative merely because it exists.
 - Historians get the full record; the active architecture stays clean.
 - No accidental inheritance of evaluator semantics, Turnstone coupling, or
   stale version claims.
+
+## Amendment (v2.0.0 - 2026-08-06)
+
+- **Quarantine executed.** All migrated Process Engine material was moved
+  under `evidence/process-engine/`: `evals/`, `scripts/`, `skills/`,
+  `templates/`, `references/`, `persona.md`, `process-engine.toml`, and the
+  PE-era docs (`package-manifest-schema`, `provenance-schema`,
+  `evaluator-freeze-policy`, `governance-usage`, `spec-compliance`,
+  `standards`, `portable-install-test`, `portability-test`).
+- Active paths are now: `methodfactory/` (code), `prompts/` (active
+  prompts), `docs/` (contracts + ADRs), `README.md`, `CHANGELOG.md`.
+  The CI identity sweep (ADR-0010) scopes `methodfactory/`, `prompts/`,
+  `docs/`, `README.md`, `CHANGELOG.md`, `CONTRIBUTING.md`, `.github/` and
+  exempts `evidence/` by explicit path allowlist.

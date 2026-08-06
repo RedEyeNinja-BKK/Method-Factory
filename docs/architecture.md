@@ -1,113 +1,86 @@
-# Architecture
+# Architecture — Method Factory v2.0.0
 
-Process Engine is an agent-skill framework: a persona, six skills, seven
-references, and six session templates that drive a gated authoring pipeline.
-It is **runtime-aware**: the same core content deploys three ways.
+Method Factory is the **prompt+code** successor to Process Engine. Code owns
+the lifecycle state machine, gates, protocol validation, persistence,
+manifest integrity, and artifact verification. Prompts own conversation,
+clarification, content generation, and tone — the model proposes via a
+validated JSON Action Envelope, and **code decides legality**. The model is
+never responsible for enforcing its own constraints.
 
-1. **Portable logical architecture** — the skills + references are
-   Agent Skills-compatible content that runs on any compliant client
-   (Claude Code, Codex, Cursor, Gemini CLI, …). Core is self-contained
-   (references embedded). No native platform objects required.
-2. **Turnstone deployment architecture** — the same content deploys as a
-   native Turnstone project: persona, skills + templates in the prompt
-   store, references as skill resources, plus governance wiring
-   (prompt policy + advisory judge rules).
-3. **Filesystem / Git deployment architecture** — the portable content ships
-   as files (a skills directory, a Git repository) with hash-verified
-   installation and rollback.
+Process Engine (prompts-only, Turnstone-native) remains the philosophical
+reference at `RedEyeNinja-BKK/Process-Engine`. The migrated Process Engine
+snapshot that seeded this repo is quarantined under `evidence/process-engine/`
+(nothing deleted; see ADR-0009).
 
-Everything the pipeline produces has the same shape — a project/persona/skills
-package — and goes through the same gated pipeline.
-
-## Components
+## Repository layout (v2.0.0)
 
 ```
-Process Engine (project)
-├── persona: process-engine        # identity, standards, working style
-├── skills/ (6)
-│   ├── process-engine-core        # entry + routing
-│   ├── process-engine-pattern-author
-│   ├── process-engine-review
-│   ├── process-engine-trial
-│   ├── process-engine-ship
-│   └── process-engine-triage
-├── references/ (7, on core)       # loaded on demand
-│   ├── standards.md               # standards checklist
-│   ├── safety.md                  # heads-up practice
-│   ├── evidence-library.md        # named basis sources
-│   ├── skill-anatomy.md           # SKILL.md anatomy
-│   ├── best-practices.md          # catalog + spec index
-│   ├── intake.md                  # input-agnostic intake
-│   └── governance.md              # Turnstone governance objects
-└── templates/ (6)                 # session initial prompts
+methodfactory/              # stdlib-only Python package (ADR-0001)
+├── engine.py               # PipelineEngine: envelope -> legality -> gates -> CAS
+├── cli.py                  # mf CLI (console_scripts entry point)
+├── domain/                 # states, transitions (sole legality authority),
+│                           #   gates, errors (stable codes), vocabulary
+├── protocol/envelope.py    # strict Action Envelope parse + schema
+├── manifest/               # hashing, render, schema, store (journal-first CAS)
+├── adapters/artifact_store.py  # digest-addressed immutable blobs
+└── tests/                  # unittest suite (CI hard gate)
+prompts/                    # active conversation content (method-factory-*)
+docs/                       # ADRs (0001..0011), manifest contract, envelope spec
+evidence/process-engine/    # quarantined Process Engine snapshot (ADR-0009)
+README.md · CHANGELOG.md · pyproject.toml · LICENSE · CONTRIBUTING.md
 ```
 
-## The pipeline
+## The code/prompt boundary
 
-```
-intent ─▶ COLLECT ─▶ CLARIFY ─▶ OBJECTIVE ─▶ GATE ─▶ PATTERN ─▶ REVIEW ─▶ TRIAL ─▶ SHIP
-             │           │           │          │        │         │         │        │
-             │           │           │          │        │         ▼         ▼        ▼
-             │           │           │          │        │     verdict   PASS/FAIL  read-back
-             │           │           │          │        │     (PASS/     per case  verification
-             │           │           │          │        │      REVISE/
-             │           │           │          │        │       REJECT)
-             └───────────┴───────────┴──────────┴────────┴── summary / review / trial / ship gates
-```
-
-**Manifest state spine** (v1.9.1): every package carries a canonical manifest
-(`docs/package-manifest-schema.md`) initialized at the Gate stage and updated
-at every stage — Pattern (artifacts DRAFT), Review (findings + verdict),
-Trial (run link + verdict), Ship (deployment objects + rollback). The
-manifest is the durable state record: no manifest, no package.
-
-- **Collect** — the engine invites material (links, text, files, docs) and
-  routes each item through intake (input-agnostic, extract-author-original).
-- **Clarify** — one question at a time, informed by the collected material.
-- **Objective** — the engine asks what "good" looks like; the vision seeds
-  the package's objective and outcomes.
-- **Gate** — summary of material + intent + vision; operator confirms.
-  Initializes the package manifest (package_id, intent, objective, inputs).
-- **Pattern** — eligibility gate decides the shape; pattern-author designs
-  the package to standard, names evidence, builds per-package safeguards
-  for risk-relevant intents, writes acceptance criteria. Output: DRAFT;
-  manifest updated (artifacts, target_runtime).
-- **Review** — standards checklist, spec-compliance check, anatomy check,
-  coverage check, adversarial pass. Verdict with evidence; operator sign-off
-  is the gate. Manifest updated (findings, verdict, isolation level);
-  refuses review without a manifest.
-- **Trial** — case set from acceptance criteria + scope surface (happy path,
-  gray zone, escalation, boundary, trigger set), with/without baseline,
-  actual vs expected recorded, token cost captured. Manifest updated (run
-  link, verdict, content hashes).
-- **Ship** — confirm gates (incl. manifest gates), define rollback, deploy
-  via runtime-appropriate mechanisms, verify by read-back, record evidence.
-  Manifest updated (deployment objects, state, rollback).
-
-## Release integrity (v1.9.1)
-
-- `process-engine.toml` is the canonical release manifest (version, lineage,
-  artifact counts). `scripts/validate.py` + the GitHub Actions release gate
-  fail on any mismatch: stale versions, wrong counts, broken evidence links,
-  embedded↔root reference drift, frontmatter violations, generated-diff
-  drift. `scripts/convert.py` regenerates from drafts with a stale-guard and
-  atomic staging (no partial writes).
-
-## Native mechanisms used
-
-| Artifact | Native mechanism |
+| Concern | Owner |
 |---|---|
-| Project | `POST /v1/api/projects` |
-| Persona | `POST/PATCH /v1/api/admin/personas` |
-| Skills + templates | skills API (`prompt_templates` store): `POST/PUT /v1/api/admin/skills` |
-| References | skill resources: `POST /v1/api/admin/skills/{id}/resources` |
-| Session start | prompt templates (orientation + starters) |
+| State machine, transition legality, gates | code (`methodfactory/domain`) |
+| Manifest schema, revisioning, hashing, integrity | code (`methodfactory/manifest`) |
+| Action Envelope parse + validation | code (`methodfactory/protocol`) |
+| Persistence, atomic CAS, event journal, locks | code (`methodfactory/manifest/store.py`) |
+| Conversation, clarification, content generation, tone | prompts (`prompts/`) |
+| Operator interaction surface, transport, credentials | adapters (ADR-0007; CLI in v2.0.0) |
 
-## Store format vs repository format
+## State machine (v2.0.0 slice)
 
-Turnstone's native store keeps skill metadata in API fields (name, description,
-content), with frontmatter shown as a `yaml` code block inside content. The
-Agent Skills open format standard uses real YAML frontmatter at the top of
-`SKILL.md`. The repository keeps the spec-valid form; the native store keeps
-its native form. Content is otherwise identical (verified by byte-for-byte
-comparison at every deployment).
+```
+INTAKE ──prepare_summary──▶ SUMMARY_PENDING ──confirm_summary──▶ AUTHORING_AUTHORIZED ──record_draft_artifact──▶ DRAFT_READY
+   ▲                            │                                   │
+   └──────revise_intake─────────┴────────revise_intake──────────────┘
+any non-terminal ──cancel──▶ CANCELLED (terminal)
+```
+
+`TRANSITION_TABLE` is the sole legality authority. **Review / Trial / Ship /
+Triage are future phases** (states declared, transitions not yet implemented
+— see ADR-0003). v2.0.0 ends at `DRAFT_READY` after the operator confirms the
+canonical summary.
+
+## Manifest and integrity
+
+- Event journal is canonical (`events/<pkg>.events.jsonl`); the package JSON
+  snapshot (`packages/<pkg>.json`) is a cache (ADR-0008).
+- Every mutation is an atomic compare-and-swap: append event + fsync, then
+  atomic snapshot write. Full chain verification on load: revision
+  monotonicity, state continuity, `previous_manifest_sha256`, snapshot
+  digests, and referenced artifact digests (each unique blob verified once —
+  O(J) per load).
+- Approvals bind exact digests: `confirm_summary` records
+  `confirmed_summary_sha256` equal to `summary.canonical_sha256`; editing the
+  intent/objective invalidates the approval (ADR-0006).
+- Artifacts are stored once under their SHA-256 digest; reads and duplicate
+  writes verify content (no poisoned digests).
+- Crashes: a torn final journal line is an in-flight append (tolerated); a
+  leftover lock is reclaimed when its owner is dead or the lock is ancient.
+
+## Adapters
+
+`ManifestStore`, `ArtifactStore`, `ConversationAdapter`, `RuntimeAdapter`
+(ADR-0007). In v2.0.0 the CLI is the sanctioned operator channel; Turnstone /
+Hermes / OpenClaw / git adapters attach through the interfaces without core
+changes. Adapter success is never treated as domain truth.
+
+## CI (release gate)
+
+Hard gates (ADR-0010): full unittest suite, identity sweep (no stale Process
+Engine identity in active paths; `evidence/` allowlisted), no stray generated
+output, packaging sanity. No `|| true`. See `.github/workflows/release-gate.yml`.

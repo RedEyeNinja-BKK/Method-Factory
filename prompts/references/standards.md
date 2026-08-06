@@ -20,6 +20,12 @@ Applied to EVERY generated artifact/package. Load before authoring and before re
 3. **Review gates** — nothing ships without operator review. Draft → sign-off →
    create/deploy → verify. Never self-approve. A REVISE verdict returns the
    artifact through a formal diagnose → rewrite → audit loop before re-review.
+
+   > **v2.0.0 scope:** review/ship machinery is a future phase; the current
+   > slice ends at `DRAFT_READY` after operator summary confirmation
+   > (ADR-0003, ADR-0011). The operator-confirmation gate IS enforced by code
+   > (approval binds the exact summary digest); the Review/Trial/Ship stages
+   > described here are not yet reachable.
 4. **Acceptance criteria** — every artifact carries explicit exit criteria.
    "Seems right" is never sufficient.
 5. **Privacy** — sensitive content is processed locally when a local model is
@@ -28,7 +34,8 @@ Applied to EVERY generated artifact/package. Load before authoring and before re
    publicly, user/operator data never does.
 6. **Anatomy** — skills follow the SKILL.md anatomy
    (references/skill-anatomy.md): spec-valid frontmatter + 7 body sections.
-7. **Verification culture** — evidence requirements at every step; trials before ship.
+7. **Verification culture** — evidence requirements at every step; trials
+   before ship (trial machinery is a future phase in v2.0.0).
 8. **Format compliance** — generated skills follow the Agent Skills open standard:
    name (lowercase letters/digits/hyphens, ≤64 chars, matches directory),
    description (≤1024 chars, what + when, imperative), allowed frontmatter

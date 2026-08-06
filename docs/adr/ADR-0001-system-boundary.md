@@ -30,3 +30,13 @@ era; it must not be the boundary for the new code layer.
 - CLI surface can evolve without changing core semantics.
 - A service (HTTP/daemon) is explicitly deferred; if needed later it is an
   adapter, not a core change.
+
+## Amendment (v2.0.0 - 2026-08-06)
+
+- Packaging implemented: `pyproject.toml` with console_scripts entry
+  `mf = methodfactory.cli:main`; the top-level package is `methodfactory`
+  (renamed from the staging name `core` to remove the collision-prone
+  import name). `methodfactory.__version__ == "2.0.0"`.
+- No third-party runtime dependencies confirmed; tests remain stdlib
+  `unittest` (pyyaml is a CI-only dev dependency for prompt frontmatter
+  fixtures).

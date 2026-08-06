@@ -27,6 +27,7 @@ import json
 import os
 import time
 import uuid
+import warnings
 from pathlib import Path
 from typing import Optional
 
@@ -45,6 +46,10 @@ LOCK_RETRY_S = 0.05
 # A lock this old is stale even if its recorded PID looks alive (PID reuse,
 # dead-but-untestable owner). No legitimate critical section approaches it.
 LOCK_STALE_AGE_S = LOCK_TIMEOUT_S * 60
+# Journal growth is O(J^2) in bytes (every event embeds the cumulative
+# snapshot). Accepted at single-operator scale; warn past this size so the
+# operator can checkpoint (ADR-0008 v2.0.0 amendment).
+JOURNAL_WARN_BYTES = 10 * 1024 * 1024
 
 
 def _pid_alive(pid: int) -> bool:
@@ -121,6 +126,13 @@ class ManifestStore:
         if events is None:
             events = self.read_events(package_id)
         path = self._manifest_path(package_id)
+        events_path = self._events_path(package_id)
+        if events_path.exists() and events_path.stat().st_size > JOURNAL_WARN_BYTES:
+            warnings.warn(
+                f"event journal for {package_id} exceeds {JOURNAL_WARN_BYTES} bytes; "
+                "consider checkpointing (ADR-0008)",
+                stacklevel=2,
+            )
 
         if events and all("manifest_snapshot" in event for event in events):
             data = self._verify_and_replay(package_id, events)

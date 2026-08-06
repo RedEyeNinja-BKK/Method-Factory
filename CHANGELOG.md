@@ -1,6 +1,37 @@
 # Changelog
 
-All notable changes to Process Engine are recorded here.
+All notable changes to **Method Factory** are recorded here. The Process
+Engine history below is preserved from the migration snapshot and is
+historical (see [Migration](docs/migration-from-process-engine.md)).
+
+## 2.0.0 — 2026-08-06
+
+**Clean slate — clean break from Process Engine development** (ADR-0011).
+
+- **Version reset** to 2.0.0 and tag `v2.0.0`; v0.1.x tags remain as the
+  pre-clean-slate record.
+- **Full code-review remediation:** the generated-and-pushed surface was
+  reviewed (4 finder lanes → verify → dedupe → sanity; 29 verified findings)
+  and all findings fixed with regression tests:
+  - Store: stale-lock recovery (dead-PID/age reclaim), torn-journal-tail
+    tolerance, package_id allowlist validation on every entry point
+    (path-traversal read oracle closed), O(J) artifact verification,
+    CAS tail-verify, single artifact_store wiring, UTF-8 journal writes.
+  - Artifacts: strict logical_path contract (rejects absolute, backslash,
+    drive, dot/dotdot, percent-encoded forms), blob verification on
+    duplicate put and on read (no poisoned digests), fsync on write.
+  - Envelope: size limits at parse + schema (content, intent, statement,
+    outcomes, ids, raw byte cap); shared contract vocabulary module.
+  - CLI: `apply` package_id mismatch fails fast; stable error codes
+    everywhere (FILE_IO, NO_SUMMARY); `mf --version`.
+- **Packaging:** `methodfactory` package (renamed from `core`),
+  `pyproject.toml`, console_scripts `mf` entry point.
+- **Legacy quarantine (ADR-0009):** all Process Engine material moved to
+  `evidence/process-engine/`; nothing deleted.
+- **Documentation aligned:** README, CHANGELOG header, architecture,
+  migration narrative, action-envelope error table, prompt scope notes;
+  ADR-0001/0002/0007/0008/0009/0010 amended; ADR-0011 added.
+- **Tests:** 125 tests + 14 subtests (was 97).
 
 ## 1.9.1 — 2026-08-02
 

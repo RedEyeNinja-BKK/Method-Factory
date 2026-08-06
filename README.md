@@ -1,73 +1,77 @@
 # Method Factory
 
-**A prompt+code system for producing tested, portable agent packages — with deterministic enforcement and lighter, conversation-first prompts.**
+**A prompt+code system for producing tested, portable agent packages — with deterministic enforcement in code and lighter, conversation-first prompts.**
 
-Method Factory is the successor to [Process Engine](https://github.com/RedEyeNinja-BKK/Process-Engine). Process Engine proved the pipeline works through prompt-only experimentation and a successful end-to-end case study. Method Factory takes that proven design and adds a code layer: the state machine, gate enforcement, and manifest integrity are deterministic. The prompts are lighter, focused on conversation and content generation — not on enforcing their own rules.
+Method Factory is the successor to [Process Engine](https://github.com/RedEyeNinja-BKK/Process-Engine). Process Engine proved the pipeline works through prompt-only experimentation and a successful end-to-end case study. Method Factory takes that proven design and adds a code layer: the state machine, gate enforcement, and manifest integrity are **deterministic code**. The prompts are lighter — conversation and content generation only, never enforcement.
 
-> **Process Engine** remains the Turnstone-native, prompts-only reference implementation — active, not abandoned. It is the philosophical anchor. This repo builds outward from it.
+> **Process Engine** remains the philosophical reference at its own repository (v1.9.5-prompt-only). The migrated snapshot that seeded this repo is quarantined under [`evidence/process-engine/`](evidence/process-engine/) — nothing deleted (ADR-0009).
 
----
-
-## What it does
-
-Tell it what you want to build, share any material you have, and it produces a complete agent package — persona, skills, templates, and evaluation cases — through a gated pipeline:
-
-```
-Intent → Collect → Clarify → Objective → Summary Gate → Pattern Author → Review → Trial → Ship → Triage
-```
-
-The pipeline was discovered through prompt-only experimentation (Process Engine v1.0–v1.6.0) and validated in a real end-to-end case study. Method Factory hardens the gatekeeping logic into code while keeping the prompts conversation-first.
+**v2.0.0** is a clean break from Process Engine development (ADR-0011): version reset, all code-review findings remediated, legacy quarantined, documentation aligned.
 
 ---
 
-## How it differs from Process Engine
+## What v2.0.0 does (current slice)
 
-| | Process Engine | Method Factory |
-|---|---|---|
-| **Enforcement** | Prompts + Turnstone governance | Deterministic code |
-| **Platform** | Turnstone-native | Platform-agnostic |
-| **Prompts** | Include enforcement rules | Conversation + content only |
-| **State machine** | Prompts describe it | Code enforces it |
-| **Manifest** | LLM reads/writes TOML | Validated schema + code I/O |
-| **Trials** | Prompt-described | Code-driven harness |
-| **Status** | Active reference | Under development |
+The core is a stdlib-only Python package `methodfactory` (Python 3.11+, no runtime dependencies) plus a thin `mf` CLI.
+
+The current slice takes an operator intent through one gated loop:
+
+```
+Intent → record inputs → objective → canonical summary → operator confirmation → one draft artifact → DRAFT_READY
+```
+
+Implemented and proven (125+ tests, hard CI gate):
+
+- **State machine** — `INTAKE → SUMMARY_PENDING → AUTHORING_AUTHORIZED → DRAFT_READY`, terminal `CANCELLED`. A pure transition table is the sole legality authority.
+- **Action Envelope protocol** — the only way a caller proposes a state change is a schema-validated JSON envelope. Prose is never parsed for state-changing intent. Strict: unknown fields rejected, `action_id` idempotent, approvals bind exact digests.
+- **Manifest store** — event-journal-first, atomic compare-and-swap, fsync'd writes, full chain verification (revision, state continuity, digests, artifacts), crash-tolerant (torn-tail tolerated, stale locks reclaimed).
+- **Artifact store** — digest-addressed immutable blobs; reads and duplicate writes verify content; path guards enforce the relative-path contract.
+- **CLI** — `mf create / apply / status / summary / validate` with stable machine-readable error codes (`--version` → 2.0.0).
+
+**Not yet implemented (future phases):** Review / Trial / Ship / Triage stages, the code-driven trial harness, runtime adapters beyond the CLI, and the package generator. The states exist in the vocabulary but are deliberately unreachable until their transitions are implemented (ADR-0003).
 
 ---
 
 ## Architecture
 
 ```
-Code owns:  state machine, gate enforcement, manifest I/O, trial harness
+Code owns:   state machine, transition legality, gates, manifest I/O,
+             integrity checks, artifact verification, atomic persistence
 Prompts own: conversation, clarifying questions, content generation, tone
 ```
 
-Design principle: the model should not be responsible for enforcing its own constraints. Code enforces the rules; prompts guide the work.
+Design principle: **the model proposes; code validates, authorizes, persists, and verifies.** The model should not be responsible for enforcing its own constraints.
+
+- [Architecture](docs/architecture.md)
+- [Action Envelope spec](docs/action-envelope.md)
+- [Manifest Contract v0.1](docs/manifest-contract-v0.1.md)
+- [ADRs](docs/adr/) — ADR-0001..0011
+- [Migration from Process Engine](docs/migration-from-process-engine.md)
 
 ---
 
-## Origin
+## Quick start
 
-Method Factory is built from the domain knowledge captured in [Process Engine](https://github.com/RedEyeNinja-BKK/Process-Engine) — specifically the pipeline design (Intent → Collect → Clarify → Objective → Summary Gate → Pattern → Review → Trial → Ship → Triage) that emerged from hundreds of prompt-only experiments and was validated in a [real end-to-end run](https://github.com/RedEyeNinja-BKK/Process-Engine/blob/main/evals/case-study-first-run.md).
+```bash
+pip install -e .            # installs the mf console script (dev)
+python -m unittest discover -s methodfactory/tests -t .   # 125+ tests
+```
 
-The prompt-only phase was not a shortcut — it was the discovery method. We didn't guess the architecture. We ran real interactions until the lifecycle proved itself. Now we're hardening the guarantees into code.
+```bash
+mf create pkg_demo_001 "Build a standup-notes skill."
+# apply record_input / set_objective / prepare_summary envelopes (docs/action-envelope.md)
+mf summary pkg_demo_001     # prints the canonical summary to confirm
+# confirm_summary (binds the digest) then record_draft_artifact -> DRAFT_READY
+```
+
+The store root defaults to `./.mf`; override with `--store`.
 
 ---
 
 ## Status
 
-**Under active development.** This repo contains migrated content from Process Engine v1.9.1 and is being restructured around the prompt+code architecture. The initial code layer (state machine, manifest validation, gate enforcement) is under construction.
-
----
+**v2.0.0 (clean slate).** Core slice implemented, reviewed (29 findings remediated), tested, packaged. Legacy Process Engine content quarantined. Publication is operator-gated pending review of this release.
 
 ## License
 
 MIT — see [LICENSE](LICENSE).
-
----
-
-## Docs
-
-- [Architecture](docs/architecture.md)
-- [Migration from Process Engine](docs/migration-from-process-engine.md)
-- [Spec compliance](docs/spec-compliance.md)
-- [Case study: first live run](evals/case-study-first-run.md)

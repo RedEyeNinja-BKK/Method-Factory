@@ -41,6 +41,21 @@ intent. Typed tool calls are adapter bindings of the same envelope.
 - `basis`, `payload`: objects (may be empty). Field allowlists per action
   below.
 
+## Size limits (v2.0.0)
+
+Enforced at the parse boundary (fail fast) and in manifest schema
+validation (authoritative for on-disk manifests):
+
+| Field | Limit |
+|---|---|
+| raw envelope | 2 MiB |
+| `record_input.content` / `record_draft_artifact.content` | 1 MiB |
+| `create_package` intent | 64 KiB |
+| `set_objective.statement` / outcome | 16 KiB |
+| `desired_outcomes` count | 100 |
+| `input_id` / `artifact_id` | 128 chars |
+| `logical_path` | 255 chars (plus path contract below) |
+
 ## Action vocabulary (v0.1 slice)
 
 | Action | From → To | `basis` fields | `payload` fields |
@@ -48,9 +63,9 @@ intent. Typed tool calls are adapter bindings of the same envelope.
 | `record_input` | INTAKE → INTAKE | — | `input_id`, `kind` (`text\|url\|file-reference\|constraint`), `content` (str), `source` (`operator\|adapter`), `disposition` (`incorporated\|excluded`), `exclusion_reason` (required if excluded) |
 | `set_objective` | INTAKE → INTAKE | — | `statement` (str, required), `desired_outcomes` (list[str]) |
 | `prepare_summary` | INTAKE → SUMMARY_PENDING | — | — |
-| `confirm_summary` | SUMMARY_PENDING → AUTHORING_AUTHORIZED | `summary_sha256` (required, must equal `summary.canonical_sha256`) | `operator_id` (optional, default `"operator"`) |
+| `confirm_summary` | SUMMARY_PENDING → AUTHORING_AUTHORIZED | `summary_sha256` (required, must equal `summary.canonical_sha256`) | `operator_id` (optional, default `"operator"`; identity is bound at the adapter/CLI boundary — ADR-0007) |
 | `revise_intake` | SUMMARY_PENDING \| AUTHORING_AUTHORIZED → INTAKE | — | — |
-| `record_draft_artifact` | AUTHORING_AUTHORIZED → DRAFT_READY | — | `artifact_id`, `kind`, `logical_path` (relative, no `..`, no absolute), `content` (str) |
+| `record_draft_artifact` | AUTHORING_AUTHORIZED → DRAFT_READY | — | `artifact_id`, `kind`, `logical_path` (relative, `/`-separated, no `..`/`.`/absolute/backslash/percent-encoding; ≤255 chars), `content` (str) |
 | `cancel` | any non-terminal → CANCELLED | — | `reason` (optional) |
 
 `prepare_summary` is how the code freezes the canonical summary: it renders
@@ -78,11 +93,16 @@ deterministic text from manifest state, computes `canonical_sha256`, sets
 
 | Code | When |
 |---|---|
-| `INVALID_ENVELOPE` | malformed JSON, schema violation, unknown field/action |
+| `INVALID_ENVELOPE` | malformed JSON, schema violation, unknown field/action, size limit exceeded, CLI/envelope package_id mismatch |
 | `ILLEGAL_TRANSITION` | action not legal in current state |
-| `GATE_UNSATISFIED` | required evidence missing |
-| `STALE_ACTION` | `expected_revision` mismatch or approval digest mismatch |
+| `GATE_UNSATISFIED` | required evidence missing (e.g. no intent before summary) |
+| `STALE_ACTION` | `expected_revision` mismatch, approval digest mismatch, or manifest changed during apply |
 | `ACTION_ID_REUSE` | action_id reused with different payload |
-| `INVALID_PAYLOAD` | semantic payload violation |
+| `INVALID_PAYLOAD` | semantic payload violation (e.g. duplicate input_id, poisoned artifact blob) |
+| `MANIFEST_INVALID` | missing/corrupt manifest, digest-chain break, invalid package_id on store paths |
+| `CONCURRENCY` | could not acquire the package write lock in time |
+| `PACKAGE_EXISTS` | create on an existing package |
+| `FILE_IO` | unreadable/unwritable file on the CLI surface |
+| `NO_SUMMARY` | summary requested but not prepared |
 
 Full error and recovery behavior: ADR-0008.

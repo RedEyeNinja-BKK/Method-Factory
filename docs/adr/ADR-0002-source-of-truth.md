@@ -29,3 +29,12 @@ can reproduce everything from the repository alone.
 - No stale-guard complexity against an external drafts tree.
 - The Phase-4 CI drift check becomes meaningful: regeneration must be a no-op
   on a clean tree.
+
+## Amendment (v2.0.0 - 2026-08-06)
+
+- **Determinism gate re-scoped.** v2.0.0 has no generator yet (draft
+  artifacts only, DRAFT_READY terminal), so the regenerate→diff-empty CI
+  check is vacated by this amendment. CI instead hard-fails on any stray
+  generated output (`workspace/`, `iteration-*/`) appearing in the tree.
+- When a generator lands (future phase), the regenerate→diff-empty gate is
+  restored as a hard CI step (see ADR-0010 amendment).

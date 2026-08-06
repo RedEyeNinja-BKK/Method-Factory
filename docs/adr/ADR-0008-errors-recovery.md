@@ -59,3 +59,30 @@ strategy, compare-and-swap rule, or stale-action behavior.
 - Error surfaces: CLI/API (stable code + context), audit log (full rejected
   action), prompt re-prompt (only exact validation defects for malformed
   model proposals — never reinterpretation authority).
+
+## Amendment (v2.0.0 - 2026-08-06)
+
+- Error-code table completed to the full emitted set:
+  `INVALID_ENVELOPE`, `ILLEGAL_TRANSITION`, `GATE_UNSATISFIED`,
+  `STALE_ACTION`, `ACTION_ID_REUSE`, `INVALID_PAYLOAD`,
+  `MANIFEST_INVALID`, `CONCURRENCY`, `PACKAGE_EXISTS` (duplicate create),
+  `FILE_IO` (unreadable/writable file on the CLI surface), `NO_SUMMARY`
+  (summary requested but not prepared).
+- **Stale-lock recovery:** the package lock records its owner PID and is
+  reclaimed when the owner is dead (`os.kill(pid, 0)`) or the lock is older
+  than `LOCK_STALE_AGE_S` (60 × retry). A crashed writer no longer wedges
+  the package.
+- **Torn-journal tolerance:** an unterminated final journal line is an
+  in-flight append, never corruption; readers retry once and then ignore
+  the incomplete line. A terminated non-JSON line remains genuine
+  corruption and raises `MANIFEST_INVALID`.
+- **CAS tail-verify:** when the engine passes its already-verified manifest,
+  `compare_and_swap` tail-checks the last journal digest under the O_EXCL
+  lock instead of a second full replay. The lock excludes concurrent
+  writers; the digest comparison detects any change or tamper.
+- **O(J) artifact verification:** replay collects referenced artifact
+  digests and verifies each unique blob once (was O(J²) reads per load).
+- **Journal growth:** the append-only journal is O(J²) in bytes (each event
+  embeds the cumulative snapshot). Accepted at single-operator scale; a
+  warning is emitted past 10 MiB per package. Compaction/checkpointing is a
+  future-phase item (ADR-0008 backlog).

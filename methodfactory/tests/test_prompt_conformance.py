@@ -46,9 +46,9 @@ class PromptStructuralTests(unittest.TestCase):
         self.assertTrue(data.get("description"))
 
     def test_no_action_marker_text_anywhere_in_prompts(self):
-        # The old PROCESS-ENGINE direction used "ACTION: TOKEN" markers.
+        # The legacy marker style ("ACTION: TOKEN") must not reappear.
         # The accepted protocol is a JSON envelope. This is the regression
-        # guard: marker-style text must not reappear.
+        # guard: marker-style text must not be proposed as a state change.
         bad = []
         for p in PROMPTS.rglob("*.md"):
             text = p.read_text(encoding="utf-8")

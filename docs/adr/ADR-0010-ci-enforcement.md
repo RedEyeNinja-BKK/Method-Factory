@@ -36,3 +36,19 @@ bootstrap evidence, not integrity evidence.
   was skipped.
 - The identity sweep keeps the "clean slate" honest as content is rewritten
   in Phase 3.
+
+## Amendment (v2.0.0 - 2026-08-06)
+
+- Test runner path updated: `python -m unittest discover -s methodfactory/tests -t .`
+  (package renamed from `core`).
+- **Determinism gate** (see ADR-0002 amendment): while no generator exists,
+  CI hard-fails on stray generated output (`workspace/`, `iteration-*/`)
+  instead of regenerate→diff-empty. The drift check is restored when a
+  generator lands.
+- **Identity sweep** is a single case-insensitive pass over active paths
+  (`methodfactory/`, `prompts/`, `docs/`, `README.md`, `CHANGELOG.md`,
+  `CONTRIBUTING.md`, `.github/`) with `evidence/` exempt via explicit
+  allowlist (never a global bypass). README/CHANGELOG intentional Process
+  Engine pointer references are allowlisted line-by-line.
+- **Supply chain:** actions pinned by full commit SHA; `permissions:
+  contents: read`; pyyaml pinned via `requirements-dev.txt`.

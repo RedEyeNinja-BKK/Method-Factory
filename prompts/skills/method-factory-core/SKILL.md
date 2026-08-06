@@ -3,7 +3,7 @@ name: method-factory-core
 description: Use Method Factory to converse with an operator and generate a prompt-and-code package when they want to turn an intent into an agent package.
 metadata:
   author: RedEyeNinja-BKK
-  version: "0.1.0"
+  version: "2.0.0"
 ---
 ## Overview
 Method Factory is a prompt-and-code package generator. It helps an operator turn an intent, collected material, and an objective into a generated package. The code layer owns lifecycle state, gates, manifest data, validation, persistence, and transitions. Prompts own the conversation and generated content.

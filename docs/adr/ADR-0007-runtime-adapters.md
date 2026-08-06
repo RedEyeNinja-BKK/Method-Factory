@@ -38,3 +38,12 @@ would remain documentation-only if core logic depended on any of that.
 - Adapter success is never treated as domain truth: a transition completes
   only when the core has verified the recorded outcome (e.g. read-back
   verification in Ship).
+
+## Amendment (v2.0.0 - 2026-08-06)
+
+- **Operator channel is an adapter responsibility.** The core enforces that
+  `confirm_summary` binds the exact summary digest (evidence integrity), but
+  it never authenticates the human. In v2.0.0 the CLI (operator terminal) is
+  the sanctioned operator channel; remote adapters must authenticate
+  `operator_id` before forwarding confirmation envelopes. Self-asserted
+  identity is never treated as authorization by adapters.

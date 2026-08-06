@@ -117,9 +117,11 @@ clarification — the material sharpens the questions. Run conversationally:
 10. **Provenance record** — source URL(s) or "user-provided" status, item
     type, license info if visible, fetched date, extraction summary. This
     record is evidence.
-11. **Operator gate** — the generated package then passes through the normal
-    Pattern → Review → Trial → Ship gates; the operator's sign-off is the
-    gate (the engine's core identity, unchanged).
+11. **Operator gate** — the operator's sign-off is the gate. **v2.0.0 scope:**
+    the current slice ends at `DRAFT_READY` after operator confirmation of the
+    canonical summary. Review → Trial → Ship are future phases (their states
+    exist in the vocabulary but are not yet reachable — ADR-0003); do not
+    describe them as current pipeline stages.
 
 ## Examples
 

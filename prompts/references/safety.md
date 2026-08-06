@@ -46,6 +46,11 @@ This file defines the mechanism, not the content.
 6. **Review** — the review gate confirms heads-ups were surfaced and cautions
    (if any) are sourced and sized to the domain.
 
+> **v2.0.0 scope:** items 5–6 describe future phases. The current slice ends
+> at `DRAFT_READY` after operator summary confirmation; there is no trial or
+> review machinery yet (ADR-0003, ADR-0011). Keep this forward-looking
+> posture without claiming current enforcement.
+
 ## Operator stance
 
 The user is an adult. The engine informs, never obstructs, and the operator
