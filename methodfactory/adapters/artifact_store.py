@@ -1,25 +1,43 @@
-"""Filesystem ArtifactStore — immutable content-addressed blobs (ADR-0007)."""
+"""Filesystem ArtifactStore — immutable content-addressed blobs (ADR-0007).
+
+Blobs are stored once under their SHA-256 digest. Reads and duplicate writes
+verify content against the digest so a partial or corrupted blob can never
+silently satisfy a digest (v2.0.0 review remediation, F11).
+"""
 
 from __future__ import annotations
 
-from pathlib import Path
+import os
 import re
+from pathlib import Path
 
 from ..domain.errors import InvalidPayloadError
+from ..domain.vocabulary import MAX_LOGICAL_PATH_CHARS
 from ..manifest.hashing import digest_bytes
 
-LOGICAL_PATH_BLOCKED = ("..", "/", "\\")
+LOGICAL_PATH_BLOCKED_SEGMENTS = frozenset({"..", "."})
 DIGEST_RE = re.compile(r"^[0-9a-f]{64}$")
+_WINDOWS_DRIVE_RE = re.compile(r"^[A-Za-z]:[\\/]")
 
 
 def validate_logical_path(logical_path: str) -> str:
-    lp = logical_path.strip().lstrip("/")
+    """Validate an artifact logical path (contract: relative, '/'-separated,
+    no '..', no absolute, no backslash, no percent-encoding)."""
+    lp = logical_path.strip()
     if not lp:
         raise InvalidPayloadError("logical_path is empty")
+    if lp.startswith("/") or lp.startswith("\\"):
+        raise InvalidPayloadError(f"logical_path must be relative: {logical_path!r}")
+    if _WINDOWS_DRIVE_RE.match(lp):
+        raise InvalidPayloadError(f"logical_path must be relative: {logical_path!r}")
+    if "\\" in lp:
+        raise InvalidPayloadError(f"logical_path must use '/' separators: {logical_path!r}")
+    if "%" in lp:
+        raise InvalidPayloadError(f"logical_path must not contain percent-encoding: {logical_path!r}")
     parts = lp.split("/")
-    if any(p in LOGICAL_PATH_BLOCKED for p in parts):
+    if any(p in LOGICAL_PATH_BLOCKED_SEGMENTS for p in parts):
         raise InvalidPayloadError(f"logical_path contains blocked segment: {logical_path!r}")
-    if len(lp) > 255:
+    if len(lp) > MAX_LOGICAL_PATH_CHARS:
         raise InvalidPayloadError("logical_path too long")
     return lp
 
@@ -50,14 +68,24 @@ class ArtifactStore:
         try:
             fd = dest.open("xb")
         except FileExistsError:
+            if digest_bytes(dest.read_bytes()) != digest:
+                raise InvalidPayloadError(f"artifact blob poisoned for digest {digest}")
             return digest, len(data)
         with fd:
             fd.write(data)
             fd.flush()
+            os.fsync(fd.fileno())
         return digest, len(data)
 
+    def _read_verified(self, digest: str) -> bytes:
+        dest = self._blob_path(digest)
+        data = dest.read_bytes()
+        if digest_bytes(data) != digest:
+            raise InvalidPayloadError(f"artifact blob corrupted for digest {digest}")
+        return data
+
     def get(self, digest: str) -> str:
-        return self._blob_path(digest).read_text(encoding="utf-8")
+        return self._read_verified(digest).decode("utf-8")
 
     def verify(self, digest: str) -> bool:
         try:
@@ -67,4 +95,4 @@ class ArtifactStore:
             return False
 
     def artifact_bytes(self, digest: str) -> bytes:
-        return self._blob_path(digest).read_bytes()
+        return self._read_verified(digest)

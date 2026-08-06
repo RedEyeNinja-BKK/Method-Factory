@@ -8,8 +8,11 @@ These are fixtures, not a runtime dependency of the engine. They drive a
 mock "operator" transcript through the prompt and assert the envelope the
 prompt emits is valid.
 
-Run: python3 -m pytest core/tests/test_prompt_conformance.py -q  (Phase 4 CI)
-     or: python3 core/tests/test_prompt_conformance.py  (direct)
+Run: python -m unittest discover -s methodfactory/tests -t .   (Phase 4 CI)
+     or: python3 methodfactory/tests/test_prompt_conformance.py  (direct)
+
+Requires pyyaml (CI installs it via requirements-dev.txt) for the
+frontmatter fixture check.
 """
 
 from __future__ import annotations
@@ -18,6 +21,8 @@ import json
 import re
 import unittest
 from pathlib import Path
+
+import yaml
 
 from methodfactory.domain.errors import InvalidEnvelopeError
 from methodfactory.domain.transitions import ACTION_VOCABULARY
@@ -36,8 +41,6 @@ class PromptStructuralTests(unittest.TestCase):
         text = smd.read_text(encoding="utf-8")
         self.assertTrue(text.startswith("---"), "frontmatter missing")
         fm = text.split("---", 2)[1]
-        import yaml
-
         data = yaml.safe_load(fm)
         self.assertEqual(data["name"], "method-factory-core")
         self.assertTrue(data.get("description"))

@@ -12,7 +12,17 @@ from typing import Any, Optional
 
 from ..domain.errors import InvalidEnvelopeError
 from ..domain.transitions import ACTION_VOCABULARY, Action
-from ..domain.vocabulary import DISPOSITIONS, INPUT_KINDS, INPUT_SOURCES, PACKAGE_ID_RE
+from ..domain.vocabulary import (
+    DISPOSITIONS,
+    INPUT_KINDS,
+    INPUT_SOURCES,
+    MAX_CONTENT_CHARS,
+    MAX_ENVELOPE_BYTES,
+    MAX_ID_CHARS,
+    MAX_OUTCOMES,
+    MAX_STATEMENT_CHARS,
+    PACKAGE_ID_RE,
+)
 
 PROTOCOL_VERSION = "0.1"
 
@@ -77,6 +87,10 @@ def parse_envelope(raw: str) -> ActionEnvelope:
     text = raw.strip()
     if not text:
         raise InvalidEnvelopeError("empty envelope")
+    if len(text.encode("utf-8")) > MAX_ENVELOPE_BYTES:
+        raise InvalidEnvelopeError(
+            f"envelope exceeds {MAX_ENVELOPE_BYTES} bytes"
+        )
     try:
         candidate = json.loads(text)
     except json.JSONDecodeError:
@@ -156,10 +170,14 @@ def _validate_payload_types(action: str, payload: dict, basis: dict) -> None:
     if action == Action.RECORD_INPUT.value:
         if not isinstance(payload.get("input_id"), str) or not payload["input_id"]:
             raise InvalidEnvelopeError("record_input requires input_id")
+        if len(payload["input_id"]) > MAX_ID_CHARS:
+            raise InvalidEnvelopeError("record_input input_id too long")
         if payload.get("kind") not in INPUT_KINDS:
             raise InvalidEnvelopeError("record_input kind must be text|url|file-reference|constraint")
         if not isinstance(payload.get("content"), str):
             raise InvalidEnvelopeError("record_input content must be a string")
+        if len(payload["content"]) > MAX_CONTENT_CHARS:
+            raise InvalidEnvelopeError("record_input content too long")
         if payload.get("source") not in INPUT_SOURCES:
             raise InvalidEnvelopeError("record_input source must be operator|adapter")
         if payload.get("disposition") not in DISPOSITIONS:
@@ -171,9 +189,15 @@ def _validate_payload_types(action: str, payload: dict, basis: dict) -> None:
     elif action == Action.SET_OBJECTIVE.value:
         if not isinstance(payload.get("statement"), str):
             raise InvalidEnvelopeError("set_objective requires a string statement")
+        if len(payload["statement"]) > MAX_STATEMENT_CHARS:
+            raise InvalidEnvelopeError("set_objective statement too long")
         outcomes = payload.get("desired_outcomes", [])
         if not isinstance(outcomes, list) or not all(isinstance(o, str) for o in outcomes):
             raise InvalidEnvelopeError("desired_outcomes must be a list of strings")
+        if len(outcomes) > MAX_OUTCOMES:
+            raise InvalidEnvelopeError("desired_outcomes too long")
+        if any(len(o) > MAX_STATEMENT_CHARS for o in outcomes):
+            raise InvalidEnvelopeError("desired_outcomes entry too long")
 
     elif action == Action.CONFIRM_SUMMARY.value:
         if not isinstance(basis.get("summary_sha256"), str) or not basis["summary_sha256"]:
@@ -185,12 +209,16 @@ def _validate_payload_types(action: str, payload: dict, basis: dict) -> None:
     elif action == Action.RECORD_DRAFT_ARTIFACT.value:
         if not isinstance(payload.get("artifact_id"), str) or not payload["artifact_id"]:
             raise InvalidEnvelopeError("record_draft_artifact requires artifact_id")
+        if len(payload["artifact_id"]) > MAX_ID_CHARS:
+            raise InvalidEnvelopeError("record_draft_artifact artifact_id too long")
         if not isinstance(payload.get("kind"), str) or not payload["kind"]:
             raise InvalidEnvelopeError("record_draft_artifact requires kind")
         if not isinstance(payload.get("logical_path"), str) or not payload["logical_path"]:
             raise InvalidEnvelopeError("record_draft_artifact requires logical_path")
         if not isinstance(payload.get("content"), str):
             raise InvalidEnvelopeError("record_draft_artifact content must be a string")
+        if len(payload["content"]) > MAX_CONTENT_CHARS:
+            raise InvalidEnvelopeError("record_draft_artifact content too long")
 
     elif action == Action.CANCEL.value:
         reason = payload.get("reason")

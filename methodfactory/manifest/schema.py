@@ -5,7 +5,17 @@ from __future__ import annotations
 from datetime import datetime
 
 from ..domain.states import State
-from ..domain.vocabulary import DISPOSITIONS, INPUT_KINDS, INPUT_SOURCES, PACKAGE_ID_RE, SHA256_RE
+from ..domain.vocabulary import (
+    DISPOSITIONS,
+    INPUT_KINDS,
+    INPUT_SOURCES,
+    MAX_INTENT_CHARS,
+    MAX_LOGICAL_PATH_CHARS,
+    MAX_OUTCOMES,
+    MAX_STATEMENT_CHARS,
+    PACKAGE_ID_RE,
+    SHA256_RE,
+)
 
 SCHEMA_VERSION = "0.1"
 
@@ -96,6 +106,8 @@ def validate_manifest(manifest: dict) -> list[str]:
     intent = manifest.get("intent")
     if not isinstance(intent, dict) or not isinstance(intent.get("raw"), str):
         errors.append("intent.raw must be a string")
+    elif len(intent["raw"]) > MAX_INTENT_CHARS:
+        errors.append(f"intent.raw exceeds {MAX_INTENT_CHARS} chars")
 
     inputs = manifest.get("inputs")
     if not isinstance(inputs, list):
@@ -131,10 +143,14 @@ def validate_manifest(manifest: dict) -> list[str]:
     objective = manifest.get("objective")
     if not isinstance(objective, dict) or not isinstance(objective.get("statement"), str):
         errors.append("objective.statement must be a string")
+    elif len(objective["statement"]) > MAX_STATEMENT_CHARS:
+        errors.append(f"objective.statement exceeds {MAX_STATEMENT_CHARS} chars")
     if not isinstance(objective.get("desired_outcomes"), list) or not all(
         isinstance(o, str) for o in objective.get("desired_outcomes", [])
     ):
         errors.append("objective.desired_outcomes must be a list of strings")
+    elif len(objective["desired_outcomes"]) > MAX_OUTCOMES:
+        errors.append(f"objective.desired_outcomes exceeds {MAX_OUTCOMES} entries")
 
     summary = manifest.get("summary")
     if summary is not None:
@@ -182,6 +198,8 @@ def validate_manifest(manifest: dict) -> list[str]:
                 errors.append(f"{tag}.kind invalid")
             if not isinstance(art.get("logical_path"), str) or not art["logical_path"]:
                 errors.append(f"{tag}.logical_path invalid")
+            elif len(art["logical_path"]) > MAX_LOGICAL_PATH_CHARS:
+                errors.append(f"{tag}.logical_path exceeds {MAX_LOGICAL_PATH_CHARS} chars")
             if not (isinstance(art.get("sha256"), str) and SHA256_RE.match(art["sha256"])):
                 errors.append(f"{tag}.sha256 invalid")
             if not isinstance(art.get("byte_count"), int) or art["byte_count"] < 0:

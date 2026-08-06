@@ -159,6 +159,70 @@ class EnvelopeParseTests(unittest.TestCase):
                 )
             )
 
+    # ── size limits (sec-7 remediation) ────────────────────────────────
+    def test_overlong_input_content_rejected(self):
+        from methodfactory.domain.vocabulary import MAX_CONTENT_CHARS
+
+        with self.assertRaises(InvalidEnvelopeError):
+            parse_envelope(
+                json.dumps(envelope(payload=record_input_payload(content="x" * (MAX_CONTENT_CHARS + 1))))
+            )
+
+    def test_overlong_objective_statement_rejected(self):
+        from methodfactory.domain.vocabulary import MAX_STATEMENT_CHARS
+
+        with self.assertRaises(InvalidEnvelopeError):
+            parse_envelope(
+                json.dumps(
+                    envelope(
+                        action="set_objective",
+                        payload={"statement": "x" * (MAX_STATEMENT_CHARS + 1), "desired_outcomes": []},
+                    )
+                )
+            )
+
+    def test_too_many_desired_outcomes_rejected(self):
+        from methodfactory.domain.vocabulary import MAX_OUTCOMES
+
+        with self.assertRaises(InvalidEnvelopeError):
+            parse_envelope(
+                json.dumps(
+                    envelope(
+                        action="set_objective",
+                        payload={"statement": "x", "desired_outcomes": ["o"] * (MAX_OUTCOMES + 1)},
+                    )
+                )
+            )
+
+    def test_overlong_ids_rejected(self):
+        from methodfactory.domain.vocabulary import MAX_ID_CHARS
+
+        with self.assertRaises(InvalidEnvelopeError):
+            parse_envelope(
+                json.dumps(envelope(payload=record_input_payload(input_id="i" * (MAX_ID_CHARS + 1))))
+            )
+        with self.assertRaises(InvalidEnvelopeError):
+            parse_envelope(
+                json.dumps(
+                    envelope(
+                        action="record_draft_artifact",
+                        payload={
+                            "artifact_id": "a" * (MAX_ID_CHARS + 1),
+                            "kind": "skill",
+                            "logical_path": "skills/x/SKILL.md",
+                            "content": "c",
+                        },
+                    )
+                )
+            )
+
+    def test_overlong_raw_envelope_rejected(self):
+        from methodfactory.domain.vocabulary import MAX_ENVELOPE_BYTES
+
+        big = json.dumps(envelope(payload=record_input_payload(content="x" * MAX_ENVELOPE_BYTES)))
+        with self.assertRaises(InvalidEnvelopeError):
+            parse_envelope(big)
+
 
 if __name__ == "__main__":
     unittest.main()

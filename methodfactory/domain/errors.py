@@ -71,3 +71,15 @@ class DuplicatePackageError(MethodFactoryError):
 
 class ConcurrencyError(MethodFactoryError):
     code = "CONCURRENCY"
+
+
+class FileIoError(MethodFactoryError):
+    """Stable CLI/IO error — reading or writing a file failed (ADR-0008)."""
+
+    code = "FILE_IO"
+
+
+class NoSummaryError(MethodFactoryError):
+    """A summary has not been prepared for the package."""
+
+    code = "NO_SUMMARY"

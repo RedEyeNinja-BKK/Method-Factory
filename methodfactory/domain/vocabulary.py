@@ -15,3 +15,15 @@ SHA256_RE = re.compile(r"^[0-9a-f]{64}$")
 INPUT_KINDS = frozenset({"text", "url", "file-reference", "constraint"})
 INPUT_SOURCES = frozenset({"operator", "adapter"})
 DISPOSITIONS = frozenset({"incorporated", "excluded"})
+
+# ── Size limits (v2.0.0 review remediation; sec-7) ─────────────────────
+# Enforced at the envelope parse boundary (fail fast) and in manifest schema
+# validation (authoritative for on-disk manifests). Envelope payloads are
+# bounded so an untrusted transport cannot exhaust memory or bloat journals.
+MAX_ENVELOPE_BYTES = 2 * 1024 * 1024      # raw envelope byte cap
+MAX_CONTENT_CHARS = 1_048_576             # record_input / record_draft_artifact content
+MAX_INTENT_CHARS = 65_536                 # create_package intent.raw
+MAX_STATEMENT_CHARS = 16_384              # set_objective statement / outcome
+MAX_OUTCOMES = 100                        # desired_outcomes list length
+MAX_ID_CHARS = 128                        # input_id / artifact_id
+MAX_LOGICAL_PATH_CHARS = 255              # artifact logical_path

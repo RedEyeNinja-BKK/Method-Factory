@@ -24,7 +24,7 @@ from methodfactory.domain.errors import (
     StaleActionError,
 )
 from methodfactory.engine import PipelineEngine
-from methodfactory.manifest.hashing import digest_text
+from methodfactory.manifest.hashing import digest_json, digest_text
 from methodfactory.manifest.store import ManifestStore
 
 PKG = "pkg_demo_001"
@@ -122,14 +122,14 @@ class SinglePhaseLoopTests(EngineFixture):
     def test_failed_action_leaves_no_manifest_change(self):
         self.run_to_summary_pending()
         before = self.store.load(PKG)
-        before_digest = digest_text(json.dumps(before, sort_keys=True))
+        before_digest = digest_json(before)
         with self.assertRaises(IllegalTransitionError):
             self.apply("record_draft_artifact", 3, payload={
                 "artifact_id": "art_001", "kind": "skill",
                 "logical_path": "skills/x/SKILL.md", "content": "x",
             })
         after = self.store.load(PKG)
-        self.assertEqual(digest_text(json.dumps(after, sort_keys=True)), before_digest)
+        self.assertEqual(digest_json(after), before_digest)
 
     def test_no_temp_files_left_behind(self):
         self.run_to_summary_pending()

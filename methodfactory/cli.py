@@ -17,12 +17,19 @@ import json
 import sys
 from pathlib import Path
 
+from . import __version__
 from .adapters.artifact_store import ArtifactStore
-from .domain.errors import MethodFactoryError
+from .domain.errors import (
+    FileIoError,
+    InvalidEnvelopeError,
+    MethodFactoryError,
+    NoSummaryError,
+)
 from .engine import PipelineEngine
 from .manifest.render import render_summary
 from .manifest.schema import validate_manifest
 from .manifest.store import ManifestStore
+from .protocol.envelope import parse_envelope
 
 
 def _engine(store_root: Path) -> PipelineEngine:
@@ -46,9 +53,20 @@ def cmd_create(engine: PipelineEngine, args) -> int:
 
 
 def cmd_apply(engine: PipelineEngine, args) -> int:
-    raw = sys.stdin.read() if args.envelope == "-" else Path(args.envelope).read_text(encoding="utf-8")
     try:
-        result = engine.apply_json(raw)
+        if args.envelope == "-":
+            raw = sys.stdin.read()
+        else:
+            try:
+                raw = Path(args.envelope).read_text(encoding="utf-8")
+            except OSError as exc:
+                raise FileIoError(f"cannot read envelope: {exc}", package_id=args.package_id) from exc
+        env = parse_envelope(raw)
+        if env.package_id != args.package_id:
+            raise InvalidEnvelopeError(
+                f"envelope package_id {env.package_id!r} does not match CLI package_id {args.package_id!r}"
+            )
+        result = engine.apply(env)
     except MethodFactoryError as exc:
         return _fail(exc)
     print(
@@ -80,8 +98,7 @@ def cmd_summary(engine: PipelineEngine, args) -> int:
     except MethodFactoryError as exc:
         return _fail(exc)
     if manifest.get("summary") is None:
-        print("no summary prepared", file=sys.stderr)
-        return 1
+        return _fail(NoSummaryError("no summary prepared", package_id=args.package_id))
     print(manifest["summary"]["content"], end="")
     return 0
 
@@ -103,6 +120,9 @@ def cmd_validate(engine: PipelineEngine, args) -> int:
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(prog="mf", description="Method Factory CLI")
     parser.add_argument("--store", default=".mf", help="store root (default: ./.mf)")
+    parser.add_argument(
+        "--version", action="version", version=f"methodfactory {__version__}"
+    )
     sub = parser.add_subparsers(dest="command", required=True)
 
     p_create = sub.add_parser("create", help="create a package from an intent")

@@ -115,7 +115,9 @@ class ManifestSchemaTests(unittest.TestCase):
         self.assertEqual(digest_json(a), digest_json(b))
         self.assertEqual(canonical_json(a), canonical_json(b))
 
-    def test_revision_increments_once(self):
+    def test_manifest_revision_values_validate(self):
+        # Validates that any non-negative revision passes schema (revision
+        # increment behavior itself is asserted by engine integration tests).
         m1 = valid_manifest(revision=3)
         m2 = valid_manifest(revision=4)
         self.assertEqual(validate_manifest(m1), [])
