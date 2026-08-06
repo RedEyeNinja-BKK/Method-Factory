@@ -301,6 +301,10 @@ class ManifestStore:
             raise ManifestInvalidError(
                 f"manifest corrupt for {package_id}: {exc}", package_id=package_id
             ) from exc
+        except RecursionError as exc:
+            raise ManifestInvalidError(
+                f"manifest corrupt for {package_id}: JSON nesting too deep", package_id=package_id
+            ) from exc
         errors = validate_manifest(data)
         if errors:
             raise ManifestInvalidError(

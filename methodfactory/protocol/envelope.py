@@ -8,7 +8,7 @@ from __future__ import annotations
 
 import json
 from dataclasses import dataclass, field
-from typing import Any, Optional
+from typing import Any
 
 from ..domain.errors import InvalidEnvelopeError
 from ..domain.transitions import ACTION_VOCABULARY, Action
@@ -19,9 +19,12 @@ from ..domain.vocabulary import (
     MAX_CONTENT_CHARS,
     MAX_ENVELOPE_BYTES,
     MAX_ID_CHARS,
+    MAX_LOGICAL_PATH_CHARS,
     MAX_OUTCOMES,
+    MAX_REASON_CHARS,
     MAX_STATEMENT_CHARS,
     PACKAGE_ID_RE,
+    contains_control_chars,
 )
 
 PROTOCOL_VERSION = "0.1"
@@ -87,7 +90,7 @@ def parse_envelope(raw: str) -> ActionEnvelope:
     text = raw.strip()
     if not text:
         raise InvalidEnvelopeError("empty envelope")
-    if len(text.encode("utf-8")) > MAX_ENVELOPE_BYTES:
+    if len(text) > MAX_ENVELOPE_BYTES or len(text.encode("utf-8")) > MAX_ENVELOPE_BYTES:
         raise InvalidEnvelopeError(
             f"envelope exceeds {MAX_ENVELOPE_BYTES} bytes"
         )
@@ -101,6 +104,8 @@ def parse_envelope(raw: str) -> ActionEnvelope:
             candidate = json.loads(text[start : end + 1])
         except json.JSONDecodeError as exc:
             raise InvalidEnvelopeError(f"malformed envelope: {exc}") from exc
+    except RecursionError as exc:
+        raise InvalidEnvelopeError("malformed envelope: JSON nesting too deep") from exc
     if not isinstance(candidate, dict):
         raise InvalidEnvelopeError("malformed envelope: expected a JSON object")
     return envelope_from_dict(candidate)
@@ -172,6 +177,8 @@ def _validate_payload_types(action: str, payload: dict, basis: dict) -> None:
             raise InvalidEnvelopeError("record_input requires input_id")
         if len(payload["input_id"]) > MAX_ID_CHARS:
             raise InvalidEnvelopeError("record_input input_id too long")
+        if contains_control_chars(payload["input_id"]):
+            raise InvalidEnvelopeError("record_input input_id must not contain control characters")
         if payload.get("kind") not in INPUT_KINDS:
             raise InvalidEnvelopeError("record_input kind must be text|url|file-reference|constraint")
         if not isinstance(payload.get("content"), str):
@@ -185,12 +192,16 @@ def _validate_payload_types(action: str, payload: dict, basis: dict) -> None:
         reason = payload.get("exclusion_reason")
         if reason is not None and not isinstance(reason, str):
             raise InvalidEnvelopeError("exclusion_reason must be a string")
+        if isinstance(reason, str) and len(reason) > MAX_REASON_CHARS:
+            raise InvalidEnvelopeError("exclusion_reason too long")
 
     elif action == Action.SET_OBJECTIVE.value:
         if not isinstance(payload.get("statement"), str):
             raise InvalidEnvelopeError("set_objective requires a string statement")
         if len(payload["statement"]) > MAX_STATEMENT_CHARS:
             raise InvalidEnvelopeError("set_objective statement too long")
+        if contains_control_chars(payload["statement"]):
+            raise InvalidEnvelopeError("set_objective statement must not contain control characters")
         outcomes = payload.get("desired_outcomes", [])
         if not isinstance(outcomes, list) or not all(isinstance(o, str) for o in outcomes):
             raise InvalidEnvelopeError("desired_outcomes must be a list of strings")
@@ -198,6 +209,8 @@ def _validate_payload_types(action: str, payload: dict, basis: dict) -> None:
             raise InvalidEnvelopeError("desired_outcomes too long")
         if any(len(o) > MAX_STATEMENT_CHARS for o in outcomes):
             raise InvalidEnvelopeError("desired_outcomes entry too long")
+        if any(contains_control_chars(o) for o in outcomes):
+            raise InvalidEnvelopeError("desired_outcomes entry must not contain control characters")
 
     elif action == Action.CONFIRM_SUMMARY.value:
         if not isinstance(basis.get("summary_sha256"), str) or not basis["summary_sha256"]:
@@ -205,16 +218,28 @@ def _validate_payload_types(action: str, payload: dict, basis: dict) -> None:
         op = payload.get("operator_id")
         if op is not None and not isinstance(op, str):
             raise InvalidEnvelopeError("operator_id must be a string")
+        if isinstance(op, str) and len(op) > MAX_ID_CHARS:
+            raise InvalidEnvelopeError("operator_id too long")
+        if isinstance(op, str) and contains_control_chars(op):
+            raise InvalidEnvelopeError("operator_id must not contain control characters")
 
     elif action == Action.RECORD_DRAFT_ARTIFACT.value:
         if not isinstance(payload.get("artifact_id"), str) or not payload["artifact_id"]:
             raise InvalidEnvelopeError("record_draft_artifact requires artifact_id")
         if len(payload["artifact_id"]) > MAX_ID_CHARS:
             raise InvalidEnvelopeError("record_draft_artifact artifact_id too long")
+        if contains_control_chars(payload["artifact_id"]):
+            raise InvalidEnvelopeError("record_draft_artifact artifact_id must not contain control characters")
         if not isinstance(payload.get("kind"), str) or not payload["kind"]:
             raise InvalidEnvelopeError("record_draft_artifact requires kind")
+        if len(payload["kind"]) > MAX_ID_CHARS:
+            raise InvalidEnvelopeError("record_draft_artifact kind too long")
         if not isinstance(payload.get("logical_path"), str) or not payload["logical_path"]:
             raise InvalidEnvelopeError("record_draft_artifact requires logical_path")
+        if len(payload["logical_path"]) > MAX_LOGICAL_PATH_CHARS:
+            raise InvalidEnvelopeError("record_draft_artifact logical_path too long")
+        if contains_control_chars(payload["logical_path"]):
+            raise InvalidEnvelopeError("record_draft_artifact logical_path must not contain control characters")
         if not isinstance(payload.get("content"), str):
             raise InvalidEnvelopeError("record_draft_artifact content must be a string")
         if len(payload["content"]) > MAX_CONTENT_CHARS:
@@ -224,3 +249,5 @@ def _validate_payload_types(action: str, payload: dict, basis: dict) -> None:
         reason = payload.get("reason")
         if reason is not None and not isinstance(reason, str):
             raise InvalidEnvelopeError("cancel reason must be a string")
+        if isinstance(reason, str) and len(reason) > MAX_REASON_CHARS:
+            raise InvalidEnvelopeError("cancel reason too long")

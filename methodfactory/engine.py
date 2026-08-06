@@ -8,6 +8,7 @@ manifest → validate → event-journal-first CAS. No partial writes.
 from __future__ import annotations
 
 import uuid
+from copy import deepcopy
 from dataclasses import dataclass
 from typing import Callable, Optional
 
@@ -173,16 +174,14 @@ class PipelineEngine:
     def _mutate(
         self, manifest: dict, env: ActionEnvelope, action: Action, event_id: str
     ) -> dict:
-        from copy import deepcopy
-
         next_m = deepcopy(manifest)
 
         if action == Action.RECORD_INPUT:
             p = env.payload
             content = p["content"]
-            digest, size = self.artifacts.put(
-                env.package_id, f"inputs/{p['input_id']}.txt", content
-            )
+            logical_path = f"inputs/{p['input_id']}.txt"
+            validate_logical_path(logical_path)  # reject '/'/'..'/control in input_id-derived path
+            digest, size = self.artifacts.put(env.package_id, logical_path, content)
             next_m["inputs"].append(
                 {
                     "input_id": p["input_id"],
@@ -192,7 +191,7 @@ class PipelineEngine:
                     "exclusion_reason": p.get("exclusion_reason"),
                     "content_sha256": digest,
                     "content_size": size,
-                    "content_path": f"inputs/{p['input_id']}.txt",
+                    "content_path": logical_path,
                 }
             )
 

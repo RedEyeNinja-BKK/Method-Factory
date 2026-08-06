@@ -8,21 +8,22 @@ silently satisfy a digest (v2.0.0 review remediation, F11).
 from __future__ import annotations
 
 import os
-import re
 from pathlib import Path
 
 from ..domain.errors import InvalidPayloadError
-from ..domain.vocabulary import MAX_LOGICAL_PATH_CHARS
+from ..domain.vocabulary import MAX_LOGICAL_PATH_CHARS, SHA256_RE, contains_control_chars
 from ..manifest.hashing import digest_bytes
 
 LOGICAL_PATH_BLOCKED_SEGMENTS = frozenset({"..", "."})
-DIGEST_RE = re.compile(r"^[0-9a-f]{64}$")
-_WINDOWS_DRIVE_RE = re.compile(r"^[A-Za-z]:[\\/]")
+_WINDOWS_DRIVE_RE = __import__("re").compile(r"^[A-Za-z]:[\\/]")
 
 
 def validate_logical_path(logical_path: str) -> str:
     """Validate an artifact logical path (contract: relative, '/'-separated,
-    no '..', no absolute, no backslash, no percent-encoding)."""
+    no '..', no absolute, no backslash, no percent-encoding, no control
+    characters)."""
+    if contains_control_chars(logical_path):
+        raise InvalidPayloadError(f"logical_path must not contain control characters: {logical_path!r}")
     lp = logical_path.strip()
     if not lp:
         raise InvalidPayloadError("logical_path is empty")
@@ -50,7 +51,7 @@ class ArtifactStore:
         self.blobs.mkdir(parents=True, exist_ok=True)
 
     def _blob_path(self, digest: str) -> Path:
-        if not isinstance(digest, str) or not DIGEST_RE.fullmatch(digest):
+        if not isinstance(digest, str) or not SHA256_RE.fullmatch(digest):
             raise InvalidPayloadError(f"invalid artifact digest: {digest!r}")
         return self.blobs / digest
 
@@ -58,9 +59,9 @@ class ArtifactStore:
         """Store content once under its SHA-256 digest.
 
         ``package_id`` and ``logical_path`` remain API context for callers, but
-        are deliberately not part of the storage address.
+        are deliberately not part of the storage address. ``package_id`` is
+        reserved for adapter compatibility (ADR-0007).
         """
-        del package_id
         validate_logical_path(logical_path)
         data = content.encode("utf-8")
         digest = digest_bytes(data)
@@ -68,8 +69,11 @@ class ArtifactStore:
         try:
             fd = dest.open("xb")
         except FileExistsError:
-            if digest_bytes(dest.read_bytes()) != digest:
-                raise InvalidPayloadError(f"artifact blob poisoned for digest {digest}")
+            try:
+                if not dest.is_file() or digest_bytes(dest.read_bytes()) != digest:
+                    raise InvalidPayloadError(f"artifact blob poisoned for digest {digest}")
+            except OSError as exc:
+                raise InvalidPayloadError(f"artifact blob unreadable for digest {digest}: {exc}") from exc
             return digest, len(data)
         with fd:
             fd.write(data)
@@ -79,10 +83,17 @@ class ArtifactStore:
 
     def _read_verified(self, digest: str) -> bytes:
         dest = self._blob_path(digest)
-        data = dest.read_bytes()
-        if digest_bytes(data) != digest:
-            raise InvalidPayloadError(f"artifact blob corrupted for digest {digest}")
-        return data
+        try:
+            if not dest.is_file():
+                raise InvalidPayloadError(f"artifact blob missing for digest {digest}")
+            data = dest.read_bytes()
+            if digest_bytes(data) != digest:
+                raise InvalidPayloadError(f"artifact blob corrupted for digest {digest}")
+            return data
+        except InvalidPayloadError:
+            raise
+        except OSError as exc:
+            raise InvalidPayloadError(f"artifact blob unreadable for digest {digest}: {exc}") from exc
 
     def get(self, digest: str) -> str:
         return self._read_verified(digest).decode("utf-8")

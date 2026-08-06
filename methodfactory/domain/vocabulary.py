@@ -25,5 +25,19 @@ MAX_CONTENT_CHARS = 1_048_576             # record_input / record_draft_artifact
 MAX_INTENT_CHARS = 65_536                 # create_package intent.raw
 MAX_STATEMENT_CHARS = 16_384              # set_objective statement / outcome
 MAX_OUTCOMES = 100                        # desired_outcomes list length
-MAX_ID_CHARS = 128                        # input_id / artifact_id
+MAX_ID_CHARS = 128                        # input_id / artifact_id / operator_id / kind
 MAX_LOGICAL_PATH_CHARS = 255              # artifact logical_path
+MAX_REASON_CHARS = 1024                   # exclusion_reason / cancel reason
+
+
+def contains_control_chars(value: str) -> bool:
+    """True if the string contains C0/C1 control characters (incl. NUL, ESC,
+    and the Unicode line/paragraph separators that are JSON-safe but
+    dangerous in terminal/line contexts)."""
+    for ch in value:
+        code = ord(ch)
+        if code < 0x20 or (0x7F <= code <= 0x9F):
+            return True
+        if ch in "\u2028\u2029\u0085":
+            return True
+    return False

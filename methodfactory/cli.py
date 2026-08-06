@@ -26,10 +26,30 @@ from .domain.errors import (
     NoSummaryError,
 )
 from .engine import PipelineEngine
-from .manifest.render import render_summary
 from .manifest.schema import validate_manifest
 from .manifest.store import ManifestStore
-from .protocol.envelope import parse_envelope
+from .protocol.envelope import MAX_ENVELOPE_BYTES, parse_envelope
+
+
+def _read_envelope_input(envelope_arg: str, package_id: str) -> str:
+    """Read the envelope from a file or stdin, bounded by MAX_ENVELOPE_BYTES
+    so an unbounded transport cannot exhaust memory before validation
+    (sec-5/perf-2)."""
+    if envelope_arg == "-":
+        raw = sys.stdin.read(MAX_ENVELOPE_BYTES + 1)
+    else:
+        path = Path(envelope_arg)
+        try:
+            if path.stat().st_size > MAX_ENVELOPE_BYTES:
+                raise FileIoError(
+                    f"envelope file exceeds {MAX_ENVELOPE_BYTES} bytes", package_id=package_id
+                )
+            raw = path.read_text(encoding="utf-8")
+        except OSError as exc:
+            raise FileIoError(f"cannot read envelope: {exc}", package_id=package_id) from exc
+    if len(raw.encode("utf-8")) > MAX_ENVELOPE_BYTES:
+        raise FileIoError(f"envelope exceeds {MAX_ENVELOPE_BYTES} bytes", package_id=package_id)
+    return raw
 
 
 def _engine(store_root: Path) -> PipelineEngine:
@@ -54,13 +74,7 @@ def cmd_create(engine: PipelineEngine, args) -> int:
 
 def cmd_apply(engine: PipelineEngine, args) -> int:
     try:
-        if args.envelope == "-":
-            raw = sys.stdin.read()
-        else:
-            try:
-                raw = Path(args.envelope).read_text(encoding="utf-8")
-            except OSError as exc:
-                raise FileIoError(f"cannot read envelope: {exc}", package_id=args.package_id) from exc
+        raw = _read_envelope_input(args.envelope, args.package_id)
         env = parse_envelope(raw)
         if env.package_id != args.package_id:
             raise InvalidEnvelopeError(
@@ -120,35 +134,44 @@ def cmd_validate(engine: PipelineEngine, args) -> int:
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(prog="mf", description="Method Factory CLI")
     parser.add_argument("--store", default=".mf", help="store root (default: ./.mf)")
-    parser.add_argument(
-        "--version", action="version", version=f"methodfactory {__version__}"
-    )
+    parser.add_argument("--version", action="version", version=f"methodfactory {__version__}")
     sub = parser.add_subparsers(dest="command", required=True)
 
+    def _add_store(subp) -> None:
+        # SUPPRESS: when the subcommand does not set --store, keep the
+        # top-level --store value (so both 'mf --store X sub' and
+        # 'mf sub --store X' work).
+        subp.add_argument("--store", default=argparse.SUPPRESS, help="store root (default: ./.mf)")
+
     p_create = sub.add_parser("create", help="create a package from an intent")
+    _add_store(p_create)
     p_create.add_argument("package_id")
     p_create.add_argument("intent")
     p_create.set_defaults(func=cmd_create)
 
     p_apply = sub.add_parser("apply", help="apply an action envelope (file or -)")
+    _add_store(p_apply)
     p_apply.add_argument("package_id")
     p_apply.add_argument("envelope")
     p_apply.set_defaults(func=cmd_apply)
 
     p_status = sub.add_parser("status", help="show package status")
+    _add_store(p_status)
     p_status.add_argument("package_id")
     p_status.set_defaults(func=cmd_status)
 
     p_summary = sub.add_parser("summary", help="render the canonical summary")
+    _add_store(p_summary)
     p_summary.add_argument("package_id")
     p_summary.set_defaults(func=cmd_summary)
 
     p_validate = sub.add_parser("validate", help="read-only manifest validation")
+    _add_store(p_validate)
     p_validate.add_argument("package_id")
     p_validate.set_defaults(func=cmd_validate)
 
     args = parser.parse_args(argv)
-    engine = _engine(Path(args.store))
+    engine = _engine(Path(args.store))  # top-level default .mf; subparser --store overrides
     return args.func(engine, args)
 
 

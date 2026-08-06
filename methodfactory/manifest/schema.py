@@ -9,6 +9,7 @@ from ..domain.vocabulary import (
     DISPOSITIONS,
     INPUT_KINDS,
     INPUT_SOURCES,
+    MAX_ID_CHARS,
     MAX_INTENT_CHARS,
     MAX_LOGICAL_PATH_CHARS,
     MAX_OUTCOMES,
@@ -122,9 +123,13 @@ def validate_manifest(manifest: dict) -> list[str]:
             iid = item.get("input_id")
             if not isinstance(iid, str) or not iid:
                 errors.append(f"{tag}.input_id invalid")
-            elif iid in seen_ids:
-                errors.append(f"{tag}.input_id duplicated")
-            seen_ids.add(iid)
+            else:
+                if len(iid) > MAX_ID_CHARS:
+                    errors.append(f"{tag}.input_id exceeds {MAX_ID_CHARS} chars")
+                elif iid in seen_ids:
+                    errors.append(f"{tag}.input_id duplicated")
+            if isinstance(iid, str):
+                seen_ids.add(iid)
             if item.get("kind") not in INPUT_KINDS:
                 errors.append(f"{tag}.kind invalid")
             if item.get("source") not in INPUT_SOURCES:
@@ -135,7 +140,7 @@ def validate_manifest(manifest: dict) -> list[str]:
                 errors.append(f"{tag}: excluded input requires exclusion_reason")
             if not (isinstance(item.get("content_sha256"), str) and SHA256_RE.match(item["content_sha256"])):
                 errors.append(f"{tag}.content_sha256 invalid")
-            if not isinstance(item.get("content_size"), int) or item["content_size"] < 0:
+            if isinstance(item.get("content_size"), bool) or not isinstance(item.get("content_size"), int) or item["content_size"] < 0:
                 errors.append(f"{tag}.content_size invalid")
             if not isinstance(item.get("content_path"), str) or not item["content_path"]:
                 errors.append(f"{tag}.content_path invalid")
@@ -145,12 +150,16 @@ def validate_manifest(manifest: dict) -> list[str]:
         errors.append("objective.statement must be a string")
     elif len(objective["statement"]) > MAX_STATEMENT_CHARS:
         errors.append(f"objective.statement exceeds {MAX_STATEMENT_CHARS} chars")
-    if not isinstance(objective.get("desired_outcomes"), list) or not all(
-        isinstance(o, str) for o in objective.get("desired_outcomes", [])
-    ):
+    if isinstance(objective, dict) and not isinstance(objective.get("desired_outcomes"), list):
         errors.append("objective.desired_outcomes must be a list of strings")
-    elif len(objective["desired_outcomes"]) > MAX_OUTCOMES:
+    elif isinstance(objective, dict) and not all(isinstance(o, str) for o in objective.get("desired_outcomes", [])):
+        errors.append("objective.desired_outcomes must be a list of strings")
+    elif isinstance(objective, dict) and len(objective["desired_outcomes"]) > MAX_OUTCOMES:
         errors.append(f"objective.desired_outcomes exceeds {MAX_OUTCOMES} entries")
+    elif isinstance(objective, dict) and any(
+        len(o) > MAX_STATEMENT_CHARS for o in objective.get("desired_outcomes", [])
+    ):
+        errors.append(f"objective.desired_outcomes entry exceeds {MAX_STATEMENT_CHARS} chars")
 
     summary = manifest.get("summary")
     if summary is not None:
@@ -191,18 +200,24 @@ def validate_manifest(manifest: dict) -> list[str]:
             aid = art.get("artifact_id")
             if not isinstance(aid, str) or not aid:
                 errors.append(f"{tag}.artifact_id invalid")
-            elif aid in seen_art:
-                errors.append(f"{tag}.artifact_id duplicated")
-            seen_art.add(aid)
+            else:
+                if len(aid) > MAX_ID_CHARS:
+                    errors.append(f"{tag}.artifact_id exceeds {MAX_ID_CHARS} chars")
+                elif aid in seen_art:
+                    errors.append(f"{tag}.artifact_id duplicated")
+            if isinstance(aid, str):
+                seen_art.add(aid)
             if not isinstance(art.get("kind"), str) or not art["kind"]:
                 errors.append(f"{tag}.kind invalid")
+            elif len(art["kind"]) > MAX_ID_CHARS:
+                errors.append(f"{tag}.kind exceeds {MAX_ID_CHARS} chars")
             if not isinstance(art.get("logical_path"), str) or not art["logical_path"]:
                 errors.append(f"{tag}.logical_path invalid")
             elif len(art["logical_path"]) > MAX_LOGICAL_PATH_CHARS:
                 errors.append(f"{tag}.logical_path exceeds {MAX_LOGICAL_PATH_CHARS} chars")
             if not (isinstance(art.get("sha256"), str) and SHA256_RE.match(art["sha256"])):
                 errors.append(f"{tag}.sha256 invalid")
-            if not isinstance(art.get("byte_count"), int) or art["byte_count"] < 0:
+            if isinstance(art.get("byte_count"), bool) or not isinstance(art.get("byte_count"), int) or art["byte_count"] < 0:
                 errors.append(f"{tag}.byte_count invalid")
             if art.get("status") != "draft":
                 errors.append(f"{tag}.status must be 'draft' in v0.1")
