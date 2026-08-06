@@ -19,9 +19,9 @@ import re
 import unittest
 from pathlib import Path
 
-from core.domain.errors import InvalidEnvelopeError
-from core.domain.transitions import ACTION_VOCABULARY
-from core.protocol.envelope import parse_envelope
+from methodfactory.domain.errors import InvalidEnvelopeError
+from methodfactory.domain.transitions import ACTION_VOCABULARY
+from methodfactory.protocol.envelope import parse_envelope
 
 REPO = Path(__file__).resolve().parents[2]  # repo-staging/
 PROMPTS = REPO / "prompts"

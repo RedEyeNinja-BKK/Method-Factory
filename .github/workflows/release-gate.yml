@@ -21,7 +21,7 @@ jobs:
         run: pip install pyyaml
 
       - name: Unit tests (hard gate)
-        run: python -m unittest discover -s core/tests -t .
+        run: python -m unittest discover -s methodfactory/tests -t .
 
       - name: Identity sweep — no stale PE references in new content
         run: |

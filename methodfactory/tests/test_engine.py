@@ -14,8 +14,8 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from core.adapters.artifact_store import ArtifactStore
-from core.domain.errors import (
+from methodfactory.adapters.artifact_store import ArtifactStore
+from methodfactory.domain.errors import (
     ActionIdReuseError,
     GateUnsatisfiedError,
     IllegalTransitionError,
@@ -23,9 +23,9 @@ from core.domain.errors import (
     ManifestInvalidError,
     StaleActionError,
 )
-from core.engine import PipelineEngine
-from core.manifest.hashing import digest_text
-from core.manifest.store import ManifestStore
+from methodfactory.engine import PipelineEngine
+from methodfactory.manifest.hashing import digest_text
+from methodfactory.manifest.store import ManifestStore
 
 PKG = "pkg_demo_001"
 FIXED_NOW = "2026-08-03T04:00:00+00:00"

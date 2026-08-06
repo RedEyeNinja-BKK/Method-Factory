@@ -5,9 +5,9 @@ from __future__ import annotations
 import json
 import unittest
 
-from core.domain.states import State
-from core.manifest.hashing import canonical_json, digest_json
-from core.manifest.schema import new_manifest, validate_manifest
+from methodfactory.domain.states import State
+from methodfactory.manifest.hashing import canonical_json, digest_json
+from methodfactory.manifest.schema import new_manifest, validate_manifest
 
 
 def valid_manifest(**overrides):

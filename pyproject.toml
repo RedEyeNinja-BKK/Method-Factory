@@ -1,0 +1,30 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "methodfactory"
+version = "2.0.0"
+description = "Method Factory — prompt+code pipeline generator producing tested, portable agent packages"
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "MIT" }
+keywords = ["agents", "skills", "pipeline", "state-machine", "prompts"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+]
+
+[project.scripts]
+mf = "methodfactory.cli:main"
+
+[tool.setuptools.packages.find]
+include = ["methodfactory*"]
+exclude = ["methodfactory.tests*"]
+
+[tool.pytest.ini_options]
+testpaths = ["methodfactory/tests"]

@@ -7,10 +7,10 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from core.adapters.artifact_store import ArtifactStore
-from core.domain.errors import ManifestInvalidError, StaleActionError
-from core.engine import PipelineEngine
-from core.manifest.store import ManifestStore
+from methodfactory.adapters.artifact_store import ArtifactStore
+from methodfactory.domain.errors import ManifestInvalidError, StaleActionError
+from methodfactory.engine import PipelineEngine
+from methodfactory.manifest.store import ManifestStore
 
 PKG = "pkg_integrity_001"
 NOW = "2026-08-03T04:00:00+00:00"
