@@ -44,7 +44,11 @@ intent. Typed tool calls are adapter bindings of the same envelope.
 ## Size limits (v2.0.0)
 
 Enforced at the parse boundary (fail fast) and in manifest schema
-validation (authoritative for on-disk manifests):
+validation (authoritative for on-disk manifests). Character-policy
+(control-character rejection) is enforced at the parse boundary and in
+`validate_logical_path`; on-disk manifests are additionally validated for
+schema shape but control characters in already-persisted content are not
+re-scanned (the parse boundary is the gate for new input).
 
 | Field | Limit |
 |---|---|
@@ -53,7 +57,8 @@ validation (authoritative for on-disk manifests):
 | `create_package` intent | 64 KiB |
 | `set_objective.statement` / outcome | 16 KiB |
 | `desired_outcomes` count | 100 |
-| `input_id` / `artifact_id` | 128 chars |
+| `input_id` / `artifact_id` / `operator_id` / `kind` | 128 chars |
+| `exclusion_reason` / `cancel.reason` | 1024 chars |
 | `logical_path` | 255 chars (plus path contract below) |
 
 ## Action vocabulary (v0.1 slice)

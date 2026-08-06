@@ -180,7 +180,7 @@ class PipelineEngine:
             p = env.payload
             content = p["content"]
             logical_path = f"inputs/{p['input_id']}.txt"
-            validate_logical_path(logical_path)  # reject '/'/'..'/control in input_id-derived path
+            validate_logical_path(logical_path)  # reject traversal ('..'), control chars, non-relative forms
             digest, size = self.artifacts.put(env.package_id, logical_path, content)
             next_m["inputs"].append(
                 {

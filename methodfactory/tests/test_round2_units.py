@@ -4,18 +4,21 @@
 
 from __future__ import annotations
 
-import io
 import json
 import tempfile
 import unittest
-from contextlib import redirect_stderr, redirect_stdout
 from pathlib import Path
 
 from methodfactory.adapters.artifact_store import ArtifactStore, validate_logical_path
 from methodfactory.domain.errors import InvalidEnvelopeError, InvalidPayloadError
 from methodfactory.manifest.schema import validate_manifest
 from methodfactory.protocol.envelope import parse_envelope
-from methodfactory.manifest.hashing import digest_bytes
+from methodfactory.domain.vocabulary import (
+    MAX_ID_CHARS,
+    MAX_LOGICAL_PATH_CHARS,
+    MAX_REASON_CHARS,
+    SHA256_RE,
+)
 
 
 def _valid_manifest(**overrides) -> dict:
@@ -112,7 +115,6 @@ class EnvelopeCapTests(unittest.TestCase):
 
     def test_oversized_operator_id_rejected(self):
         """sec-4: operator_id capped."""
-        from methodfactory.domain.vocabulary import MAX_ID_CHARS
         with self.assertRaises(InvalidEnvelopeError):
             parse_envelope(json.dumps({
                 "protocol_version": "0.1",
@@ -125,7 +127,6 @@ class EnvelopeCapTests(unittest.TestCase):
             }))
 
     def test_oversized_kind_rejected(self):
-        from methodfactory.domain.vocabulary import MAX_ID_CHARS
         with self.assertRaises(InvalidEnvelopeError):
             parse_envelope(json.dumps(self._env(
                 input_id="in_1", kind="k" * (MAX_ID_CHARS + 1), content="x",
@@ -133,7 +134,6 @@ class EnvelopeCapTests(unittest.TestCase):
             )))
 
     def test_oversized_exclusion_reason_rejected(self):
-        from methodfactory.domain.vocabulary import MAX_REASON_CHARS
         with self.assertRaises(InvalidEnvelopeError):
             parse_envelope(json.dumps(self._env(
                 input_id="in_1", kind="text", content="x",
@@ -142,7 +142,6 @@ class EnvelopeCapTests(unittest.TestCase):
             )))
 
     def test_overlong_logical_path_rejected_at_parse(self):
-        from methodfactory.domain.vocabulary import MAX_LOGICAL_PATH_CHARS
         with self.assertRaises(InvalidEnvelopeError):
             parse_envelope(json.dumps({
                 "protocol_version": "0.1",
@@ -177,7 +176,6 @@ class ArtifactStoreRobustnessTests(unittest.TestCase):
         DIGEST_RE duplication)."""
         import methodfactory.adapters.artifact_store as mod
         self.assertFalse(hasattr(mod, "DIGEST_RE"), "DIGEST_RE should be removed")
-        from methodfactory.domain.vocabulary import SHA256_RE
         self.assertIs(mod.SHA256_RE, SHA256_RE)
 
 

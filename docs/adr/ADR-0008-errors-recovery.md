@@ -75,7 +75,12 @@ strategy, compare-and-swap rule, or stale-action behavior.
 - **Torn-journal tolerance:** an unterminated final journal line is an
   in-flight append, never corruption; readers retry once and then ignore
   the incomplete line. A terminated non-JSON line remains genuine
-  corruption and raises `MANIFEST_INVALID`.
+  corruption and raises `MANIFEST_INVALID`. **Append-time repair:** on the
+  next append (under the exclusive lock), if the trailing unterminated
+  segment parses as JSON it is a committed record that lost only its
+  newline — the separator is written and the record preserved; if it does
+  not parse it is uncommitted garbage and is truncated back to the last
+  newline before the append.
 - **CAS tail-verify:** when the engine passes its already-verified manifest,
   `compare_and_swap` tail-checks the last journal digest under the O_EXCL
   lock instead of a second full replay. The lock excludes concurrent

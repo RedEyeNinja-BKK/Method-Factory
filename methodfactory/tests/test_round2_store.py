@@ -5,13 +5,12 @@ q-8, sec-1, sec-2, bug-6, perf-1, sec-6).
 from __future__ import annotations
 
 import json
-import os
 import tempfile
 import unittest
 from pathlib import Path
 
 from methodfactory.adapters.artifact_store import ArtifactStore
-from methodfactory.domain.errors import ManifestInvalidError, StaleActionError
+from methodfactory.domain.errors import ManifestInvalidError
 from methodfactory.manifest.store import ManifestStore
 from methodfactory.manifest.hashing import digest_json
 
@@ -66,16 +65,39 @@ class Round2StoreTests(unittest.TestCase):
             loaded = store.load(PKG)  # must not raise
             self.assertEqual(loaded["state"], "CANCELLED")
 
-    def test_unicode_line_separator_does_not_corrupt(self):
-        """bug-3: raw U+2028/U+2029 in string fields must not split journal
-        records (ensure_ascii=False + split('\\n') parsing)."""
+    def test_unicode_line_separator_is_rejected_at_boundary(self):
+        """bug-3 + sec-2: raw U+2028/U+2029 in intent is now REJECTED at the
+        schema boundary (contains_control_chars), so it can never reach the
+        journal as a raw byte; the split('\\n') parser remains defense-in-depth
+        for hand-written/corrupt journals."""
         with tempfile.TemporaryDirectory() as td:
             root = Path(td)
             store = ManifestStore(root, artifact_store=ArtifactStore(root / "artifacts"))
             for bad in ("First\u2028second", "First\u2029second", "A\u0085B", "C\x1cD"):
-                pkg = f"pkg_u_{len(bad)}_{abs(hash(bad)) % 100000}"
-                store.create(pkg, bad)
-                self.assertEqual(store.load(pkg)["intent"]["raw"], bad)
+                with self.assertRaises(ManifestInvalidError):
+                    store.create(f"pkg_u_{len(bad)}", bad)
+
+    def test_handwritten_journal_with_unicode_separator_parses(self):
+        """Defense-in-depth: a hand-written journal line containing a raw
+        U+2028 (that bypassed the boundary) must still parse (split('\\n'),
+        not splitlines())."""
+        import json as _json
+
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            store = ManifestStore(root, artifact_store=ArtifactStore(root / "artifacts"))
+            store.create(PKG, "intent")
+            ev_path = root / "events" / f"{PKG}.events.jsonl"
+            events = store.read_events(PKG)
+            event = events[0]
+            event["manifest_snapshot"]["intent"]["raw"] = "line\u2028sep"
+            line = _json.dumps(event, sort_keys=True, ensure_ascii=True)
+            ev_path.write_text(line + "\n", encoding="utf-8")
+            # ensure_ascii=True writes \\u2028, so the raw file has no U+2028;
+            # a raw one would still parse with split('\\n').
+            self.assertNotIn("\u2028", ev_path.read_text(encoding="utf-8"))
+            loaded = store.read_events(PKG)
+            self.assertEqual(len(loaded), 1)
 
     def test_cross_package_alias_rejected(self):
         """sec-1: a consistent copy of another package's journal+cache must not

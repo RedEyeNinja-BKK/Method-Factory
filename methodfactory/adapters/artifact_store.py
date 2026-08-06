@@ -8,6 +8,7 @@ silently satisfy a digest (v2.0.0 review remediation, F11).
 from __future__ import annotations
 
 import os
+import re
 from pathlib import Path
 
 from ..domain.errors import InvalidPayloadError
@@ -15,7 +16,7 @@ from ..domain.vocabulary import MAX_LOGICAL_PATH_CHARS, SHA256_RE, contains_cont
 from ..manifest.hashing import digest_bytes
 
 LOGICAL_PATH_BLOCKED_SEGMENTS = frozenset({"..", "."})
-_WINDOWS_DRIVE_RE = __import__("re").compile(r"^[A-Za-z]:[\\/]")
+_WINDOWS_DRIVE_RE = re.compile(r"^[A-Za-z]:[\\/]")
 
 
 def validate_logical_path(logical_path: str) -> str:
@@ -60,7 +61,8 @@ class ArtifactStore:
 
         ``package_id`` and ``logical_path`` remain API context for callers, but
         are deliberately not part of the storage address. ``package_id`` is
-        reserved for adapter compatibility (ADR-0007).
+        reserved for a stable call signature with engine callers (ADR-0007
+        adapter compatibility).
         """
         validate_logical_path(logical_path)
         data = content.encode("utf-8")

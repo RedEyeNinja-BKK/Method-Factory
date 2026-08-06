@@ -16,6 +16,7 @@ from ..domain.vocabulary import (
     MAX_STATEMENT_CHARS,
     PACKAGE_ID_RE,
     SHA256_RE,
+    contains_control_chars,
 )
 
 SCHEMA_VERSION = "0.1"
@@ -109,6 +110,8 @@ def validate_manifest(manifest: dict) -> list[str]:
         errors.append("intent.raw must be a string")
     elif len(intent["raw"]) > MAX_INTENT_CHARS:
         errors.append(f"intent.raw exceeds {MAX_INTENT_CHARS} chars")
+    elif contains_control_chars(intent["raw"]):
+        errors.append("intent.raw must not contain control characters")
 
     inputs = manifest.get("inputs")
     if not isinstance(inputs, list):

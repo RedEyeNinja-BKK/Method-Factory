@@ -28,3 +28,6 @@ methodfactory.egg-info/
 *.egg-info/
 build/
 dist/
+
+# Runtime store (operator data)
+.mf/

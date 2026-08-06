@@ -31,13 +31,19 @@ MAX_REASON_CHARS = 1024                   # exclusion_reason / cancel reason
 
 
 def contains_control_chars(value: str) -> bool:
-    """True if the string contains C0/C1 control characters (incl. NUL, ESC,
-    and the Unicode line/paragraph separators that are JSON-safe but
-    dangerous in terminal/line contexts)."""
+    """True if the string contains C0/C1 control characters (incl. NUL, ESC),
+    Unicode line/paragraph separators, lone surrogates, or format/bidi
+    controls (JSON-safe but dangerous in terminal/line contexts)."""
     for ch in value:
         code = ord(ch)
         if code < 0x20 or (0x7F <= code <= 0x9F):
             return True
+        if 0xD800 <= code <= 0xDFFF:  # lone surrogates (sec-8)
+            return True
         if ch in "\u2028\u2029\u0085":
+            return True
+        if 0x200B <= code <= 0x200F or 0x202A <= code <= 0x202E or 0x2060 <= code <= 0x206F:
+            return True  # bidi/format controls (sec-7)
+        if code == 0x061C or code == 0x00AD:
             return True
     return False

@@ -104,6 +104,8 @@ def parse_envelope(raw: str) -> ActionEnvelope:
             candidate = json.loads(text[start : end + 1])
         except json.JSONDecodeError as exc:
             raise InvalidEnvelopeError(f"malformed envelope: {exc}") from exc
+        except RecursionError as exc:
+            raise InvalidEnvelopeError("malformed envelope: JSON nesting too deep") from exc
     except RecursionError as exc:
         raise InvalidEnvelopeError("malformed envelope: JSON nesting too deep") from exc
     if not isinstance(candidate, dict):
@@ -194,6 +196,8 @@ def _validate_payload_types(action: str, payload: dict, basis: dict) -> None:
             raise InvalidEnvelopeError("exclusion_reason must be a string")
         if isinstance(reason, str) and len(reason) > MAX_REASON_CHARS:
             raise InvalidEnvelopeError("exclusion_reason too long")
+        if isinstance(reason, str) and contains_control_chars(reason):
+            raise InvalidEnvelopeError("exclusion_reason must not contain control characters")
 
     elif action == Action.SET_OBJECTIVE.value:
         if not isinstance(payload.get("statement"), str):
@@ -251,3 +255,5 @@ def _validate_payload_types(action: str, payload: dict, basis: dict) -> None:
             raise InvalidEnvelopeError("cancel reason must be a string")
         if isinstance(reason, str) and len(reason) > MAX_REASON_CHARS:
             raise InvalidEnvelopeError("cancel reason too long")
+        if isinstance(reason, str) and contains_control_chars(reason):
+            raise InvalidEnvelopeError("cancel reason must not contain control characters")

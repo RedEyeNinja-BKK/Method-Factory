@@ -67,9 +67,10 @@ jobs:
           # No generator exists in v2.0.0; a derived-output directory in the
           # tree means generated content was committed without a regeneration
           # command. Restore the regenerate->diff-empty gate when a generator
-          # lands (ADR-0002 amendment).
-          if [ -d workspace ] || ls -d iteration-* >/dev/null 2>&1; then
-            echo "::error::stray generated output present (workspace/ or iteration-*/)"
+          # lands (ADR-0002 amendment). .mf/ is the CLI's runtime store and is
+          # operator data — it must never be committed.
+          if [ -d workspace ] || ls -d iteration-* >/dev/null 2>&1 || [ -d .mf ]; then
+            echo "::error::stray generated output or runtime store present (workspace/, iteration-*/, .mf/)"
             exit 1
           fi
 
