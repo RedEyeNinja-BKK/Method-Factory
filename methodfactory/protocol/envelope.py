@@ -7,24 +7,18 @@ Prose is never parsed for state-changing intent.
 from __future__ import annotations
 
 import json
-import re
 from dataclasses import dataclass, field
 from typing import Any, Optional
 
 from ..domain.errors import InvalidEnvelopeError
 from ..domain.transitions import ACTION_VOCABULARY, Action
+from ..domain.vocabulary import DISPOSITIONS, INPUT_KINDS, INPUT_SOURCES, PACKAGE_ID_RE
 
 PROTOCOL_VERSION = "0.1"
 
 ENVELOPE_FIELDS = frozenset(
     {"protocol_version", "action_id", "package_id", "expected_revision", "action", "basis", "payload"}
 )
-
-PACKAGE_ID_RE = re.compile(r"^pkg_[A-Za-z0-9_-]{1,63}$")
-
-INPUT_KINDS = frozenset({"text", "url", "file-reference", "constraint"})
-INPUT_SOURCES = frozenset({"operator", "adapter"})
-DISPOSITIONS = frozenset({"incorporated", "excluded"})
 
 # Per-action allowed payload fields (strict; unknown rejected).
 PAYLOAD_SCHEMA: dict[str, frozenset[str]] = {

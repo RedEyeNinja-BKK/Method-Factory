@@ -47,8 +47,8 @@ class EngineFixture(unittest.TestCase):
     def setUp(self):
         self._tmp = tempfile.TemporaryDirectory()
         self.root = Path(self._tmp.name)
-        self.store = ManifestStore(self.root / "store")
         self.artifacts = ArtifactStore(self.root / "artifacts")
+        self.store = ManifestStore(self.root / "store", artifact_store=self.artifacts)
         self.engine = PipelineEngine(self.store, self.artifacts, now=lambda: FIXED_NOW)
 
     def tearDown(self):
@@ -92,8 +92,8 @@ class SinglePhaseLoopTests(EngineFixture):
     def test_restart_preserves_state(self):
         self.run_to_summary_pending()
         # Fresh engine/store over the same on-disk roots — a process restart.
-        store2 = ManifestStore(self.root / "store")
         artifacts2 = ArtifactStore(self.root / "artifacts")
+        store2 = ManifestStore(self.root / "store", artifact_store=artifacts2)
         engine2 = PipelineEngine(store2, artifacts2, now=lambda: FIXED_NOW)
         status = engine2.status(PKG)
         self.assertEqual(status["state"], "SUMMARY_PENDING")
@@ -211,8 +211,8 @@ class SliceCompletionTests(EngineFixture):
 
     def test_restart_preserves_slice_state(self):
         self.run_full_slice()
-        store2 = ManifestStore(self.root / "store")
         artifacts2 = ArtifactStore(self.root / "artifacts")
+        store2 = ManifestStore(self.root / "store", artifact_store=artifacts2)
         engine2 = PipelineEngine(store2, artifacts2, now=lambda: FIXED_NOW)
         status = engine2.status(PKG)
         self.assertEqual(status["state"], "DRAFT_READY")

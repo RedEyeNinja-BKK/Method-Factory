@@ -11,7 +11,7 @@ import uuid
 from dataclasses import dataclass
 from typing import Callable, Optional
 
-from .adapters.artifact_store import ArtifactStore
+from .adapters.artifact_store import ArtifactStore, validate_logical_path
 from .domain.errors import (
     ActionIdReuseError,
     IllegalTransitionError,
@@ -44,10 +44,13 @@ class PipelineEngine:
         artifact_store: ArtifactStore,
         now: Optional[NowFn] = None,
     ) -> None:
+        if getattr(store, "artifact_store", None) is None:
+            raise ValueError(
+                "PipelineEngine requires a ManifestStore constructed with artifact_store "
+                "(artifact digest verification is mandatory on the mutation path)"
+            )
         self.store = store
         self.artifacts = artifact_store
-        if getattr(self.store, "artifact_store", None) is None:
-            self.store.artifact_store = artifact_store
         self._now = now or utcnow
 
     # ── public API ─────────────────────────────────────────────────────
@@ -58,8 +61,11 @@ class PipelineEngine:
         return self.apply(parse_envelope(raw))
 
     def apply(self, env: ActionEnvelope) -> ApplyResult:
-        # 1. Envelope is already parsed + schema-validated.
-        manifest = self.store.load(env.package_id)  # MANIFEST_INVALID if missing/corrupt
+        # 1. Envelope is already parsed + schema-validated. Read the journal
+        #    once and reuse the parsed events for load + idempotency lookup
+        #    (avoids parsing the whole journal three times per apply).
+        events = self.store.read_events(env.package_id)
+        manifest = self.store.load(env.package_id, events=events)  # MANIFEST_INVALID if missing/corrupt
 
         # 2. Idempotency / reuse BEFORE revision comparison: a retry of an
         #    already-committed action is not a stale action. The action's
@@ -69,7 +75,7 @@ class PipelineEngine:
         action_content = env.as_dict()
         action_content.pop("expected_revision", None)
         action_sha256 = digest_json(action_content)
-        prior = self.store.find_event(env.package_id, env.action_id)
+        prior = self.store.find_event(env.package_id, env.action_id, events=events)
         if prior is not None:
             if prior.get("action_sha256") == action_sha256:
                 return ApplyResult(manifest=manifest, event=prior, replayed=True)
@@ -133,9 +139,15 @@ class PipelineEngine:
             "at": self._now(),
         }
 
-        # 8. Atomic commit: CAS + event (all-or-nothing).
+        # 8. Atomic commit: CAS + event (all-or-nothing). The already-verified
+        #    manifest is passed in so the store only tail-checks under the lock
+        #    instead of re-running a full chain replay.
         self.store.compare_and_swap(
-            env.package_id, manifest["revision"], next_manifest, event
+            env.package_id,
+            manifest["revision"],
+            next_manifest,
+            event,
+            current_manifest=manifest,
         )
         return ApplyResult(manifest=next_manifest, event=event, replayed=False)
 
@@ -220,14 +232,13 @@ class PipelineEngine:
 
         elif action == Action.RECORD_DRAFT_ARTIFACT:
             p = env.payload
-            digest, size = self.artifacts.put(
-                env.package_id, p["logical_path"], p["content"]
-            )
+            logical_path = validate_logical_path(p["logical_path"])
+            digest, size = self.artifacts.put(env.package_id, logical_path, p["content"])
             next_m["artifacts"].append(
                 {
                     "artifact_id": p["artifact_id"],
                     "kind": p["kind"],
-                    "logical_path": p["logical_path"],
+                    "logical_path": logical_path,
                     "status": "draft",
                     "sha256": digest,
                     "byte_count": size,

@@ -2,10 +2,10 @@
 
 from __future__ import annotations
 
-import re
 from datetime import datetime
 
 from ..domain.states import State
+from ..domain.vocabulary import DISPOSITIONS, INPUT_KINDS, INPUT_SOURCES, PACKAGE_ID_RE, SHA256_RE
 
 SCHEMA_VERSION = "0.1"
 
@@ -27,11 +27,6 @@ TOP_LEVEL_FIELDS = frozenset(
     }
 )
 
-PACKAGE_ID_RE = re.compile(r"^pkg_[A-Za-z0-9_-]{1,63}$")
-SHA256_RE = re.compile(r"^[0-9a-f]{64}$")
-INPUT_KINDS = frozenset({"text", "url", "file-reference", "constraint"})
-INPUT_SOURCES = frozenset({"operator", "adapter"})
-DISPOSITIONS = frozenset({"incorporated", "excluded"})
 CONFIRMATION_STATUSES = frozenset({"pending", "confirmed"})
 
 

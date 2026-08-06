@@ -26,7 +26,9 @@ from .manifest.store import ManifestStore
 
 
 def _engine(store_root: Path) -> PipelineEngine:
-    return PipelineEngine(ManifestStore(store_root), ArtifactStore(store_root / "artifacts"))
+    artifacts = ArtifactStore(store_root / "artifacts")
+    store = ManifestStore(store_root, artifact_store=artifacts)
+    return PipelineEngine(store, artifacts)
 
 
 def _fail(err: MethodFactoryError) -> int:

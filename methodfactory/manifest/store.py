@@ -7,6 +7,18 @@ Layout under the store root:
 
 The event journal is the source of truth.  The package JSON is only a cache
 and can lag behind the journal after a crash between the two writes.
+
+Hardening notes (v2.0.0 review remediation):
+    - package_id is allowlist-validated at every public entry point so the
+      store defends itself regardless of caller (path-traversal read oracle).
+    - an unterminated final journal line (a writer mid-append) is tolerated
+      and never mislabels a healthy store as corrupt; a terminated non-JSON
+      line is genuine corruption and still fails.
+    - the O_EXCL lock records its owner PID and is reclaimed when the owner
+      is dead or the lock is far older than any legitimate critical section
+      (crash recovery; no permanent wedge).
+    - chain replay verifies each referenced artifact digest exactly once
+      (O(J) blob reads instead of O(J^2)).
 """
 
 from __future__ import annotations
@@ -24,11 +36,27 @@ from ..domain.errors import (
     ManifestInvalidError,
     StaleActionError,
 )
+from ..domain.vocabulary import PACKAGE_ID_RE
 from .hashing import digest_json, utcnow
 from .schema import new_manifest, validate_manifest
 
 LOCK_TIMEOUT_S = 5.0
 LOCK_RETRY_S = 0.05
+# A lock this old is stale even if its recorded PID looks alive (PID reuse,
+# dead-but-untestable owner). No legitimate critical section approaches it.
+LOCK_STALE_AGE_S = LOCK_TIMEOUT_S * 60
+
+
+def _pid_alive(pid: int) -> bool:
+    if pid <= 0:
+        return False
+    try:
+        os.kill(pid, 0)
+    except ProcessLookupError:
+        return False
+    except (PermissionError, OSError):
+        return True
+    return True
 
 
 class ManifestStore:
@@ -39,6 +67,13 @@ class ManifestStore:
         self.packages_dir.mkdir(parents=True, exist_ok=True)
         self.events_dir.mkdir(parents=True, exist_ok=True)
         self.artifact_store = artifact_store
+
+    # ── validation ─────────────────────────────────────────────────────
+    def _validate_package_id(self, package_id: str) -> None:
+        if not isinstance(package_id, str) or not PACKAGE_ID_RE.match(package_id):
+            raise ManifestInvalidError(
+                f"invalid package_id {package_id!r}", package_id=package_id
+            )
 
     # ── paths ──────────────────────────────────────────────────────────
     def _manifest_path(self, package_id: str) -> Path:
@@ -52,6 +87,7 @@ class ManifestStore:
 
     # ── create ─────────────────────────────────────────────────────────
     def create(self, package_id: str, intent_raw: str, created_at: Optional[str] = None) -> dict:
+        self._validate_package_id(package_id)
         created_at = created_at or utcnow()
         manifest = new_manifest(package_id, intent_raw, created_at)
         errors = validate_manifest(manifest)
@@ -80,8 +116,10 @@ class ManifestStore:
         return manifest
 
     # ── load ───────────────────────────────────────────────────────────
-    def load(self, package_id: str) -> dict:
-        events = self.read_events(package_id)
+    def load(self, package_id: str, events: Optional[list] = None) -> dict:
+        self._validate_package_id(package_id)
+        if events is None:
+            events = self.read_events(package_id)
         path = self._manifest_path(package_id)
 
         if events and all("manifest_snapshot" in event for event in events):
@@ -103,6 +141,7 @@ class ManifestStore:
 
     def _verify_and_replay(self, package_id: str, events: list[dict]) -> dict:
         previous = None
+        artifact_digests: dict[str, int] = {}
         for index, event in enumerate(events):
             snapshot = event.get("manifest_snapshot")
             if not isinstance(snapshot, dict):
@@ -140,16 +179,29 @@ class ManifestStore:
             errors = validate_manifest(snapshot)
             if errors:
                 self._chain_error(package_id, index, "invalid manifest_snapshot: " + "; ".join(errors))
-            self._verify_artifacts(package_id, index, snapshot)
+            self._collect_artifact_digests(package_id, index, snapshot, artifact_digests)
             previous = {"state": snapshot["state"], "digest": digest}
+        self._verify_artifact_digests(package_id, artifact_digests)
         return events[-1]["manifest_snapshot"]
 
-    def _verify_artifacts(self, package_id: str, index: int, manifest: dict) -> None:
+    def _collect_artifact_digests(
+        self, package_id: str, index: int, manifest: dict, collected: dict[str, int]
+    ) -> None:
+        """Record every referenced artifact digest once, remembering the first
+        chain index that referenced it (for error context)."""
         if self.artifact_store is None:
             return
         digests = [item.get("content_sha256") for item in manifest.get("inputs", [])]
         digests += [item.get("sha256") for item in manifest.get("artifacts", [])]
         for digest in digests:
+            if digest and digest not in collected:
+                collected[digest] = index
+
+    def _verify_artifact_digests(self, package_id: str, collected: dict[str, int]) -> None:
+        """Verify each unique referenced digest once (O(J) blob reads)."""
+        if self.artifact_store is None:
+            return
+        for digest, index in collected.items():
             if not self.artifact_store.verify(digest):
                 self._chain_error(
                     package_id,
@@ -194,10 +246,27 @@ class ManifestStore:
 
     # ── compare-and-swap ───────────────────────────────────────────────
     def compare_and_swap(
-        self, package_id: str, expected_revision: int, next_manifest: dict, event: dict
+        self,
+        package_id: str,
+        expected_revision: int,
+        next_manifest: dict,
+        event: dict,
+        *,
+        current_manifest: Optional[dict] = None,
     ) -> None:
+        """Commit under the package lock.
+
+        ``current_manifest`` is an optimization for engine callers that have
+        already run a full chain verification: under the O_EXCL lock the only
+        change possible is a concurrent writer, which is detected by comparing
+        the last journal digest to the caller's manifest (no second full
+        replay). When omitted, the store falls back to a full verified load.
+        """
         with self._lock(package_id):
-            current = self.load(package_id)
+            if current_manifest is not None:
+                current = self._tail_verified(package_id, current_manifest)
+            else:
+                current = self.load(package_id)
             if current["revision"] != expected_revision:
                 raise StaleActionError(
                     "concurrent revision change detected",
@@ -211,25 +280,78 @@ class ManifestStore:
             self._append_event(package_id, event)
             self._atomic_write(self._manifest_path(package_id), next_manifest)
 
+    def _tail_verified(self, package_id: str, manifest: dict) -> dict:
+        """Cheap under-lock check: the journal tail must still match the
+        caller's already-verified manifest."""
+        events = self.read_events(package_id)
+        if not events:
+            raise StaleActionError(
+                "journal empty during CAS",
+                package_id=package_id,
+                expected_revision=manifest.get("revision"),
+                actual_revision=None,
+            )
+        last = events[-1]
+        if digest_json(manifest) != last.get("resulting_manifest_sha256"):
+            raise StaleActionError(
+                "manifest changed or tampered during apply",
+                package_id=package_id,
+                expected_revision=manifest.get("revision"),
+                actual_revision=last.get("revision"),
+            )
+        return manifest
+
     # ── events ─────────────────────────────────────────────────────────
     def read_events(self, package_id: str) -> list[dict]:
+        self._validate_package_id(package_id)
         path = self._events_path(package_id)
         if not path.exists():
             return []
-        rows = []
         try:
-            lines = path.read_text(encoding="utf-8").splitlines()
-            for line in lines:
-                if line.strip():
-                    rows.append(json.loads(line))
-        except (json.JSONDecodeError, OSError) as exc:
+            raw = path.read_text(encoding="utf-8")
+        except OSError as exc:
             raise ManifestInvalidError(
                 f"event journal corrupt for {package_id}: {exc}", package_id=package_id
             ) from exc
+        try:
+            return self._parse_events(package_id, raw)
+        except ManifestInvalidError:
+            if not raw.endswith("\n"):
+                # A writer may be mid-append; give it one retry before treating
+                # the unterminated tail as an in-flight line rather than corruption.
+                time.sleep(LOCK_RETRY_S * 2)
+                try:
+                    raw = path.read_text(encoding="utf-8")
+                except OSError as exc:
+                    raise ManifestInvalidError(
+                        f"event journal corrupt for {package_id}: {exc}", package_id=package_id
+                    ) from exc
+                return self._parse_events(package_id, raw)
+            raise
+
+    def _parse_events(self, package_id: str, raw: str) -> list[dict]:
+        rows: list[dict] = []
+        lines = raw.splitlines()
+        for line in lines:
+            if not line.strip():
+                continue
+            try:
+                rows.append(json.loads(line))
+            except json.JSONDecodeError as exc:
+                if line is lines[-1] and not raw.endswith("\n"):
+                    break  # writer mid-append: line is not committed yet
+                raise ManifestInvalidError(
+                    f"event journal corrupt for {package_id}: {exc}", package_id=package_id
+                ) from exc
         return rows
 
-    def find_event(self, package_id: str, action_id: str) -> Optional[dict]:
-        for event in self.read_events(package_id):
+    def find_event(
+        self, package_id: str, action_id: str, events: Optional[list] = None
+    ) -> Optional[dict]:
+        self._validate_package_id(package_id)
+        if events is None:
+            events = self.read_events(package_id)
+        for event in events:
             if event.get("action_id") == action_id:
                 return event
         return None
@@ -237,7 +359,7 @@ class ManifestStore:
     def _append_event(self, package_id: str, event: dict) -> None:
         path = self._events_path(package_id)
         with open(path, "a", encoding="utf-8") as fh:
-            fh.write(json.dumps(event, sort_keys=True) + "\n")
+            fh.write(json.dumps(event, sort_keys=True, ensure_ascii=False) + "\n")
             fh.flush()
             os.fsync(fh.fileno())
 
@@ -245,7 +367,7 @@ class ManifestStore:
     def _atomic_write(self, path: Path, data: dict) -> None:
         tmp = path.with_suffix(".json.tmp")
         with open(tmp, "w", encoding="utf-8") as fh:
-            fh.write(json.dumps(data, sort_keys=True, indent=2) + "\n")
+            fh.write(json.dumps(data, sort_keys=True, indent=2, ensure_ascii=False) + "\n")
             fh.flush()
             os.fsync(fh.fileno())
         os.replace(tmp, path)
@@ -260,7 +382,13 @@ class ManifestStore:
 
 
 class _PackageLock:
-    """Advisory package-scoped lock via O_CREAT|O_EXCL with timeout."""
+    """Advisory package-scoped lock via O_CREAT|O_EXCL with stale recovery.
+
+    The lock file records the owner PID. On contention the contender reclaims
+    the lock when the recorded owner is dead (os.kill(pid, 0)) or the lock is
+    older than LOCK_STALE_AGE_S. O_EXCL is kept for the normal uncontended
+    path so concurrent writers cannot both hold the lock.
+    """
 
     def __init__(self, path: Path) -> None:
         self.path = path
@@ -271,14 +399,48 @@ class _PackageLock:
         while True:
             try:
                 fd = os.open(self.path, os.O_CREAT | os.O_EXCL | os.O_WRONLY, 0o644)
-                os.write(fd, str(os.getpid()).encode())
+                os.write(fd, f"{os.getpid()}\n".encode())
                 os.close(fd)
                 self.acquired = True
                 return self
             except FileExistsError:
+                if self._reclaim_if_stale():
+                    continue
                 if time.monotonic() >= deadline:
-                    raise ConcurrencyError(f"could not acquire lock {self.path}")
+                    raise ConcurrencyError(
+                        f"could not acquire lock {self.path} "
+                        f"(remove the file manually if it appears stale)"
+                    )
                 time.sleep(LOCK_RETRY_S)
+
+    def _reclaim_if_stale(self) -> bool:
+        try:
+            content = self.path.read_text(encoding="utf-8").strip()
+        except OSError:
+            return False
+        pid = None
+        if content:
+            try:
+                pid = int(content.split()[0])
+            except ValueError:
+                pid = None
+        if pid is not None and not _pid_alive(pid):
+            try:
+                self.path.unlink()
+                return True
+            except OSError:
+                return False
+        try:
+            age = time.time() - self.path.stat().st_mtime
+        except OSError:
+            return False
+        if age > LOCK_STALE_AGE_S:
+            try:
+                self.path.unlink()
+                return True
+            except OSError:
+                return False
+        return False
 
     def __exit__(self, *exc):
         if self.acquired:
