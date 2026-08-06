@@ -5,8 +5,8 @@ from __future__ import annotations
 import json
 import unittest
 
-from core.domain.errors import InvalidEnvelopeError
-from core.protocol.envelope import parse_envelope
+from methodfactory.domain.errors import InvalidEnvelopeError
+from methodfactory.protocol.envelope import parse_envelope
 
 
 def record_input_payload(**overrides):

@@ -4,8 +4,8 @@ from __future__ import annotations
 
 import unittest
 
-from core.domain.states import State, TERMINAL_STATES, is_terminal
-from core.domain.transitions import (
+from methodfactory.domain.states import State, TERMINAL_STATES, is_terminal
+from methodfactory.domain.transitions import (
     ACTION_VOCABULARY,
     TRANSITION_TABLE,
     Action,
