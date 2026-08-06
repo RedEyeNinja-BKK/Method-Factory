@@ -22,3 +22,4 @@ node_modules/
 # Trial workspaces (generated at trial time)
 workspace/
 iteration-*/
+methodfactory.egg-info/
