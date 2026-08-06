@@ -21,8 +21,8 @@ bootstrap evidence, not integrity evidence.
   - missing approval binding
   - stale active Process Engine identities in active paths
   - nondeterministic generated output (regenerate → diff must be empty)
-- Test runner: stdlib `unittest` over `core/tests/` — no new runtime
-  dependencies. CI: `python -m unittest discover -s core/tests -t .`.
+- Test runner: stdlib `unittest` over `methodfactory/tests/` — no new runtime
+  dependencies. CI: `python -m unittest discover -s methodfactory/tests -t .`.
 - **No global `|| true`.** Legacy Process Engine evidence checks, if any
   remain, are explicitly quarantined or advisory with a named path
   allowlist.
@@ -45,10 +45,17 @@ bootstrap evidence, not integrity evidence.
   CI hard-fails on stray generated output (`workspace/`, `iteration-*/`)
   instead of regenerate→diff-empty. The drift check is restored when a
   generator lands.
-- **Identity sweep** is a single case-insensitive pass over active paths
-  (`methodfactory/`, `prompts/`, `docs/`, `README.md`, `CHANGELOG.md`,
-  `CONTRIBUTING.md`, `.github/`) with `evidence/` exempt via explicit
-  allowlist (never a global bypass). README/CHANGELOG intentional Process
-  Engine pointer references are allowlisted line-by-line.
+- **Identity sweep** runs as two zones, both case-insensitive, with
+  `evidence/` exempt via explicit path allowlist (never a global bypass):
+  1. **Active identity zone** — `methodfactory/` and `prompts/` must not
+     contain any Process Engine identity (`process engine`, `process-engine`,
+     `v1.9.1`, `lineage v7.2`).
+  2. **Quarantine-reference zone** — the active narrative docs
+     (`docs/action-envelope.md`, `docs/architecture.md`,
+     `docs/manifest-contract-v0.1.md`, `README.md`, `CONTRIBUTING.md`) must
+     not reference quarantined artifact names except as narrow pointers.
+     `docs/migration-from-process-engine.md` is the designated narrow
+     pointer and is exempt by design; ADRs are exempt as migration context;
+     CHANGELOG pre-2.0.0 is preserved history.
 - **Supply chain:** actions pinned by full commit SHA; `permissions:
   contents: read`; pyyaml pinned via `requirements-dev.txt`.

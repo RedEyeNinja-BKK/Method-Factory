@@ -70,7 +70,7 @@ strategy, compare-and-swap rule, or stale-action behavior.
   (summary requested but not prepared).
 - **Stale-lock recovery:** the package lock records its owner PID and is
   reclaimed when the owner is dead (`os.kill(pid, 0)`) or the lock is older
-  than `LOCK_STALE_AGE_S` (60 × retry). A crashed writer no longer wedges
+  than `LOCK_STALE_AGE_S` (60 × the lock timeout, 300s). A crashed writer no longer wedges
   the package.
 - **Torn-journal tolerance:** an unterminated final journal line is an
   in-flight append, never corruption; readers retry once and then ignore

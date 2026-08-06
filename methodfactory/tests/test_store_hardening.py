@@ -160,25 +160,30 @@ class StoreHardeningTests(unittest.TestCase):
             self.assertLessEqual(artifacts.verify_calls, 30)
 
     def test_concurrent_append_read_no_spurious_corruption(self):
-        """bug-5c: a reader must never observe a spurious MANIFEST_INVALID while
-        a writer appends journal lines."""
+        """q-11: a reader must never observe a spurious MANIFEST_INVALID while
+        a writer appends journal lines. The writer flushes the line and the
+        newline separately so a reader can genuinely observe a torn state;
+        the loop is bounded by event count, not wall-clock."""
         with tempfile.TemporaryDirectory() as td:
             store = ManifestStore(Path(td))
             store.create(PKG, "intent")
             events_path = store._events_path(PKG)
-            stop = threading.Event()
             errors: list[str] = []
+            N = 200
+            written = 0
 
             def writer() -> None:
-                i = 0
-                while not stop.is_set():
+                nonlocal written
+                for i in range(N):
                     with open(events_path, "a", encoding="utf-8") as fh:
-                        fh.write(_writer_event(i) + "\n")
+                        fh.write(_writer_event(i))
                         fh.flush()
-                    i += 1
+                        fh.write("\n")
+                        fh.flush()
+                    written += 1
 
             def reader() -> None:
-                while not stop.is_set():
+                for _ in range(5000):
                     try:
                         store.read_events(PKG)
                     except ManifestInvalidError as exc:
@@ -188,11 +193,11 @@ class StoreHardeningTests(unittest.TestCase):
             t2 = threading.Thread(target=reader)
             t1.start()
             t2.start()
-            time.sleep(1.0)
-            stop.set()
             t1.join()
             t2.join()
             self.assertEqual(errors, [])
+            self.assertGreaterEqual(written, N)
+            self.assertGreaterEqual(len(store.read_events(PKG)), N)
 
 
 if __name__ == "__main__":

@@ -44,14 +44,16 @@ jobs:
           # narrow pointers (evidence/process-engine/ or the migration
           # narrative). ADRs are exempt: their migration context is their
           # subject matter (ADR-0009). CHANGELOG pre-2.0.0 is preserved
-          # history. Generic path names (scripts/, skills/) are not matched —
-          # only unambiguous quarantined artifact names.
+          # history. The migration doc (docs/migration-from-process-engine.md)
+          # is the designated narrow pointer and lists every quarantined name
+          # by design. Generic path names (scripts/, skills/) are not matched —
+          # only unambiguous quarantined artifact names. Case-insensitive.
           QUARANTINED='(process-engine\.toml|package-manifest-schema|provenance-schema|evaluator-freeze-policy|governance-usage|spec-compliance)'
           FAIL=0
           for f in docs/action-envelope.md docs/architecture.md \
                    docs/manifest-contract-v0.1.md README.md CONTRIBUTING.md; do
             [ -f "$f" ] || continue
-            matches=$(grep -nE "$QUARANTINED" "$f" | grep -vE 'evidence/process-engine' || true)
+            matches=$(grep -niE "$QUARANTINED" "$f" | grep -vE 'evidence/process-engine' || true)
             if [ -n "$matches" ]; then
               echo "::error::quarantined artifact referenced without pointer in $f"
               echo "$matches"

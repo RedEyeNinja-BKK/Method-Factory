@@ -23,3 +23,8 @@ node_modules/
 workspace/
 iteration-*/
 methodfactory.egg-info/
+
+# Python build artifacts
+*.egg-info/
+build/
+dist/

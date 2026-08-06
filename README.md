@@ -53,8 +53,9 @@ Design principle: **the model proposes; code validates, authorizes, persists, an
 ## Quick start
 
 ```bash
-pip install -e .            # installs the mf console script (dev)
-python -m unittest discover -s methodfactory/tests -t .   # 125+ tests
+pip install -r requirements-dev.txt   # dev deps (pyyaml for prompt fixtures)
+pip install -e .                      # installs the mf console script (dev)
+python -m unittest discover -s methodfactory/tests -t .   # 142+ tests
 ```
 
 ```bash

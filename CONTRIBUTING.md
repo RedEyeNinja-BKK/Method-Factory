@@ -40,6 +40,7 @@ part of active development.
 ## Getting started
 
 ```bash
+pip install -r requirements-dev.txt   # dev deps (pyyaml for prompt fixtures)
 python -m unittest discover -s methodfactory/tests -t .   # full suite
 pip install -e .                                          # installs mf
 ```

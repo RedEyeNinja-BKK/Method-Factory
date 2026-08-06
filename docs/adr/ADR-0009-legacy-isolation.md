@@ -17,7 +17,7 @@ None of it is authoritative merely because it exists.
 - Classification applies to every migrated artifact (inventory in
   `docs/architecture.md` and the Phase-0 audit): active foundation / legacy
   evidence / requirement source / rewrite required / retire-remove.
-- Active Method Factory paths (`core/`, `prompts/`, `docs/`, `README.md`)
+- Active Method Factory paths (`methodfactory/`, `prompts/`, `docs/`, `README.md`)
   must not reference quarantined paths except through explicit, narrow
   pointers (e.g. the migration narrative).
 - CI identity sweep (ADR-0010) fails on stale Process Engine identity in
