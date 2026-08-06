@@ -15,7 +15,7 @@ Five validation rounds of the v0.1.x JSONL overhaul exposed that `ManifestStore`
 
 The senior reviewer verdict (2026-08-07): the `8a7e916` implementation is permanently review-held and non-releasable; the SQLite architecture is **approved in principle**; controlled branch/PR publication is operator-authorized; the JSONL remediation branch is preserved forensically but not replayed.
 
-Nothing has shipped (only test/demo stores exist), so the migration cost of an architectural change is effectively zero.
+**Publication fact (precise):** public v0.1.2 exists — the JSONL store at commit `fb5641c` was publicly tagged `v0.1.2-integrity`. No production user stores are known to the project from available evidence; absence of known real stores is **not** inferred as proof that none exist. Because v0.1.2 was publicly tagged, a legacy migration path is retained (Section 6). The migration cost of the architectural change is effectively zero for known project stores; it is non-zero for any hypothetical real store, which is why migration compatibility is mandatory.
 
 ## Decision
 
@@ -362,3 +362,116 @@ Operator-authorized, evidence and development-visibility only:
 - Export formats preserve the audit/evidence story; `method-factory-events-v1` is the supported public contract.
 - Amends: ADR-0004 (summary.content → content-addressed body), ADR-0008 (persistence mechanics + error-code table). ADR-0001..0003, 0005..0007, 0009..0010 remain in force.
 - The `8a7e916` branch is preserved forensically on `review/jsonl-overhaul-8a7e916`; its reuse is limited to the Section 8 port list.
+
+---
+
+## Amendment - Phase 2 finalization (2026-08-07)
+
+Closes the twelve review items from senior review `4878235332` on PR #1. This amendment is binding before implementation proceeds to commits 2-4.
+
+### A. Publication fact and migration posture (item 1)
+
+Public v0.1.2 exists (`v0.1.2-integrity` at `fb5641c`). No production user stores are known to the project from available evidence; this is stated as an evidence limitation, **not** as proof none exist. Migration compatibility is therefore mandatory (Section 6) and unchanged.
+
+### B. Open and validation modes (item 2)
+
+| Mode | Checks |
+|---|---|
+| Normal hot-path open | Schema/application-ID/user-version checks; errors naturally raised by SQLite on use. **No `PRAGMA integrity_check`.** |
+| `mf validate` | Bounded: `PRAGMA quick_check` + current database/schema checks + current-package checks (latest manifest, artifact digests for the current package). |
+| `mf validate --full` | `PRAGMA integrity_check` + full event-chain, manifest-hash, action-hash, and artifact verification across every revision. |
+
+The hot path must never run an O(DB) integrity scan; this preserves the ADR's own O(J)-avoidance goal.
+
+### C. Durability qualification (item 3)
+
+SQLite with `journal_mode=DELETE` + `synchronous=FULL` provides transactional durability subject to the honesty of the OS, filesystem, and storage hardware. It cannot override lying hardware, filesystem faults, or hostile host administration. All durability claims are qualified accordingly; the threat model in Section 12 is the limit of the guarantee.
+
+### D. Physical database identity and open contract (item 4)
+
+- Canonical filename: `methodfactory.sqlite3`.
+- Canonical location: directly beneath the store root (`<store_root>/methodfactory.sqlite3`).
+- Fixed `application_id`: `0x4D465354` (decimal `1297248084`, ASCII "MFST").
+- Accepted `user_version`: `1`. Any other value is unsupported.
+
+| Store-root state | Normal open (rw) | Validation (ro) |
+|---|---|---|
+| Missing DB, no legacy | Create + initialize new database | `DATABASE_NOT_FOUND` (no creation) |
+| Zero-byte `methodfactory.sqlite3` | Initialize (SQLite empty-file semantics; documented as indistinguishable from first creation) | `DATABASE_EMPTY` (no creation) |
+| Wrong application ID (foreign/uninitialized DB) | `DATABASE_ID_MISMATCH` | `DATABASE_ID_MISMATCH` |
+| Future `user_version` (>1) | `UNSUPPORTED_SCHEMA` | `UNSUPPORTED_SCHEMA` |
+| Corrupt DB (fails `quick_check`) | SQLite raises naturally on use; typed `MANIFEST_INVALID` in validate | `MANIFEST_INVALID` |
+| Legacy-only (v0.1.2 `packages/`+`events/`, no SQLite) | `LEGACY_STORE_DETECTED` → instruct `mf migrate-store` | `LEGACY_STORE_DETECTED` |
+| SQLite-only | Open normally | Open read-only |
+| Neither | Create + initialize | `DATABASE_NOT_FOUND` |
+| Both present | SQLite is canonical and used; legacy preserved untouched | Same; validate may note legacy presence |
+
+- Read-only validation opens via URI `file:<path>?mode=ro` and must never create or modify the database.
+- No validation or read-only command may create a database accidentally; any path that would create one fails with the appropriate typed error.
+
+### E. Append-only is executable (item 5)
+
+The binding DDL includes `BEFORE UPDATE` and `BEFORE DELETE` triggers on `events` that `RAISE(ABORT, ...)`. Immutability is enforced by the database, not only by repository discipline. Schema migrations create a new database/table version rather than mutating historical rows.
+
+### F. Revision and chain invariants (item 6)
+
+One authoritative validator (owned by the storage layer, exercised on every transactional apply) enforces:
+
+- Revision 0 is the package-creation event; its action is `create_package` and `state_before IS NULL`.
+- Revision > 0 has exactly one predecessor (revision − 1) present.
+- `state_before` equals the predecessor's `state_after`.
+- `previous_manifest_sha256` equals the predecessor's `resulting_manifest_sha256`.
+- Manifest `package_id`, `revision`, and `state` fields agree with the indexed SQL columns.
+- These may be application-validated transaction invariants (not SQL triggers), but there is exactly one authoritative validator and it is tested.
+
+### G. Canonical action hash semantics (item 7)
+
+`action_sha256` covers the complete normalized semantic request used for idempotency:
+
+```python
+action_sha256 = sha256_hex(canonical_json({
+    "action": action,
+    "package_id": package_id,
+    "action_id": action_id,
+    "basis": basis,
+    "payload": payload,
+}))
+```
+
+- It includes every field that could change the requested outcome.
+- It excludes **only** `expected_revision` (optimistic-concurrency/transport metadata, not part of the requested outcome).
+- Same `action_id` + same hash → idempotent replay. Same `action_id` + different hash → `ACTION_ID_CONFLICT`. Never infer idempotency from `action_id` alone.
+
+### H. Artifact write boundary and orphan safety (item 8)
+
+- Blob writes occur before the SQLite transaction, are content-addressed, immutable, and verified to exist before the event referencing them is inserted.
+- Orphaned blobs (written but never referenced by a committed event) are harmless and retained.
+- **No automatic blob deletion during mutation.**
+- Any future garbage collection is a separate, conservative process that must prove a digest is unreachable from every committed event before deletion.
+
+### I. Migration source selection and atomic destination (item 9)
+
+- Accepted v0.1.2 layout: `<store_root>/packages/`, `<store_root>/events/`, `<store_root>/artifacts/`.
+- `mf migrate-store` accepts explicit `--source` and `--dest`; deterministic defaults are source = the detected legacy store root and destination = `<source>/methodfactory.sqlite3`.
+- Destination behavior is fail-closed: if the destination already exists, migration refuses (typed error) - no overwrite of source or destination.
+- The destination must be on the same filesystem as its directory for the atomic rename; cross-device rename fails with a typed error.
+- The migration receipt (source format, source file SHA-256s, package count, event count, destination schema version, validation verdict) is written durably (fsync) and is part of migration success - migration is not considered successful until the receipt is durable.
+- The original store is preserved until the operator explicitly archives or removes it.
+
+### J. Evidence checksum convention (item 10)
+
+Evidence packages use archive-root-relative paths in `SHA256SUMS`. The single verification command, run from the archive root, exits zero:
+
+```bash
+cd <archive-root> && sha256sum -c SHA256SUMS
+```
+
+The next evidence capture follows this convention.
+
+### K. Clean worktree for evidence capture (item 11)
+
+Before any evidence capture, the local worktree must be clean: the `.gitignore` is in force (Section 8 port list), generated artifacts (`.mf/`, egg-info, build output, test caches, SQLite sidecars) are removed, and `git status --short` is empty.
+
+### L. Architecture CI honesty (item 12)
+
+As of this amendment, architecture CI is **unproven**: run `31127787460` was cancelled without executing steps. It is neither failed nor passed. CI is considered evidence only after a run executes successfully on the exact branch SHA. The Phase 2 submission runs CI on the exact final head SHA and reports the run URL and conclusion.
