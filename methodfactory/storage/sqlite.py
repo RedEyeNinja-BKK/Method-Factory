@@ -605,13 +605,29 @@ def _open_database_impl(
 
 
 def latest_event(conn: sqlite3.Connection, package_id: str) -> dict | None:
-    """Return the latest manifest for a package (indexed latest-event read)."""
-    row = conn.execute(LATEST_EVENT_SQL, (package_id,)).fetchone()
+    """Return the latest manifest for a package (indexed latest-event read).
+
+    Public boundary (Finding 4): a malformed/invalid-UTF-8 manifest_json BLOB
+    surfaces as a typed StorageError (code MANIFEST_INVALID), never a raw
+    json/Unicode/type exception.
+    """
+    try:
+        row = conn.execute(LATEST_EVENT_SQL, (package_id,)).fetchone()
+    except sqlite3.Error as exc:
+        raise StorageError(f"latest_event query failed: {exc}") from exc
     if row is None:
         return None
     import json
 
-    return json.loads(row["manifest_json"])
+    raw = row["manifest_json"]
+    try:
+        if isinstance(raw, str):
+            raw = raw.encode("utf-8")
+        return json.loads(raw.decode("utf-8"))
+    except (UnicodeDecodeError, json.JSONDecodeError, TypeError, ValueError) as exc:
+        from .errors import ManifestInvalidError as _MIV
+
+        raise _MIV(f"manifest_json corrupt for {package_id}: {exc}") from exc
 
 
 def explain_latest_event_plan(conn: sqlite3.Connection, package_id: str) -> list[tuple]:

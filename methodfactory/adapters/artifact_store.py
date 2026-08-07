@@ -141,7 +141,13 @@ class ArtifactStore:
         return digest, len(data)
 
     def get(self, digest: str) -> str:
-        return self._read_verified(digest).decode("utf-8")
+        data = self._read_verified(digest)
+        try:
+            return data.decode("utf-8")
+        except UnicodeDecodeError as exc:
+            raise InvalidPayloadError(
+                f"blob {digest} is not valid UTF-8"
+            ) from exc
 
     def verify(self, digest: str) -> bool:
         try:

@@ -103,3 +103,9 @@ class ActionIdConflictError(StorageError):
     """
 
     code = "ACTION_ID_CONFLICT"
+
+
+class ManifestInvalidError(StorageError):
+    """A stored manifest BLOB is malformed or invalid UTF-8 (Finding 4)."""
+
+    code = "MANIFEST_INVALID"
