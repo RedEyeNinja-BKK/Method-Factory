@@ -48,6 +48,34 @@ exception contract and are not part of the supported surface.
 | `SqliteManifestStore.validate_chain(package_id, *, verify_artifacts=False)` | str + bool | `{package_id, events, valid}` | `ChainViolationError` (`CHAIN_VIOLATION`), `StorageError` (`STORAGE_ERROR`) | `sqlite3.Error`, decode/JSON errors |
 | `SqliteManifestStore.explain_latest_plan(package_id)` | str | `list[tuple]` (query plan) | `StorageError` (`STORAGE_ERROR`) | `sqlite3.Error` |
 | `SqliteManifestStore.close()` | — | `None` | `StorageError` (`STORAGE_ERROR`) | `sqlite3.Error` |
+| `migrate_store(source_root, dest=None)` | legacy store root str/Path + optional dest SQLite path | receipt `dict` (see ADR-0012 amendment §15) | `LegacySourceInvalidError` (`LEGACY_SOURCE_INVALID`), `LegacyChainInvalidError` (`LEGACY_CHAIN_INVALID`), `MigrationIncompatibleError` (`MIGRATION_INCOMPATIBLE`), `SourceChangedError` (`SOURCE_CHANGED`), `MigrationPublishFailedError` (`MIGRATION_PUBLISH_FAILED`), `DestinationExistsError` (`DESTINATION_EXISTS`), `ConcurrencyError` (`CONCURRENCY`, legacy `.lock` present), plus re-used public errors for current-boundary rejections | `OSError`, `sqlite3.Error`, `json.JSONDecodeError`, `UnicodeError`, `TypeError`/`ValueError`/`RecursionError` |
+| `export_events(store_root, output, *, fmt=EVENTS_V1_FORMAT)` | store root + optional output path + format (`method-factory-events-v1` \| `legacy-v012-jsonl`) | event count `int` (events written to stdout or file) | `StorageError` (`STORAGE_ERROR`), `DatabaseNotFoundError` (`DATABASE_NOT_FOUND`), `LegacyStoreDetectedError` (`LEGACY_STORE_DETECTED`), `DatabaseEmptyError` (`DATABASE_EMPTY`), `DatabaseIdMismatchError` (`DATABASE_ID_MISMATCH`), `UnsupportedSchemaError` (`UNSUPPORTED_SCHEMA`) | `sqlite3.Error`, `OSError`, `UnicodeDecodeError`, `json.JSONDecodeError` |
+| `LegacySource(root)` | str/Path legacy v0.1.2 store root | validated read-only source object | `LegacySourceInvalidError` (`LEGACY_SOURCE_INVALID`), `LegacyChainInvalidError` (`LEGACY_CHAIN_INVALID`) | `OSError`, `json.JSONDecodeError`, `UnicodeDecodeError` |
+
+> **Migration boundary rule (ADR-0012 amendment §17):** every public
+> migration failure stays within the Method Factory typed error boundary.
+> Legacy-valid values that the CURRENT public boundary rejects
+> (identifier grammar, logical-path grammar, intent/input/artifact/objective/
+> reason limits, control characters, duplicate event IDs, unrecoverable
+> `cancel.reason`) surface as `MIGRATION_INCOMPATIBLE` — never as raw
+> envelope/engine/validator/sqlite errors. The frozen legacy reader
+> (`migrations.v012_jsonl`) is read-only: it never repairs, truncates,
+> reconciles, rewrites, acquires locks, or performs CAS/tail-repair.
+
+## Migration error codes (frozen, ADR-0012 amendment §17)
+
+| Code | Meaning |
+|---|---|
+| `LEGACY_SOURCE_INVALID` | recognized v0.1.2 layout missing/unsafe (symlink escape, missing dir, corrupt cache, invalid filename grammar) |
+| `LEGACY_CHAIN_INVALID` | legacy history violates public v0.1.2 validation (revision sequence, state continuity, hash chain, snapshot digest, blob digest, cache mismatch) |
+| `MIGRATION_INCOMPATIBLE` | legacy-valid value is not reconstructable or fails the current public boundary (see rule above) |
+| `SOURCE_CHANGED` | semantic source identity changed between the BEFORE and AFTER inventory; nothing published |
+| `MIGRATION_PUBLISH_FAILED` | durable publication (receipt/DB/fsync/final verification) failed |
+| `DESTINATION_EXISTS` | final destination already exists; migration refuses to overwrite |
+
+> Legacy `.lock` presence reuses the existing `CONCURRENCY` semantics: the
+> migration refuses to start, reports the lock path, and never deletes,
+> repairs, inspects PID, acquires, or includes it in source identity.
 
 ## Internal primitives (documented native contract, NOT public)
 

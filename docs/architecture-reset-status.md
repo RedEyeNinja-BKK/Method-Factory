@@ -1,6 +1,6 @@
-# Architecture Reset — Project State (2026-08-07, Phase 2)
+# Architecture Reset — Project State (2026-08-08, Phase 3: migration/export)
 
-**Status:** SQLite architecture approved in principle; senior review `4878235332` on PR #1 completed the architecture review and directed the Phase 2 implementation order (commits 1–4) with a design-convergence stop gate. This document tracks the clean `feat/sqlite-persistence-reset` branch.
+**Status:** SQLite architecture approved in principle; senior review `4878235332` on PR #1 completed the architecture review and directed the Phase 2 implementation order (commits 1–4) with a design-convergence stop gate. The Phase 2 stop gate was accepted, and the migration/export implementation gate (ADR-0012 amendment, frozen at `42ff7d9` + `b9e46c1`) is now implemented and under mandatory review. This document tracks the clean `feat/sqlite-persistence-reset` branch.
 
 ## Branch topology
 
@@ -13,20 +13,50 @@ fb5641c  remote main (published v0.1.2-integrity base)
     ├── ADR-0012 + architecture contracts   ← commits 1 (docs) — done
     ├── package foundation (rename, CI, ignores)   ← commit 2
     ├── storage protocol + canonical primitives    ← commit 3
-    ├── SQLite schema creation + identity + append-only guards ← commit 4 (Phase 2 stop gate)
-    └── (later, after gate) transactional apply, migration, exports, lifecycle
+    ├── SQLite schema creation + identity + append-only guards ← commit 4 (Phase 2 stop gate — accepted)
+    ├── transactional apply + deterministic replay + chain validator   ← Phase 3 foundation
+    └── migration + deterministic exports + CLI (this gate)   ← committed for senior review
 ```
 
-## Identities (verified 2026-08-07)
+## Identities (verified 2026-08-08)
 
 | Item | Value |
 |---|---|
 | Remote main | `fb5641cc1a3f1f54b96bba3af88ec5a1b010f4e5` (untouched) |
 | Forensic branch | `review/jsonl-overhaul-8a7e916` = `8a7e9167d6ff77b3ccd32722683c9b42e4390687` |
 | Clean branch | `feat/sqlite-persistence-reset` (merge-base with origin/main = `fb5641c`; does **not** descend from 8a7e916) |
-| PR #1 | https://github.com/RedEyeNinja-BKK/Method-Factory/pull/1 — **actual GitHub Draft** (reviewer converted it), DO NOT MERGE |
+| PR #1 | https://github.com/RedEyeNinja-BKK/Method-Factory/pull/1 — **actual GitHub Draft**, DO NOT MERGE |
 | Git bundle | `method-factory-8a7e916.bundle` (SHA-256 `92c0bb1026190f9fd5e1f61bb4cd5fc16a08605aecf77f81eb5bc93b3b504f63`; `git bundle verify` OK) |
 | Local archival | `persistence-reset` branch preserved locally (pre-revision ADR draft, not published) |
+
+## Migration/export implementation gate (2026-08-08)
+
+Bounded implementation authorized by Vincent at canonical head `b9e46c1` on
+`feat/sqlite-persistence-reset`. Scope: public v0.1.2 → SQLite migration,
+deterministic supported export, deterministic legacy-v0.1.2 evidence export,
+and the minimal CLI/error/test/documentation surface for those capabilities.
+
+Implemented (pending senior review):
+
+- `methodfactory/migrations/v012_jsonl.py` — frozen read-only v0.1.2 reader
+  (exact `fb5641c` semantics; no CAS/lock/repair/append mechanics).
+- `methodfactory/migrations/migrate.py` — atomic migration: legacy validation,
+  semantic-action reconstruction by legacy hash, current-engine transformation
+  (`next_manifest` only), equivalence verification, source-stability proof,
+  temp-DB build + validation, durable receipt + DB publication, final
+  read-only verification, fault seams.
+- `methodfactory/migrations/export.py` — `method-factory-events-v1` and
+  `legacy-v012-jsonl` deterministic exports (read-only, consistent read).
+- `methodfactory/cli.py` — bounded surface restored: `mf migrate-store` and
+  `mf export`; lifecycle commands remain unavailable; `mf --version` unchanged.
+- Six new frozen migration error codes (see `docs/public-surface.md`).
+- `methodfactory/tests/_fixtures.py` + `test_migrations.py` — fb5641c-origin
+  fixtures and 44 focused tests (full suite 400 tests green).
+
+Not authorized / NOT implemented in this gate: merge, PR-ready, tag, release,
+`main`/forensic mutation, force-push, deployment, lifecycle expansion,
+backup/restore, generic import, garbage collection, JSONL as canonical store,
+or 8a7e916 repair/CAS/locking mechanics.
 
 ## Senior review 4878235332 (2026-08-07) — accepted
 

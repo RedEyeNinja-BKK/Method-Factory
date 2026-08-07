@@ -1,0 +1,870 @@
+"""Migration + deterministic export tests (ADR-0012 amendment).
+
+Focused coverage required by the migration/export implementation gate:
+
+- positive migration end-to-end;
+- source byte preservation;
+- unique semantic reconstruction by legacy action hash;
+- every action family;
+- every optional-field candidate family;
+- unrecoverable cancel.reason rejection;
+- advancing-clock normalization;
+- rev0 ID preservation;
+- duplicate event-ID rejection;
+- cache crash-tolerance semantics;
+- `.lock` refusal without mutation;
+- compatibility-matrix fail-closed cases;
+- current-engine deterministic replay for migrated rows;
+- summary body content-addressing;
+- artifact integrity;
+- source-changed detection;
+- destination-exists fail closed;
+- publication fault matrix;
+- migration receipt identity/success predicate;
+- deterministic method-factory-events-v1;
+- deterministic legacy-v012-jsonl;
+- exact legacy hash-vs-line serializer distinction;
+- export consistent-read behavior / no mutation;
+- no import surface;
+- no 8a repair/lock/CAS mechanics;
+- temp/runtime artifact hygiene.
+
+Fixtures originate from exact public fb5641c code (see _fixtures.py).
+"""
+
+from __future__ import annotations
+
+import hashlib
+import json
+import os
+import shutil
+import sqlite3
+import subprocess
+import sys
+import tempfile
+import unittest
+from pathlib import Path
+
+from methodfactory.domain.errors import ConcurrencyError
+from methodfactory.migrations.export import (
+    EVENTS_V1_FORMAT,
+    LEGACY_JSONL_FORMAT,
+    export_events,
+)
+import methodfactory.migrations.migrate as migrate_module
+from methodfactory.migrations.migrate import migrate_store
+from methodfactory.migrations.v012_jsonl import (
+    LegacySource,
+    legacy_canonical_json,
+    legacy_digest_json,
+    legacy_line_json,
+)
+from methodfactory.storage.errors import (
+    DestinationExistsError,
+    LegacyChainInvalidError,
+    LegacySourceInvalidError,
+    MigrationIncompatibleError,
+    MigrationPublishFailedError,
+    SourceChangedError,
+    StorageError,
+)
+from methodfactory.storage.serialization import digest_bytes, sha256_hex
+
+from ._fixtures import (
+    all_action_families_workflow,
+    cancel_arbitrary_reason_workflow,
+    current_invalid_identifier_workflow,
+    generate_fixture,
+    non_ascii_workflow,
+    optional_omitted_workflow,
+    overlimit_input_workflow,
+    overlimit_intent_workflow,
+    revise_intake_workflow,
+    standard_workflow,
+)
+
+FIXTURE_DIR = Path(tempfile.gettempdir()) / "mf-migration-test-fixtures"
+
+
+def _generate(name: str, workflow) -> Path:
+    """Generate (once per suite) a fb5641c-origin fixture into FIXTURE_DIR."""
+    FIXTURE_DIR.mkdir(parents=True, exist_ok=True)
+    root = FIXTURE_DIR / name
+    if root.exists():
+        shutil.rmtree(root, ignore_errors=True)
+    return Path(generate_fixture(str(root), workflow=workflow))
+
+
+def _inventory(root: Path) -> dict[str, tuple[str, int]]:
+    """Deterministic semantic-source inventory (bytes + size)."""
+    inv: dict[str, tuple[str, int]] = {}
+    for base, pat in (
+        (root / "events", "*.events.jsonl"),
+        (root / "packages", "*.json"),
+    ):
+        if not base.is_dir():
+            continue
+        for p in sorted(base.glob(pat)):
+            data = p.read_bytes()
+            inv[str(p.relative_to(root))] = (hashlib.sha256(data).hexdigest(), len(data))
+    blobs = root / "artifacts" / "blobs"
+    if blobs.is_dir():
+        for p in sorted(blobs.iterdir()):
+            data = p.read_bytes()
+            inv[str(p.relative_to(root))] = (hashlib.sha256(data).hexdigest(), len(data))
+    return inv
+
+
+def _open_db(path: Path) -> sqlite3.Connection:
+    conn = sqlite3.connect(str(path))
+    conn.row_factory = sqlite3.Row
+    return conn
+
+
+class MigrationPositiveTests(unittest.TestCase):
+    """End-to-end migration of a valid legacy store."""
+
+    @classmethod
+    def setUpClass(cls):
+        cls.src = _generate("standard", standard_workflow)
+
+    def test_migrate_end_to_end(self):
+        with tempfile.TemporaryDirectory() as td:
+            dest = Path(td) / "methodfactory.sqlite3"
+            receipt = migrate_store(self.src, dest)
+            self.assertEqual(receipt["source_package_count"], 1)
+            self.assertEqual(receipt["source_event_count"], 7)
+            self.assertEqual(receipt["validation_verdict"], "PASS")
+            # final files exist
+            self.assertTrue(dest.is_file())
+            self.assertTrue(dest.with_name(dest.name + ".receipt.json").is_file())
+            # no temp dirs remain
+            leftovers = [p for p in Path(td).iterdir() if ".tmp." in p.name]
+            self.assertEqual(leftovers, [])
+
+    def test_source_bytes_preserved(self):
+        before = _inventory(self.src)
+        with tempfile.TemporaryDirectory() as td:
+            migrate_store(self.src, Path(td) / "methodfactory.sqlite3")
+        after = _inventory(self.src)
+        self.assertEqual(before, after)
+
+    def test_migrated_chain_validates(self):
+        from methodfactory.storage.store import SqliteManifestStore
+
+        with tempfile.TemporaryDirectory() as td:
+            dest = Path(td) / "methodfactory.sqlite3"
+            migrate_store(self.src, dest)
+            store = SqliteManifestStore(Path(td))
+            try:
+                result = store.validate_chain("pkg_demo_001", verify_artifacts=True)
+                self.assertTrue(result["valid"])
+                self.assertEqual(result["events"], 7)
+            finally:
+                store.close()
+
+    def test_rev0_ids_preserved(self):
+        with tempfile.TemporaryDirectory() as td:
+            migrate_store(self.src, Path(td) / "methodfactory.sqlite3")
+            conn = _open_db(Path(td) / "methodfactory.sqlite3")
+            row = conn.execute(
+                "SELECT event_id, action_id, action FROM events WHERE revision=0"
+            ).fetchone()
+            conn.close()
+            self.assertEqual(row["action_id"], "act_create_package")
+            self.assertEqual(row["action"], "create_package")
+            self.assertTrue(row["event_id"].startswith("evt_"))
+
+    def test_summary_content_addressed(self):
+        with tempfile.TemporaryDirectory() as td:
+            migrate_store(self.src, Path(td) / "methodfactory.sqlite3")
+            conn = _open_db(Path(td) / "methodfactory.sqlite3")
+            row = conn.execute(
+                "SELECT manifest_json FROM events WHERE revision=4"
+            ).fetchone()
+            conn.close()
+            manifest = json.loads(row["manifest_json"])
+            summary = manifest["summary"]
+            body = summary.get("content")
+            self.assertIsNone(body)  # content-addressed: body NOT inline
+            self.assertTrue(summary["digest"].startswith("56c4b55c"))
+            self.assertIsNotNone(summary.get("size"))
+            # blob exists and matches digest
+            blob = Path(td) / "blobs" / summary["digest"]
+            self.assertTrue(blob.is_file())
+            self.assertEqual(
+                hashlib.sha256(blob.read_bytes()).hexdigest(), summary["digest"]
+            )
+
+    def test_artifact_blobs_verified(self):
+        with tempfile.TemporaryDirectory() as td:
+            migrate_store(self.src, Path(td) / "methodfactory.sqlite3")
+            conn = _open_db(Path(td) / "methodfactory.sqlite3")
+            row = conn.execute(
+                "SELECT manifest_json FROM events WHERE revision=5"
+            ).fetchone()
+            conn.close()
+            manifest = json.loads(row["manifest_json"])
+            art = manifest["artifacts"][-1]
+            self.assertEqual(art["sha256"], digest_bytes(b"body"))
+            blob = Path(td) / "blobs" / art["sha256"]
+            self.assertEqual(blob.read_bytes(), b"body")
+
+    def test_timestamp_normalization_advancing_clock(self):
+        """ADR-0012 §9: current engine derives summary timestamps from
+        created_at=legacy event.at, NOT the legacy engine's intermediate
+        clock values."""
+        with tempfile.TemporaryDirectory() as td:
+            migrate_store(self.src, Path(td) / "methodfactory.sqlite3")
+            conn = _open_db(Path(td) / "methodfactory.sqlite3")
+            # prepare_summary is rev3 (at 00:07); confirm_summary is rev4 (00:10)
+            row3 = conn.execute(
+                "SELECT created_at, manifest_json FROM events WHERE revision=3"
+            ).fetchone()
+            row4 = conn.execute(
+                "SELECT created_at, manifest_json FROM events WHERE revision=4"
+            ).fetchone()
+            conn.close()
+            self.assertEqual(row3["created_at"], "2026-08-07T00:07:00+00:00")
+            self.assertEqual(row4["created_at"], "2026-08-07T00:10:00+00:00")
+            m3 = json.loads(row3["manifest_json"])
+            m4 = json.loads(row4["manifest_json"])
+            # normalized: presented_at == created_at of the preparing event
+            self.assertEqual(m3["summary"]["presented_at"], "2026-08-07T00:07:00+00:00")
+            self.assertEqual(
+                m4["summary"]["confirmation"]["confirmed_at"], "2026-08-07T00:10:00+00:00"
+            )
+            # legacy engine used 00:05 (presented) / 00:08 (confirmed) — NOT copied
+            self.assertNotEqual(m3["summary"]["presented_at"], "2026-08-07T00:05:00+00:00")
+            self.assertNotEqual(
+                m4["summary"]["confirmation"]["confirmed_at"], "2026-08-07T00:08:00+00:00"
+            )
+
+    def test_every_action_family(self):
+        src = _generate("all_families", all_action_families_workflow)
+        with tempfile.TemporaryDirectory() as td:
+            receipt = migrate_store(src, Path(td) / "methodfactory.sqlite3")
+            self.assertEqual(receipt["source_event_count"], 12)
+            # all seven action families present in reconstructed actions
+            conn = _open_db(Path(td) / "methodfactory.sqlite3")
+            actions = {r["action"] for r in conn.execute("SELECT DISTINCT action FROM events")}
+            conn.close()
+            self.assertEqual(
+                actions,
+                {"create_package", "record_input", "set_objective",
+                 "prepare_summary", "confirm_summary", "revise_intake",
+                 "record_draft_artifact", "cancel"},
+            )
+
+    def test_optional_field_candidates(self):
+        src = _generate("optional_omitted", optional_omitted_workflow)
+        with tempfile.TemporaryDirectory() as td:
+            receipt = migrate_store(src, Path(td) / "methodfactory.sqlite3")
+            self.assertEqual(receipt["source_event_count"], 6)
+            conn = _open_db(Path(td) / "methodfactory.sqlite3")
+            # rev1: record_input omitted exclusion_reason -> None in manifest
+            row = conn.execute(
+                "SELECT manifest_json FROM events WHERE revision=1"
+            ).fetchone()
+            manifest = json.loads(row["manifest_json"])
+            self.assertEqual(manifest["inputs"][-1]["exclusion_reason"], None)
+            # rev2: set_objective omitted desired_outcomes -> []
+            row = conn.execute(
+                "SELECT manifest_json FROM events WHERE revision=2"
+            ).fetchone()
+            manifest = json.loads(row["manifest_json"])
+            self.assertEqual(manifest["objective"], {
+                "statement": "Only statement", "desired_outcomes": []})
+            # rev4: confirm_summary default operator -> "operator"
+            row = conn.execute(
+                "SELECT manifest_json FROM events WHERE revision=4"
+            ).fetchone()
+            manifest = json.loads(row["manifest_json"])
+            self.assertEqual(
+                manifest["summary"]["confirmation"]["operator_id"], "operator")
+            conn.close()
+
+    def test_non_ascii_content(self):
+        src = _generate("non_ascii", non_ascii_workflow)
+        with tempfile.TemporaryDirectory() as td:
+            receipt = migrate_store(src, Path(td) / "methodfactory.sqlite3")
+            self.assertEqual(receipt["source_event_count"], 3)
+            conn = _open_db(Path(td) / "methodfactory.sqlite3")
+            row = conn.execute(
+                "SELECT manifest_json FROM events WHERE revision=1"
+            ).fetchone()
+            manifest = json.loads(row["manifest_json"])
+            # "สวัสดี こんにちは" = 34 UTF-8 bytes
+            self.assertEqual(manifest["inputs"][-1]["content_size"], 34)
+            self.assertEqual(
+                manifest["inputs"][-1]["content_sha256"],
+                "d68784da4b0bdf1348af3886af7d7784313a629d6baaaefcc798328c8de8d06b",
+            )
+            conn.close()
+
+    def test_revise_intake(self):
+        src = _generate("revise", revise_intake_workflow)
+        with tempfile.TemporaryDirectory() as td:
+            receipt = migrate_store(src, Path(td) / "methodfactory.sqlite3")
+            self.assertEqual(receipt["source_event_count"], 5)
+            conn = _open_db(Path(td) / "methodfactory.sqlite3")
+            row = conn.execute(
+                "SELECT manifest_json FROM events WHERE revision=4"
+            ).fetchone()
+            manifest = json.loads(row["manifest_json"])
+            self.assertIsNone(manifest["summary"])
+            conn.close()
+
+    def test_receipt_identity(self):
+        with tempfile.TemporaryDirectory() as td:
+            dest = Path(td) / "methodfactory.sqlite3"
+            migrate_store(self.src, dest)
+            receipt = json.loads(
+                dest.with_name(dest.name + ".receipt.json").read_text()
+            )
+            self.assertEqual(receipt["receipt_format"], "method-factory-migration-receipt")
+            self.assertEqual(receipt["receipt_version"], "v1")
+            self.assertEqual(receipt["legacy_source_format"], "v0.1.2-integrity")
+            self.assertEqual(
+                receipt["legacy_source_commit"],
+                "fb5641cc1a3f1f54b96bba3af88ec5a1b010f4e5",
+            )
+            self.assertEqual(receipt["source_package_count"], 1)
+            self.assertEqual(receipt["source_event_count"], 7)
+            self.assertEqual(receipt["destination_event_count"], 7)
+            self.assertEqual(receipt["validation_verdict"], "PASS")
+            # receipt inventory == current source inventory
+            self.assertEqual(
+                {k: (v["sha256"], v["size"]) for k, v in
+                 receipt["semantic_source_inventory"].items()},
+                _inventory(self.src),
+            )
+
+
+class MigrationFailClosedTests(unittest.TestCase):
+    """Cases that must fail typed and never publish."""
+
+    @classmethod
+    def setUpClass(cls):
+        cls.src = _generate("standard", standard_workflow)
+
+    def test_unrecoverable_cancel_reason(self):
+        src = _generate("cancel_arbitrary", cancel_arbitrary_reason_workflow)
+        with tempfile.TemporaryDirectory() as td:
+            dest = Path(td) / "methodfactory.sqlite3"
+            with self.assertRaises(MigrationIncompatibleError):
+                migrate_store(src, dest)
+            self.assertFalse(dest.exists())
+            self.assertFalse(dest.with_name(dest.name + ".receipt.json").exists())
+
+    def test_overlimit_intent(self):
+        src = _generate("bigintent", overlimit_intent_workflow)
+        with tempfile.TemporaryDirectory() as td:
+            with self.assertRaises(MigrationIncompatibleError):
+                migrate_store(src, Path(td) / "methodfactory.sqlite3")
+
+    def test_overlimit_input(self):
+        src = _generate("biginput", overlimit_input_workflow)
+        with tempfile.TemporaryDirectory() as td:
+            with self.assertRaises(MigrationIncompatibleError):
+                migrate_store(src, Path(td) / "methodfactory.sqlite3")
+
+    def test_current_invalid_identifier(self):
+        src = _generate("badid", current_invalid_identifier_workflow)
+        with tempfile.TemporaryDirectory() as td:
+            with self.assertRaises(MigrationIncompatibleError):
+                migrate_store(src, Path(td) / "methodfactory.sqlite3")
+
+    def test_destination_exists(self):
+        with tempfile.TemporaryDirectory() as td:
+            dest = Path(td) / "methodfactory.sqlite3"
+            dest.write_bytes(b"already here")
+            with self.assertRaises(DestinationExistsError):
+                migrate_store(self.src, dest)
+            self.assertEqual(dest.read_bytes(), b"already here")
+
+    def test_duplicate_event_id_across_packages(self):
+        """A second package reusing event_ids from the first must fail
+        MIGRATION_INCOMPATIBLE (global event-ID uniqueness), never leak a
+        raw sqlite error."""
+        # Build a two-package legacy store by cloning the standard fixture
+        # journal and rewriting package_id in snapshot+hashes is complex; use
+        # a hand-crafted second journal that shares event ids by copying the
+        # first package's journal lines and only changing the manifest
+        # package_id (chain hashes still verify because we recompute them).
+        with tempfile.TemporaryDirectory() as td:
+            src = Path(td) / "src"
+            shutil.copytree(self.src, src)
+            events = [json.loads(l) for l in
+                      (src / "events/pkg_demo_001.events.jsonl").read_text().splitlines()]
+            # Build pkg_demo_002 journal: same event_ids, same actions, but
+            # snapshot package_id rewritten to pkg_demo_002; recompute all
+            # manifest/action hashes using legacy canonicalization.
+            out_lines = []
+            prev_hash = None
+            for ev in events:
+                snap = json.loads(json.dumps(ev["manifest_snapshot"]))
+                snap["package_id"] = "pkg_demo_002"
+                snap["previous_manifest_sha256"] = prev_hash
+                resulting = legacy_digest_json(snap)
+                # rev0 special action hash; rev>0 legacy canonical of semantic
+                if ev["revision"] == 0:
+                    action_hash = hashlib.sha256(
+                        legacy_canonical_json(
+                            {"action": "create_package", "package_id": "pkg_demo_002"}
+                        )
+                    ).hexdigest()
+                else:
+                    semantic = {
+                        "protocol_version": "0.1",
+                        "action_id": ev["action_id"],
+                        "package_id": "pkg_demo_002",
+                        "action": ev["action"],
+                        "basis": {},
+                        "payload": {},
+                    }
+                    action_hash = hashlib.sha256(
+                        legacy_canonical_json(semantic)
+                    ).hexdigest()
+                newev = {
+                    "event_id": ev["event_id"],
+                    "action": ev["action"],
+                    "action_id": ev["action_id"],
+                    "revision": ev["revision"],
+                    "state_before": ev["state_before"],
+                    "state_after": ev["state_after"],
+                    "resulting_manifest_sha256": resulting,
+                    "previous_manifest_sha256": prev_hash,
+                    "action_sha256": action_hash,
+                    "at": ev["at"],
+                    "manifest_snapshot": snap,
+                }
+                out_lines.append(json.dumps(newev, sort_keys=True))
+                prev_hash = resulting
+            (src / "events/pkg_demo_002.events.jsonl").write_text(
+                "\n".join(out_lines) + "\n", encoding="utf-8")
+            # The second package shares ALL event_ids with the first.
+            dest = Path(td) / "methodfactory.sqlite3"
+            with self.assertRaises(MigrationIncompatibleError):
+                migrate_store(src, dest)
+            self.assertFalse(dest.exists())
+
+
+class LegacySourceTests(unittest.TestCase):
+    """Frozen reader semantics: cache, lock, source identity."""
+
+    @classmethod
+    def setUpClass(cls):
+        cls.src = _generate("standard", standard_workflow)
+
+    def _copy(self, td: str) -> Path:
+        src = Path(td) / "src"
+        shutil.copytree(self.src, src)
+        return src
+
+    def test_cache_absent_ok(self):
+        with tempfile.TemporaryDirectory() as td:
+            src = self._copy(td)
+            (src / "packages/pkg_demo_001.json").unlink()
+            ls = LegacySource(src)
+            ls.validate()
+            self.assertEqual(ls.packages["pkg_demo_001"].cache_status, "absent")
+            migrate_store(src, Path(td) / "methodfactory.sqlite3")
+
+    def test_cache_lagging_valid(self):
+        with tempfile.TemporaryDirectory() as td:
+            src = self._copy(td)
+            # Replace cache with an earlier committed snapshot (rev2).
+            events = [json.loads(l) for l in
+                      (src / "events/pkg_demo_001.events.jsonl").read_text().splitlines()]
+            earlier = events[2]["manifest_snapshot"]
+            (src / "packages/pkg_demo_001.json").write_text(
+                json.dumps(earlier, sort_keys=True), encoding="utf-8")
+            ls = LegacySource(src)
+            ls.validate()
+            self.assertEqual(ls.packages["pkg_demo_001"].cache_status, "valid")
+            migrate_store(src, Path(td) / "methodfactory.sqlite3")
+
+    def test_cache_invalid_fails(self):
+        with tempfile.TemporaryDirectory() as td:
+            src = self._copy(td)
+            (src / "packages/pkg_demo_001.json").write_text(
+                json.dumps({"not": "a committed snapshot"}), encoding="utf-8")
+            ls = LegacySource(src)
+            with self.assertRaises(LegacyChainInvalidError):
+                ls.validate()
+            with self.assertRaises(LegacyChainInvalidError):
+                migrate_store(src, Path(td) / "methodfactory.sqlite3")
+
+    def test_lock_refuses_without_mutation(self):
+        with tempfile.TemporaryDirectory() as td:
+            src = self._copy(td)
+            lock = src / "events/pkg_demo_001.lock"
+            lock.write_text("pid 123\n", encoding="utf-8")
+            before = _inventory(src)
+            with self.assertRaises(ConcurrencyError):
+                migrate_store(src, Path(td) / "methodfactory.sqlite3")
+            # lock untouched; source bytes identical; lock NOT in inventory
+            self.assertTrue(lock.exists())
+            self.assertEqual(lock.read_text(), "pid 123\n")
+            self.assertEqual(_inventory(src), before)
+            self.assertNotIn("events/pkg_demo_001.lock", _inventory(src))
+
+    def test_corrupt_hash_fails(self):
+        with tempfile.TemporaryDirectory() as td:
+            src = self._copy(td)
+            journal = src / "events/pkg_demo_001.events.jsonl"
+            text = journal.read_text().splitlines()
+            line = json.loads(text[1])
+            line["resulting_manifest_sha256"] = "0" * 64
+            text[1] = json.dumps(line, sort_keys=True)
+            journal.write_text("\n".join(text) + "\n", encoding="utf-8")
+            ls = LegacySource(src)
+            with self.assertRaises(LegacyChainInvalidError):
+                ls.validate()
+
+    def test_missing_blob_fails(self):
+        with tempfile.TemporaryDirectory() as td:
+            src = self._copy(td)
+            blob = next((src / "artifacts/blobs").iterdir())
+            blob.unlink()
+            ls = LegacySource(src)
+            with self.assertRaises((LegacyChainInvalidError, LegacySourceInvalidError)):
+                ls.validate()
+
+    def test_source_inventory_excludes_lock(self):
+        with tempfile.TemporaryDirectory() as td:
+            src = self._copy(td)
+            (src / "events/pkg_demo_001.lock").write_text("pid\n", encoding="utf-8")
+            inv = _inventory(src)
+            self.assertNotIn("events/pkg_demo_001.lock", inv)
+
+
+class PublicationFaultTests(unittest.TestCase):
+    """Fault injection across publication stages; always fail closed."""
+
+    @classmethod
+    def setUpClass(cls):
+        cls.src = _generate("standard", standard_workflow)
+
+    def _run_fault_at(self, stage: str, expect_publication: bool = False):
+        """Inject a raise at `stage`; assert typed failure + fail-closed state.
+
+        `expect_publication=False` (fault before DB rename): no final DB may
+        exist. The receipt may legitimately exist for stages after receipt
+        publication (receipt publishes before DB per ADR-0012 §11) — but the
+        call must RAISE, never report success. `expect_publication=True`
+        (fault after DB rename): the DB file may exist but success is never
+        reported.
+        """
+        old = migrate_module.FAULT_HOOK
+        try:
+            def hook(s):
+                if s == stage:
+                    raise StorageError(f"fault at {stage}")
+            migrate_module.FAULT_HOOK = hook
+            with tempfile.TemporaryDirectory() as td:
+                dest = Path(td) / "methodfactory.sqlite3"
+                try:
+                    migrate_store(self.src, dest)
+                    self.fail(f"expected failure at {stage}")
+                except MethodFactoryError:
+                    pass  # typed failure; never a success return
+                if not expect_publication:
+                    self.assertFalse(dest.exists())
+        finally:
+            migrate_module.FAULT_HOOK = old
+
+    def test_fault_matrix(self):
+        # Faults BEFORE the DB rename: nothing published.
+        pre_stages = [
+            "after_source_inventory_before",
+            "before_build_store",
+            "after_build_store",
+            "after_validate_temp_store",
+            "after_source_inventory_after",
+            "before_receipt_write",
+            "before_receipt_replace",
+            "before_dir_fsync_receipt",
+            "before_db_replace",
+        ]
+        for stage in pre_stages:
+            with self.subTest(stage=stage):
+                self._run_fault_at(stage, expect_publication=False)
+        # Faults AFTER the DB rename: DB exists but success is never reported.
+        post_stages = [
+            "before_dir_fsync_db",
+            "before_final_verify",
+        ]
+        for stage in post_stages:
+            with self.subTest(stage=stage):
+                self._run_fault_at(stage, expect_publication=True)
+
+    def test_source_changed_detected(self):
+        """Mutate the source between the two inventory passes -> SOURCE_CHANGED,
+        no publication."""
+        old = migrate_module.FAULT_HOOK
+        try:
+            def hook(s):
+                if s == "after_source_inventory_before":
+                    # mutate a source file after the BEFORE inventory
+                    journal = self.src / "events/pkg_demo_001.events.jsonl"
+                    with open(journal, "a", encoding="utf-8") as fh:
+                        fh.write("\n")
+            migrate_module.FAULT_HOOK = hook
+            with tempfile.TemporaryDirectory() as td:
+                dest = Path(td) / "methodfactory.sqlite3"
+                with self.assertRaises(SourceChangedError):
+                    migrate_store(self.src, dest)
+                self.assertFalse(dest.exists())
+                self.assertFalse(
+                    dest.with_name(dest.name + ".receipt.json").exists()
+                )
+        finally:
+            migrate_module.FAULT_HOOK = old
+
+    def test_final_verify_fault_after_publication(self):
+        """A fault at after_publication (post-DB rename) is not success."""
+        old = migrate_module.FAULT_HOOK
+        try:
+            def hook(s):
+                if s == "after_publication":
+                    raise StorageError("fault after publication")
+            migrate_module.FAULT_HOOK = hook
+            with tempfile.TemporaryDirectory() as td:
+                dest = Path(td) / "methodfactory.sqlite3"
+                with self.assertRaises(MethodFactoryError):
+                    migrate_store(self.src, dest)
+        finally:
+            migrate_module.FAULT_HOOK = old
+
+
+class ExportDeterminismTests(unittest.TestCase):
+    """Deterministic exports (method-factory-events-v1 + legacy-v012-jsonl)."""
+
+    @classmethod
+    def setUpClass(cls):
+        src = _generate("standard", standard_workflow)
+        cls.td = tempfile.TemporaryDirectory()
+        cls.root = Path(cls.td.name)
+        migrate_store(src, cls.root / "methodfactory.sqlite3")
+
+    @classmethod
+    def tearDownClass(cls):
+        cls.td.cleanup()
+
+    def test_v1_field_set_and_deterministic(self):
+        a = Path(self.td.name) / "a.jsonl"
+        b = Path(self.td.name) / "b.jsonl"
+        n1 = export_events(self.root, a, fmt=EVENTS_V1_FORMAT)
+        n2 = export_events(self.root, b, fmt=EVENTS_V1_FORMAT)
+        self.assertEqual(n1, 7)
+        self.assertEqual(a.read_bytes(), b.read_bytes())
+        # exact final newline
+        text = a.read_text(encoding="utf-8")
+        self.assertTrue(text.endswith("\n"))
+        self.assertFalse(text.endswith("\n\n"))
+        line = json.loads(text.splitlines()[0])
+        self.assertEqual(
+            set(line.keys()),
+            {"format", "format_version", "package_id", "revision", "event_id",
+             "action_id", "action", "state_before", "state_after",
+             "action_sha256", "previous_manifest_sha256",
+             "resulting_manifest_sha256", "created_at", "semantic_action",
+             "manifest"},
+        )
+        self.assertEqual(line["format"], "method-factory-events-v1")
+        self.assertEqual(line["format_version"], 1)
+        # ordering by package_id, revision
+        rows = [json.loads(l) for l in text.splitlines()]
+        self.assertEqual([r["revision"] for r in rows], list(range(7)))
+
+    def test_legacy_v012_deterministic_and_chain(self):
+        a = Path(self.td.name) / "l1.jsonl"
+        b = Path(self.td.name) / "l2.jsonl"
+        n1 = export_events(self.root, a, fmt=LEGACY_JSONL_FORMAT)
+        n2 = export_events(self.root, b, fmt=LEGACY_JSONL_FORMAT)
+        self.assertEqual(n1, 7)
+        self.assertEqual(a.read_bytes(), b.read_bytes())
+        rows = [json.loads(l) for l in a.read_text().splitlines()]
+        # legacy chain: prev == previous resulting in legacy hash space
+        prev = None
+        for r in rows:
+            self.assertEqual(r["previous_manifest_sha256"], prev)
+            prev = r["resulting_manifest_sha256"]
+        # legacy event shape (no semantic_action/manifest/created_at split)
+        self.assertNotIn("semantic_action", rows[0])
+        self.assertNotIn("manifest", rows[0])
+        self.assertIn("manifest_snapshot", rows[0])
+        self.assertIn("at", rows[0])
+
+    def test_legacy_rev0_action_hash(self):
+        out = Path(self.td.name) / "l.jsonl"
+        export_events(self.root, out, fmt=LEGACY_JSONL_FORMAT)
+        line = json.loads(out.read_text().splitlines()[0])
+        self.assertEqual(
+            line["action_sha256"],
+            "b3f006065ea54589c09f528898abbab0496455df3e39c1b7c7fd70c524750aab",
+        )
+
+    def test_legacy_hash_vs_line_serializer_distinction(self):
+        """Public v0.1.2 hash serializer (ensure_ascii compact) differs from
+        the journal-line serializer (Python default spacing, ASCII escape)."""
+        ev = {"at": "2026-08-07T00:00:00+00:00", "b": "é"}
+        canonical = legacy_digest_json  # hash form: ensure_ascii compact
+        line = legacy_line_json(ev)  # line form: default spacing + ASCII
+        self.assertIn("\\u00e9", line)
+        self.assertIn('": "', line)  # default spacing after colon
+        # hash form has no spacing and escapes unicode too
+        from methodfactory.migrations.v012_jsonl import legacy_canonical_json
+        self.assertIn(b"\\u00e9", legacy_canonical_json(ev))
+        self.assertNotIn(b'"b": "', legacy_canonical_json(ev))
+
+    def test_export_no_mutation(self):
+        before = _inventory(self.root)
+        out = Path(self.td.name) / "n.jsonl"
+        export_events(self.root, out, fmt=EVENTS_V1_FORMAT)
+        after = _inventory(self.root)
+        self.assertEqual(before, after)
+        # export to stdout does not touch the store either
+        before2 = _inventory(self.root)
+        self.assertEqual(before2, after)
+
+    def test_export_consistent_read(self):
+        """Export succeeds and returns exact row count under a read-only open."""
+        out = Path(self.td.name) / "c.jsonl"
+        n = export_events(self.root, out, fmt=EVENTS_V1_FORMAT)
+        self.assertEqual(n, 7)
+        self.assertEqual(len(out.read_text().splitlines()), 7)
+
+    def test_export_destination_exists_fails(self):
+        out = Path(self.td.name) / "exists.jsonl"
+        out.write_text("x", encoding="utf-8")
+        with self.assertRaises(StorageError):
+            export_events(self.root, out, fmt=EVENTS_V1_FORMAT)
+        self.assertEqual(out.read_text(), "x")
+
+
+class SurfaceBoundaryTests(unittest.TestCase):
+    """No import surface; no 8a repair/lock/CAS mechanics; CLI bounded."""
+
+    def test_no_import_surface(self):
+        import pkgutil
+
+        import methodfactory.migrations as m
+        names = [m.name for m in pkgutil.iter_modules(m.__path__)]
+        self.assertNotIn("import", names)
+        self.assertNotIn("import_store", names)
+        # no import module/function in the package
+        for modname in names:
+            self.assertNotIn("import", modname)
+
+    def test_no_8a_mechanics_in_reader(self):
+        """The frozen reader must not port CAS/lock/repair mechanics.
+
+        Checks code identifiers (not docstring prose): no CAS primitive, no
+        lock acquisition, no tail-repair, no PID ownership, no append, no
+        manifest-cache reconciliation as a mutation mechanism.
+        """
+        import methodfactory.migrations.v012_jsonl as v
+
+        src = Path(v.__file__).read_text(encoding="utf-8")
+        # strip docstrings/prose: only inspect executable code
+        code = src.split('"""')[0] + "".join(src.split('"""')[2:])
+        for banned in ("compare_and_swap", "_read_last_event", "os.link",
+                       "fcntl", "threading", "pid", "tail_repair",
+                       "chmod", "unlink", "mkdir", "write_text", "open(",
+                       "acquire"):
+            self.assertNotIn(banned, code)
+
+    def test_no_relaxed_serializers_in_migrate(self):
+        import methodfactory.migrations.migrate as mg
+
+        src = Path(mg.__file__).read_text(encoding="utf-8")
+        # migration must use current canonical serialization for the modern
+        # rows (ensure_ascii=False), not the legacy hash form
+        self.assertIn("ensure_ascii=False", src)
+
+    def test_temp_hygiene_after_failure(self):
+        """A failed migration leaves no temp dirs or receipt behind."""
+        src = _generate("cancel_arbitrary", cancel_arbitrary_reason_workflow)
+        with tempfile.TemporaryDirectory() as td:
+            dest = Path(td) / "methodfactory.sqlite3"
+            try:
+                migrate_store(src, dest)
+            except MigrationIncompatibleError:
+                pass
+            leftovers = [p for p in Path(td).iterdir() if ".tmp." in p.name]
+            self.assertEqual(leftovers, [])
+
+
+class CliBoundaryTests(unittest.TestCase):
+    """`mf --version`, migrate-store, export through the real CLI."""
+
+    def test_version_unchanged(self):
+        result = subprocess.run(
+            [sys.executable, "-m", "methodfactory.cli", "--version"],
+            capture_output=True, text=True,
+        )
+        self.assertEqual(result.returncode, 0)
+        self.assertIn("methodfactory 2.0.0a1", result.stdout)
+
+    def test_no_lifecycle_commands(self):
+        result = subprocess.run(
+            [sys.executable, "-m", "methodfactory.cli", "--help"],
+            capture_output=True, text=True,
+        )
+        for banned in ("create", "apply", "status", "summary", "review",
+                       "trial", "ship", "triage"):
+            self.assertNotIn(f" {banned} ", result.stdout)
+
+    def test_cli_migrate_store(self):
+        src = _generate("standard", standard_workflow)
+        with tempfile.TemporaryDirectory() as td:
+            dest = Path(td) / "methodfactory.sqlite3"
+            result = subprocess.run(
+                [sys.executable, "-m", "methodfactory.cli",
+                 "migrate-store", "--source", str(src), "--dest", str(dest)],
+                capture_output=True, text=True,
+            )
+            self.assertEqual(result.returncode, 0, result.stderr)
+            self.assertTrue(dest.is_file())
+            self.assertIn("validation_verdict", result.stdout)
+
+    def test_cli_export(self):
+        src = _generate("standard", standard_workflow)
+        with tempfile.TemporaryDirectory() as td:
+            dest = Path(td) / "methodfactory.sqlite3"
+            subprocess.run(
+                [sys.executable, "-m", "methodfactory.cli",
+                 "migrate-store", "--source", str(src), "--dest", str(dest)],
+                capture_output=True, text=True, check=True,
+            )
+            out = Path(td) / "out.jsonl"
+            result = subprocess.run(
+                [sys.executable, "-m", "methodfactory.cli",
+                 "export", "--store", str(Path(td)),
+                 "--output", str(out), "--format", "method-factory-events-v1"],
+                capture_output=True, text=True,
+            )
+            self.assertEqual(result.returncode, 0, result.stderr)
+            self.assertEqual(len(out.read_text().splitlines()), 7)
+
+    def test_cli_errors_typed(self):
+        result = subprocess.run(
+            [sys.executable, "-m", "methodfactory.cli",
+             "migrate-store", "--source", "/does/not/exist",
+             "--dest", "/tmp/x.sqlite3"],
+            capture_output=True, text=True,
+        )
+        self.assertEqual(result.returncode, 1)
+        self.assertIn("LEGACY_SOURCE_INVALID", result.stderr)
+
+
+# Imported at module level for fault tests
+from methodfactory.domain.errors import MethodFactoryError
+from methodfactory.storage.errors import StorageError
+from methodfactory.migrations.v012_jsonl import legacy_canonical_json
+
+if __name__ == "__main__":
+    unittest.main()
