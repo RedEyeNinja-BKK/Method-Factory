@@ -47,3 +47,15 @@ MAX_MANIFEST_BYTES = 8 * 1024 * 1024
 # Enforced at put(); the byte budget is the storage ceiling, the char budget
 # bounds a string payload before encoding.
 MAX_ARTIFACT_BYTES = 64 * 1024 * 1024
+
+# ── Persisted content-addressed body BYTE ceilings (Finding 1 item 2) ───
+# These are UTF-8 BYTE bounds for content stored in the blob store, applied
+# to the persisted manifest's content_size / summary.size / artifact
+# byte_count fields. They are deliberately separate from the *_CHARS limits:
+# a byte field must never be compared against a character constant. All three
+# ALIAS MAX_ARTIFACT_BYTES (local review, q-3): every persisted body lives in
+# the same content-addressed blob store, so the ceilings cannot drift apart
+# from the storage ceiling.
+MAX_INPUT_CONTENT_BYTES = MAX_ARTIFACT_BYTES   # record_input content body IS an artifact body
+MAX_SUMMARY_BYTES = MAX_ARTIFACT_BYTES         # content-addressed summary body (digest+size in manifest; body in blob store)
+MAX_ARTIFACT_BODY_BYTES = MAX_ARTIFACT_BYTES   # artifact byte_count ceiling

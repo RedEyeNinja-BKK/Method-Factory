@@ -15,18 +15,21 @@ from datetime import datetime
 
 from ..domain.states import State
 from ..storage.limits import (
+    MAX_ARTIFACT_BODY_BYTES,
     MAX_CONTENT_CHARS,
     MAX_ID_CHARS,
+    MAX_INPUT_CONTENT_BYTES,
     MAX_INTENT_CHARS,
     MAX_LOGICAL_PATH_CHARS,
     MAX_MANIFEST_BYTES,
     MAX_OUTCOMES,
+    MAX_PREVIEW_CHARS,
     MAX_REASON_CHARS,
     MAX_STATEMENT_CHARS,
-    MAX_PREVIEW_CHARS,
+    MAX_SUMMARY_BYTES,
 )
 from ..storage.paths import PACKAGE_ID_RE, validate_identifier, validate_logical_path, validate_package_id
-from ..storage.serialization import canonical_bytes_bounded, contains_control_chars
+from ..storage.serialization import contains_control_chars, try_canonical_bytes_bounded
 
 SCHEMA_VERSION = "0.1"
 
@@ -98,11 +101,14 @@ def validate_manifest(manifest: dict) -> list[str]:
     if not isinstance(manifest, dict):
         return ["manifest must be a JSON object"]
 
-    # Total canonical manifest byte bound.
-    try:
-        canonical_bytes_bounded(manifest, limit=MAX_MANIFEST_BYTES, what="manifest")
-    except ValueError as exc:
-        errors.append(str(exc))
+    # Total canonical manifest byte bound. Native canonicalization failures
+    # (unsupported types, deep recursion, lone-surrogate encoding) are
+    # translated into manifest errors — never leaked raw (Finding 1).
+    _, canonical_error = try_canonical_bytes_bounded(
+        manifest, limit=MAX_MANIFEST_BYTES, what="manifest"
+    )
+    if canonical_error is not None:
+        errors.append(canonical_error)
 
     for key in manifest:
         if key not in TOP_LEVEL_FIELDS:
@@ -139,6 +145,15 @@ def validate_manifest(manifest: dict) -> list[str]:
             errors.append(f"intent.raw exceeds {MAX_INTENT_CHARS} chars")
         if contains_control_chars(intent["raw"]):
             errors.append("intent.raw must not contain control characters")
+    if isinstance(intent, dict) and "clarified" in intent:
+        clarified = intent["clarified"]
+        if clarified is not None and not isinstance(clarified, str):
+            errors.append("intent.clarified must be a string or null")
+        elif isinstance(clarified, str):
+            if len(clarified) > MAX_INTENT_CHARS:
+                errors.append(f"intent.clarified exceeds {MAX_INTENT_CHARS} chars")
+            if contains_control_chars(clarified):
+                errors.append("intent.clarified must not contain control characters")
 
     inputs = manifest.get("inputs")
     if not isinstance(inputs, list):
@@ -167,16 +182,22 @@ def validate_manifest(manifest: dict) -> list[str]:
                 errors.append(f"{tag}.source invalid")
             if item.get("disposition") not in DISPOSITIONS:
                 errors.append(f"{tag}.disposition invalid")
-            elif item.get("disposition") == "excluded" and not str(item.get("exclusion_reason") or "").strip():
+            elif item.get("disposition") == "excluded" and not (isinstance(item.get("exclusion_reason"), str) and item["exclusion_reason"].strip()):
                 errors.append(f"{tag}: excluded input requires exclusion_reason")
-            if isinstance(item.get("exclusion_reason"), str) and len(item["exclusion_reason"]) > MAX_REASON_CHARS:
-                errors.append(f"{tag}.exclusion_reason exceeds {MAX_REASON_CHARS} chars")
+            exclusion_reason = item.get("exclusion_reason")
+            if exclusion_reason is not None and not isinstance(exclusion_reason, str):
+                errors.append(f"{tag}.exclusion_reason must be a string or null")
+            elif isinstance(exclusion_reason, str):
+                if len(exclusion_reason) > MAX_REASON_CHARS:
+                    errors.append(f"{tag}.exclusion_reason exceeds {MAX_REASON_CHARS} chars")
+                if contains_control_chars(exclusion_reason):
+                    errors.append(f"{tag}.exclusion_reason must not contain control characters")
             if not (isinstance(item.get("content_sha256"), str) and SHA256_RE.match(item["content_sha256"])):
                 errors.append(f"{tag}.content_sha256 invalid")
             if isinstance(item.get("content_size"), bool) or not isinstance(item.get("content_size"), int) or item["content_size"] < 0:
                 errors.append(f"{tag}.content_size invalid")
-            elif item["content_size"] > MAX_CONTENT_CHARS:
-                errors.append(f"{tag}.content_size exceeds {MAX_CONTENT_CHARS}")
+            elif item["content_size"] > MAX_INPUT_CONTENT_BYTES:
+                errors.append(f"{tag}.content_size exceeds {MAX_INPUT_CONTENT_BYTES} bytes")
             if not isinstance(item.get("content_path"), str) or not item["content_path"]:
                 errors.append(f"{tag}.content_path invalid")
             else:
@@ -221,12 +242,16 @@ def validate_manifest(manifest: dict) -> list[str]:
                 errors.append("summary.digest invalid (64-hex required)")
             if isinstance(summary.get("size"), bool) or not isinstance(summary.get("size"), int) or summary["size"] < 0:
                 errors.append("summary.size invalid (non-negative int required)")
+            elif summary["size"] > MAX_SUMMARY_BYTES:
+                errors.append(f"summary.size exceeds {MAX_SUMMARY_BYTES} bytes")
             preview = summary.get("preview")
             if preview is not None:
                 if not isinstance(preview, str):
                     errors.append("summary.preview must be a string or null")
                 elif len(preview) > SUMMARY_PREVIEW_MAX_CHARS:
                     errors.append(f"summary.preview exceeds {SUMMARY_PREVIEW_MAX_CHARS} chars")
+                if isinstance(preview, str) and contains_control_chars(preview):
+                    errors.append("summary.preview must not contain control characters")
             if not _is_iso8601(summary.get("presented_at")):
                 errors.append("summary.presented_at must be ISO-8601")
             conf = summary.get("confirmation")
@@ -241,8 +266,14 @@ def validate_manifest(manifest: dict) -> list[str]:
                 if conf.get("status") == "confirmed":
                     if not _is_iso8601(conf.get("confirmed_at")):
                         errors.append("confirmed summary requires confirmed_at")
-                    if not isinstance(conf.get("operator_id"), str):
+                    operator_id = conf.get("operator_id")
+                    if not isinstance(operator_id, str) or not operator_id:
                         errors.append("confirmed summary requires operator_id")
+                    else:
+                        try:
+                            validate_identifier(operator_id, field="summary.confirmation.operator_id")
+                        except Exception:
+                            errors.append("summary.confirmation.operator_id invalid identifier")
 
     artifacts = manifest.get("artifacts")
     if not isinstance(artifacts, list):
@@ -271,6 +302,11 @@ def validate_manifest(manifest: dict) -> list[str]:
                 errors.append(f"{tag}.kind exceeds {MAX_ID_CHARS} chars")
             elif contains_control_chars(art["kind"]):
                 errors.append(f"{tag}.kind must not contain control characters")
+            else:
+                try:
+                    validate_identifier(art["kind"], field=f"{tag}.kind")
+                except Exception:
+                    errors.append(f"{tag}.kind invalid identifier")
             if not isinstance(art.get("logical_path"), str) or not art["logical_path"]:
                 errors.append(f"{tag}.logical_path invalid")
             else:
@@ -282,8 +318,8 @@ def validate_manifest(manifest: dict) -> list[str]:
                 errors.append(f"{tag}.sha256 invalid")
             if isinstance(art.get("byte_count"), bool) or not isinstance(art.get("byte_count"), int) or art["byte_count"] < 0:
                 errors.append(f"{tag}.byte_count invalid")
-            elif art["byte_count"] > MAX_CONTENT_CHARS:
-                errors.append(f"{tag}.byte_count exceeds {MAX_CONTENT_CHARS}")
+            elif art["byte_count"] > MAX_ARTIFACT_BODY_BYTES:
+                errors.append(f"{tag}.byte_count exceeds {MAX_ARTIFACT_BODY_BYTES} bytes")
             if art.get("status") != "draft":
                 errors.append(f"{tag}.status must be 'draft' in v0.1")
 
@@ -293,7 +329,14 @@ def validate_manifest(manifest: dict) -> list[str]:
     else:
         for f in ("last_event_id", "last_action_id"):
             v = transition.get(f)
-            if v is not None and not isinstance(v, str):
+            if v is None:
+                continue
+            if not isinstance(v, str):
                 errors.append(f"transition.{f} must be a string or null")
+            else:
+                try:
+                    validate_identifier(v, field=f"transition.{f}")
+                except Exception:
+                    errors.append(f"transition.{f} invalid identifier")
 
     return errors

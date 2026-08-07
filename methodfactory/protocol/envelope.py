@@ -92,21 +92,35 @@ class ActionEnvelope:
 def parse_envelope(raw: str) -> ActionEnvelope:
     """Parse exactly one JSON object, then validate it strictly.
 
-    Enforces MAX_ENVELOPE_BYTES on the UTF-8 bytes BEFORE any JSON parse or
-    prose extraction (Finding 1): an oversized envelope fails fast without
-    materializing a large parse. Tolerates surrounding prose by extracting the
-    text between the first '{' and the last '}' only when the raw text is
-    within the byte bound.
+    Enforces MAX_ENVELOPE_BYTES on the ORIGINAL RAW UTF-8 input BEFORE
+    strip(), parsing, or prose extraction (Finding 1): a raw input that
+    exceeds the bound because of surrounding whitespace is still rejected.
+    Encoding failures (e.g. lone-surrogate UnicodeEncodeError) are translated
+    to InvalidEnvelopeError. Tolerates surrounding prose by extracting the
+    text between the first '{' and the last '}' only within the byte bound.
     """
     if not isinstance(raw, str):
         raise InvalidEnvelopeError("envelope must be a string")
-    text = raw.strip()
-    if not text:
-        raise InvalidEnvelopeError("empty envelope")
-    if len(text.encode("utf-8")) > MAX_ENVELOPE_BYTES:
+    # Fast-fail on character count BEFORE encoding (local review, perf-2):
+    # every UTF-8 char is >= 1 byte, so len(raw) > bound implies the byte
+    # bound is exceeded — oversized inputs are rejected without an O(n)
+    # allocation. The exact UTF-8 byte measurement below stays authoritative
+    # (multibyte strings can exceed the byte bound under the char count).
+    if len(raw) > MAX_ENVELOPE_BYTES:
         raise InvalidEnvelopeError(
             f"envelope exceeds {MAX_ENVELOPE_BYTES} bytes"
         )
+    try:
+        raw_bytes = raw.encode("utf-8")
+    except UnicodeEncodeError as exc:
+        raise InvalidEnvelopeError(f"envelope is not valid UTF-8: {exc}") from exc
+    if len(raw_bytes) > MAX_ENVELOPE_BYTES:
+        raise InvalidEnvelopeError(
+            f"envelope exceeds {MAX_ENVELOPE_BYTES} bytes"
+        )
+    text = raw.strip()
+    if not text:
+        raise InvalidEnvelopeError("empty envelope")
     try:
         candidate = json.loads(text)
     except json.JSONDecodeError:

@@ -51,6 +51,23 @@ def canonical_bytes_bounded(value: Any, *, limit: int, what: str) -> bytes:
     return raw
 
 
+def try_canonical_bytes_bounded(value: Any, *, limit: int, what: str) -> tuple[bytes | None, str | None]:
+    """Canonicalize with full native-failure translation (Finding 1 item 4).
+
+    Returns (bytes, None) on success or (None, error_message) when the value
+    cannot be canonicalized: unsupported JSON types, excessive recursion, or
+    lone-surrogate UnicodeEncodeError are all captured as a message rather
+    than leaking raw TypeError/RecursionError/UnicodeEncodeError.
+    """
+    try:
+        raw = canonical_bytes(value)
+    except (TypeError, RecursionError, UnicodeEncodeError, ValueError) as exc:
+        return None, f"{what} cannot be canonicalized: {exc}"
+    if len(raw) > limit:
+        return None, f"{what} exceeds {limit} bytes (got {len(raw)})"
+    return raw, None
+
+
 def sha256_hex(data: bytes) -> str:
     return hashlib.sha256(data).hexdigest()
 
