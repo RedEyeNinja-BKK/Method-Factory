@@ -1,4 +1,4 @@
-"""Canonical action-hash semantics tests (ADR-0012 §G)."""
+"""Canonical action-hash semantics tests (ADR-0012 §G, Finding 2 item 2)."""
 
 from __future__ import annotations
 
@@ -7,9 +7,11 @@ import unittest
 from methodfactory.storage.serialization import action_sha256
 
 
-def env_semantic(*, action="record_input", package_id="pkg_demo_001",
-                 action_id="act_1", basis=None, payload=None):
+def env_semantic(*, protocol_version="0.1", action="record_input",
+                 package_id="pkg_demo_001", action_id="act_1",
+                 basis=None, payload=None):
     return {
+        "protocol_version": protocol_version,
         "action": action,
         "package_id": package_id,
         "action_id": action_id,
@@ -22,6 +24,13 @@ class ActionHashSemanticsTests(unittest.TestCase):
     def test_stable_across_calls(self):
         a = env_semantic()
         self.assertEqual(action_sha256(**a), action_sha256(**a))
+
+    def test_protocol_version_change_changes_hash(self):
+        """Finding 2 item 2: protocol_version is part of the semantic request;
+        changing it must change the hash."""
+        a = env_semantic(protocol_version="0.1")
+        b = env_semantic(protocol_version="0.2")
+        self.assertNotEqual(action_sha256(**a), action_sha256(**b))
 
     def test_payload_change_changes_hash(self):
         a = env_semantic(payload={"content": "x"})
@@ -39,13 +48,12 @@ class ActionHashSemanticsTests(unittest.TestCase):
         self.assertNotEqual(action_sha256(**a), action_sha256(**b))
 
     def test_expected_revision_excluded(self):
-        # The function has no expected_revision parameter by design (ADR-0012 §G):
-        # a retry with an updated revision and the same semantic fields must
-        # hash identically so it replays instead of conflicting.
+        # The function has no expected_revision parameter by design (ADR-0012
+        # §G / Finding 2): a retry with an updated revision and the same
+        # semantic fields must hash identically so it replays instead of
+        # conflicting. expected_revision is the ONLY excluded envelope field.
         semantic = env_semantic()
         h = action_sha256(**semantic)
-        # Simulate the transport carrying different expected_revision values:
-        # the semantic dict is unchanged, so the hash is unchanged.
         self.assertEqual(h, action_sha256(**semantic))
 
     def test_unicode_payload_stable(self):

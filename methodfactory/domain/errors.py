@@ -54,7 +54,24 @@ class StaleActionError(MethodFactoryError):
 
 
 class ActionIdReuseError(MethodFactoryError):
+    """Legacy JSONL-era action-id reuse conflict (ADR-0008).
+
+    Superseded for the SQLite store by ActionIdConflictError
+    (ACTION_ID_CONFLICT). Retained only for legacy-scoped paths; new code must
+    raise/import the storage-layer ActionIdConflictError.
+    """
+
     code = "ACTION_ID_REUSE"
+
+
+class ActionIdConflictError(MethodFactoryError):
+    """Canonical SQLite-era action-id conflict (ADR-0012 §G, Finding 2).
+
+    Same action_id reused with a different action_sha256. Supersedes
+    ACTION_ID_REUSE.
+    """
+
+    code = "ACTION_ID_CONFLICT"
 
 
 class InvalidPayloadError(MethodFactoryError):

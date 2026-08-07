@@ -18,6 +18,7 @@ from .errors import (
     StorageError,
     UnsupportedSchemaError,
 )
+from ..domain.errors import MethodFactoryError
 from .limits import (
     MAX_ACTION_JSON_BYTES,
     MAX_ARTIFACT_BYTES,
@@ -65,6 +66,7 @@ __all__ = [
     "MAX_OUTCOMES",
     "MAX_REASON_CHARS",
     "MAX_STATEMENT_CHARS",
+    "MethodFactoryError",
     "SchemaViolationError",
     "StorageError",
     "UnsupportedSchemaError",

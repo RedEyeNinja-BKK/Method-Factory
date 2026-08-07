@@ -1,12 +1,15 @@
-"""Canonical serialization and hash primitives (ADR-0012 §4, §G).
+"""Canonical serialization and digest helpers (ADR-0012 §4, §G).
 
-Canonical JSON bytes are produced exactly as:
+This is the SINGLE authoritative canonical JSON byte implementation for
+Method Factory. The legacy ASCII-escaped variant in manifest/hashing.py is
+removed/redirected here so manifest, action, event, migration/export
+preparation, artifact metadata, and package-level exports all hash the same
+bytes regardless of import path (Finding 2 item 1).
+
+Canonical JSON bytes:
 
     json.dumps(value, sort_keys=True, separators=(",", ":"),
                ensure_ascii=False, allow_nan=False).encode("utf-8")
-
-and those bytes are what is hashed. `action_sha256` is the frozen semantic
-action hash (ADR-0012 §G).
 """
 
 from __future__ import annotations
@@ -51,23 +54,28 @@ def digest_json(value: Any) -> str:
 
 def action_sha256(
     *,
+    protocol_version: str,
     action: str,
     package_id: str,
     action_id: str,
     basis: dict[str, Any],
     payload: dict[str, Any],
 ) -> str:
-    """Canonical semantic action hash (ADR-0012 §G).
+    """Canonical semantic action hash (ADR-0012 §G, Finding 2 item 2).
 
     Hashes the complete normalized semantic request used for idempotency:
-    {action, package_id, action_id, basis, payload}. Every field that could
-    change the requested outcome is included. Only `expected_revision`
-    (optimistic-concurrency/transport metadata) is excluded — it is not part
-    of the requested outcome, so a retry with an updated revision and the
-    same action_id yields the same hash and replays.
+    {protocol_version, action, package_id, action_id, basis, payload}.
+
+    - `protocol_version` is INCLUDED (a protocol change can alter the meaning
+      of an action request).
+    - `expected_revision` is the ONLY excluded envelope field (it is
+      optimistic-concurrency/transport metadata, not part of the requested
+      outcome, so a retry with an updated revision and the same action_id
+      yields the same hash and replays).
     """
     return digest_json(
         {
+            "protocol_version": protocol_version,
             "action": action,
             "package_id": package_id,
             "action_id": action_id,

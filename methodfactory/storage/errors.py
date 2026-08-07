@@ -2,15 +2,23 @@
 
 Extends the ADR-0008 stable error-code table for the storage layer
 (ADR-0012 §B, §D, §E, §G). Codes are part of the public contract.
+
+One public Method Factory error boundary (Finding 2 item 4): storage
+failures are catchable through `methodfactory.domain.errors.MethodFactoryError`
+or `methodfactory.storage.errors.StorageError` (a subclass), and raw
+sqlite3/JSON/Unicode/OS/type exceptions are translated into typed errors at
+the public boundary.
 """
 
 from __future__ import annotations
 
 from typing import Any, Optional
 
+from ..domain.errors import MethodFactoryError as _PublicMethodFactoryError
 
-class StorageError(Exception):
-    """Base for all storage-layer failures."""
+
+class StorageError(_PublicMethodFactoryError):
+    """Base for all storage-layer failures (public boundary: MethodFactoryError)."""
 
     code = "STORAGE_ERROR"
 
@@ -21,7 +29,7 @@ class StorageError(Exception):
         package_id: Optional[str] = None,
         **context: Any,
     ) -> None:
-        super().__init__(message)
+        super().__init__(message, package_id=package_id)
         self.message = message
         self.package_id = package_id
         self.context = context

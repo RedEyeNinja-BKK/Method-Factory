@@ -1,32 +1,29 @@
-"""Canonical serialization and digest helpers (ADR-0004)."""
+"""Canonical serialization and digest helpers (ADR-0004, superseded by ADR-0012).
+
+This module is a LEGACY-SCOPED re-export of the single canonical
+implementation in `methodfactory.storage.serialization`. The former
+ASCII-escaped (`ensure_ascii=True`) canonical form was removed to guarantee
+that every import path hashes the same UTF-8 canonical bytes (Finding 2
+item 1). New code should import from `methodfactory.storage.serialization`
+or the package root; this module exists for backward-compatible imports only.
+"""
 
 from __future__ import annotations
 
-import hashlib
-import json
-from typing import Any
+from ..storage.serialization import (
+    canonical_bytes,
+    canonical_json,
+    digest_bytes,
+    digest_json,
+    digest_text,
+    sha256_hex,
+)
 
-
-def canonical_json(data: Any) -> bytes:
-    """Canonical byte form: sorted keys, compact separators, ASCII-escaped."""
-    return json.dumps(
-        data, sort_keys=True, separators=(",", ":"), ensure_ascii=True
-    ).encode("utf-8")
-
-
-def digest_bytes(content: bytes) -> str:
-    return hashlib.sha256(content).hexdigest()
-
-
-def digest_text(content: str) -> str:
-    return digest_bytes(content.encode("utf-8"))
-
-
-def digest_json(data: Any) -> str:
-    return digest_bytes(canonical_json(data))
-
-
-def utcnow() -> str:
-    from datetime import datetime, timezone
-
-    return datetime.now(timezone.utc).isoformat()
+__all__ = [
+    "canonical_bytes",
+    "canonical_json",
+    "digest_bytes",
+    "digest_json",
+    "digest_text",
+    "sha256_hex",
+]

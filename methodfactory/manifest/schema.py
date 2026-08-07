@@ -1,11 +1,24 @@
-"""Manifest Contract v0.1 — schema and read-only validation (ADR-0004)."""
+"""Manifest Contract v0.1 — schema and read-only validation (ADR-0004).
+
+Phase 2 corrections (Finding 2 item 3): the summary is content-addressed.
+The manifest stores `summary: {digest, size, preview?}`; the full summary
+body lives in the immutable blob store. An unbounded inline `summary.content`
+is rejected. Package-id validation is centralized in storage/paths.py to
+prevent rule drift (Finding 3 item 4).
+"""
 
 from __future__ import annotations
 
-import re
 from datetime import datetime
 
 from ..domain.states import State
+from ..storage.limits import (
+    MAX_ID_CHARS,
+    MAX_LOGICAL_PATH_CHARS,
+    MAX_OUTCOMES,
+    MAX_STATEMENT_CHARS,
+)
+from ..storage.paths import PACKAGE_ID_RE, validate_package_id
 
 SCHEMA_VERSION = "0.1"
 
@@ -27,12 +40,13 @@ TOP_LEVEL_FIELDS = frozenset(
     }
 )
 
-PACKAGE_ID_RE = re.compile(r"^pkg_[A-Za-z0-9_-]{1,63}$")
-SHA256_RE = re.compile(r"^[0-9a-f]{64}$")
+SHA256_RE = __import__("re").compile(r"^[0-9a-f]{64}$")
 INPUT_KINDS = frozenset({"text", "url", "file-reference", "constraint"})
 INPUT_SOURCES = frozenset({"operator", "adapter"})
 DISPOSITIONS = frozenset({"incorporated", "excluded"})
 CONFIRMATION_STATUSES = frozenset({"pending", "confirmed"})
+# Optional bounded preview for the content-addressed summary (Finding 2 item 3).
+SUMMARY_PREVIEW_MAX_CHARS = 512
 
 
 def _is_iso8601(value) -> bool:
@@ -146,10 +160,22 @@ def validate_manifest(manifest: dict) -> list[str]:
         if not isinstance(summary, dict):
             errors.append("summary must be an object or null")
         else:
-            if not isinstance(summary.get("content"), str):
-                errors.append("summary.content must be a string")
-            if not (isinstance(summary.get("canonical_sha256"), str) and SHA256_RE.match(summary["canonical_sha256"])):
-                errors.append("summary.canonical_sha256 invalid")
+            # Content-addressed summary body (ADR-0012 §4 / Finding 2 item 3):
+            # the manifest stores digest + size + optional bounded preview;
+            # the full body lives in the blob store. An unbounded inline
+            # summary.content is rejected.
+            if "content" in summary:
+                errors.append("summary.content is not allowed (content-addressed body; use digest/size/preview)")
+            if not (isinstance(summary.get("digest"), str) and SHA256_RE.match(summary.get("digest", ""))):
+                errors.append("summary.digest invalid (64-hex required)")
+            if isinstance(summary.get("size"), bool) or not isinstance(summary.get("size"), int) or summary["size"] < 0:
+                errors.append("summary.size invalid (non-negative int required)")
+            preview = summary.get("preview")
+            if preview is not None:
+                if not isinstance(preview, str):
+                    errors.append("summary.preview must be a string or null")
+                elif len(preview) > SUMMARY_PREVIEW_MAX_CHARS:
+                    errors.append(f"summary.preview exceeds {SUMMARY_PREVIEW_MAX_CHARS} chars")
             if not _is_iso8601(summary.get("presented_at")):
                 errors.append("summary.presented_at must be ISO-8601")
             conf = summary.get("confirmation")
