@@ -112,19 +112,32 @@ END;
 
 SCHEMA_DDL = STORE_METADATA_DDL + EVENTS_DDL + "".join(APPEND_ONLY_TRIGGERS_DDL)
 
-# Authoritative schema expectations (Finding 1 item 4).
+# Authoritative schema expectations (Finding 1 item 4; Finding 3 exact column
+# contract). Columns are ORDERED (name, decltype, notnull, default).
 REQUIRED_TABLES = {
     "store_metadata": {
-        "columns": {"key", "value"},
+        "columns": [
+            ("key", "TEXT", 1, None),
+            ("value", "TEXT", 1, None),
+        ],
         "without_rowid": True,
     },
     "events": {
-        "columns": {
-            "package_id", "revision", "event_id", "action_id", "action",
-            "action_sha256", "state_before", "state_after",
-            "previous_manifest_sha256", "resulting_manifest_sha256",
-            "created_at", "action_json", "manifest_json",
-        },
+        "columns": [
+            ("package_id", "TEXT", 1, None),
+            ("revision", "INTEGER", 1, None),
+            ("event_id", "TEXT", 1, None),
+            ("action_id", "TEXT", 1, None),
+            ("action", "TEXT", 1, None),
+            ("action_sha256", "TEXT", 1, None),
+            ("state_before", "TEXT", 0, None),
+            ("state_after", "TEXT", 1, None),
+            ("previous_manifest_sha256", "TEXT", 0, None),
+            ("resulting_manifest_sha256", "TEXT", 1, None),
+            ("created_at", "TEXT", 1, None),
+            ("action_json", "BLOB", 1, None),
+            ("manifest_json", "BLOB", 1, None),
+        ],
         "without_rowid": True,
         "primary_key": ("package_id", "revision"),
         "unique": {("package_id", "action_id"), ("event_id",)},
@@ -262,11 +275,14 @@ def _apply_or_verify_pragmas(conn: sqlite3.Connection, *, read_only: bool) -> No
             continue
         if pragma == "foreign_keys":
             if read_only:
-                # foreign_keys is per-connection and defaults OFF; a ro
-                # connection cannot set it. It is not a database property, so
-                # verification accepts the per-connection default (the binding
-                # applies to rw connections which set it explicitly).
-                pass
+                # foreign_keys is connection-local and CAN be enabled on a
+                # read-only connection (Finding 3). Enable + read back.
+                conn.execute("PRAGMA foreign_keys = ON")
+                actual = conn.execute("PRAGMA foreign_keys").fetchone()[0]
+                if int(actual) != 1:
+                    raise StorageError(
+                        f"binding foreign_keys=ON not established (got {actual!r})"
+                    )
             else:
                 conn.execute("PRAGMA foreign_keys = ON")
                 actual = conn.execute("PRAGMA foreign_keys").fetchone()[0]
@@ -340,12 +356,13 @@ def _verify_schema(conn: sqlite3.Connection) -> None:
     for tname, spec in REQUIRED_TABLES.items():
         if tname not in tables:
             raise SchemaViolationError(f"required table {tname!r} missing")
-        # columns
+        # columns (name-level early check; exact contract below)
+        expected_names = {c[0] for c in spec["columns"]}
         cols = {
             r["name"]
             for r in conn.execute(f"PRAGMA table_info({tname})")
         }
-        missing_cols = spec["columns"] - cols
+        missing_cols = expected_names - cols
         if missing_cols:
             raise SchemaViolationError(
                 f"table {tname!r} missing columns {sorted(missing_cols)}"
@@ -389,16 +406,70 @@ def _verify_schema(conn: sqlite3.Connection) -> None:
                     f"table {tname!r} missing unique constraint {uniq!r}"
                 )
 
+    # ── Exact column contract (Finding 3) ──────────────────────────────
+    # Verify, per table, the EXACT ordered column list with declared type,
+    # nullability, and default (None where none). This catches changed
+    # type/nullability and column-order drift that name-only checks miss.
+    for tname, spec in REQUIRED_TABLES.items():
+        cols = conn.execute(f"PRAGMA table_info({tname})").fetchall()
+        expected = spec["columns"]  # list of (name, decltype, notnull, default)
+        if len(cols) != len(expected):
+            raise SchemaViolationError(
+                f"table {tname!r} has {len(cols)} columns, expected {len(expected)}"
+            )
+        for actual, (name, decltype, notnull, default) in zip(cols, expected):
+            if actual["name"] != name:
+                raise SchemaViolationError(
+                    f"table {tname!r} column {actual['name']!r} at wrong position (expected {name!r})"
+                )
+            # Normalize declared types: upper-case, strip whitespace/parens
+            # (e.g. "TEXT", "INTEGER", "BLOB").
+            norm = (actual["type"] or "").strip().upper().split("(")[0].strip()
+            if norm != decltype.upper():
+                raise SchemaViolationError(
+                    f"table {tname!r}.{name} type {norm!r} != expected {decltype.upper()!r}"
+                )
+            if bool(actual["notnull"]) != notnull:
+                raise SchemaViolationError(
+                    f"table {tname!r}.{name} notnull {actual['notnull']} != expected {notnull}"
+                )
+            if actual["dflt_value"] != default:
+                raise SchemaViolationError(
+                    f"table {tname!r}.{name} default {actual['dflt_value']!r} != expected {default!r}"
+                )
+
+    # ── CHECK constraint (Finding 3) ───────────────────────────────────
+    # revision >= 0 must be present on events. Parse the CREATE TABLE SQL for
+    # the CHECK constraint (normalized: strip whitespace / case-insensitive).
+    events_sql = tables["events"].upper().replace(" ", "")
+    if "CHECK(REVISION>=0)" not in events_sql:
+        raise SchemaViolationError("events table missing CHECK (revision >= 0)")
+
     triggers = {
-        r["name"] for r in conn.execute(
-            "SELECT name FROM sqlite_master WHERE type='trigger'"
-        )
+        r["name"]: (r["sql"] or "")
+        for r in conn.execute("SELECT name, sql FROM sqlite_master WHERE type='trigger'")
     }
-    missing_triggers = REQUIRED_TRIGGERS - triggers
+    missing_triggers = REQUIRED_TRIGGERS - set(triggers)
     if missing_triggers:
         raise SchemaViolationError(
             f"missing append-only triggers {sorted(missing_triggers)}"
         )
+
+    # ── Trigger body verification (Finding 3) ──────────────────────────
+    # Exact or equivalently normalized trigger definitions. A no-op trigger
+    # (e.g. bodies that no longer RAISE ABORT) must fail. We normalize by
+    # removing whitespace and lowercasing, then require the RAISE(ABORT,
+    # 'events are append-only: ...') marker in both triggers.
+    for tname in REQUIRED_TRIGGERS:
+        body = triggers[tname]
+        if "RAISE(ABORT" not in body.upper().replace(" ", ""):
+            raise SchemaViolationError(
+                f"trigger {tname!r} does not RAISE(ABORT) (no-op or weakened)"
+            )
+        if "APPEND-ONLY" not in body.upper().replace(" ", "").replace("_", "-"):
+            raise SchemaViolationError(
+                f"trigger {tname!r} message is not the append-only marker"
+            )
 
     meta = {
         r["key"]: r["value"] for r in conn.execute(
@@ -412,6 +483,20 @@ def _verify_schema(conn: sqlite3.Connection) -> None:
         raise SchemaViolationError(
             f"store_metadata schema_version {meta.get('schema_version')!r} != {USER_VERSION}"
         )
+
+
+def _verify_readonly_modes(root: Path, db: Path) -> None:
+    """Verify store-root 0700 and database 0600 WITHOUT mutating them (Finding
+    3). A permissive mode on a read-only open is a typed failure."""
+    try:
+        root_mode = os.stat(root).st_mode & 0o777
+        db_mode = os.stat(db).st_mode & 0o777
+    except OSError as exc:
+        raise StorageError(f"cannot stat store modes: {exc}") from exc
+    if root_mode != 0o700:
+        raise StorageError(f"store root mode is {oct(root_mode)}, expected 0700")
+    if db_mode != 0o600:
+        raise StorageError(f"database mode is {oct(db_mode)}, expected 0600")
 
 
 def _enforce_modes(root: Path, db: Path) -> None:
@@ -474,10 +559,15 @@ def _open_database_impl(
         if presence == StorePresence.NO_STORE:
             raise DatabaseNotFoundError(f"no database at {db}")
         conn = _connect(db, read_only=True)
-        if db.stat().st_size == 0:
-            conn.close()
-            raise DatabaseEmptyError(f"database {db} is zero bytes")
-        _verify_schema(conn)
+        try:
+            if db.stat().st_size == 0:
+                raise DatabaseEmptyError(f"database {db} is zero bytes")
+            # Verify required filesystem modes WITHOUT mutating them (Finding 3).
+            _verify_readonly_modes(root, db)
+            _verify_schema(conn)
+        except BaseException:
+            close_database(conn)
+            raise
         return conn
 
     # read-write path
@@ -488,21 +578,29 @@ def _open_database_impl(
     if presence == StorePresence.NO_STORE:
         root.mkdir(parents=True, exist_ok=True)
         conn = _connect(db, read_only=False)
-        initialize_database(conn)
-        _enforce_modes(root, db)
-        _verify_schema(conn)
+        try:
+            initialize_database(conn)
+            _enforce_modes(root, db)
+            _verify_schema(conn)
+        except BaseException:
+            close_database(conn)
+            raise
         return conn
 
     # SQLITE_ONLY or BOTH: SQLite canonical, legacy preserved (ADR-0012 §D).
     conn = _connect(db, read_only=False)
-    if db.stat().st_size == 0:
-        # Genuinely new/empty file: initialize atomically.
-        initialize_database(conn)
+    try:
+        if db.stat().st_size == 0:
+            # Genuinely new/empty file: initialize atomically.
+            initialize_database(conn)
+            _enforce_modes(root, db)
+            _verify_schema(conn)
+            return conn
         _enforce_modes(root, db)
         _verify_schema(conn)
-        return conn
-    _enforce_modes(root, db)
-    _verify_schema(conn)
+    except BaseException:
+        close_database(conn)
+        raise
     return conn
 
 
