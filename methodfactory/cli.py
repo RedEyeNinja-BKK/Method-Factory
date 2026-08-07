@@ -30,6 +30,8 @@ _BOUNDARY_NATIVES = (
     sqlite3.Error,
     json.JSONDecodeError,
     UnicodeError,
+    LookupError,   # KeyError / IndexError residual leaks
+    AttributeError,
     TypeError,
     ValueError,
     RecursionError,

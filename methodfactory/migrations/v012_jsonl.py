@@ -82,7 +82,7 @@ def legacy_digest_text(content: str) -> str:
     return legacy_digest_bytes(content.encode("utf-8"))
 
 
-def legacy_rev0_hash(package_id: str) -> str:
+def legacy_action_hash_rev0(package_id: str) -> str:
     """Public v0.1.2 special revision-0 action hash:
     sha256(legacy_canonical_json({"action": "create_package",
                                   "package_id": package_id}))."""
@@ -91,7 +91,7 @@ def legacy_rev0_hash(package_id: str) -> str:
     )
 
 
-def legacy_hash_semantic(semantic: dict) -> str:
+def legacy_action_hash_semantic(semantic: dict) -> str:
     """Public v0.1.2 rev>0 action hash: sha256 of the six-field semantic
     action in legacy hash canonicalization."""
     return legacy_digest_json(semantic)
@@ -445,21 +445,70 @@ class LegacySource:
                 f"legacy snapshot for {package_id} at event index {index} "
                 "transition must be an object"
             )
+        # Objective fields read by reconstruction (set_objective).
+        if not isinstance(snap["objective"].get("statement"), str):
+            raise LegacyChainInvalidError(
+                f"legacy snapshot for {package_id} at event index {index} "
+                "objective.statement must be a string"
+            )
+        # Input fields read by reconstruction (record_input): every entry
+        # needs input_id, kind, source, disposition, and content_sha256.
         for item in snap["inputs"]:
-            if not isinstance(item, dict) or not isinstance(
-                item.get("input_id"), str
-            ):
+            if not isinstance(item, dict):
                 raise LegacyChainInvalidError(
                     f"legacy snapshot for {package_id} at event index {index} "
-                    "has a malformed input entry"
+                    "has a non-object input entry"
                 )
+            for field in ("input_id", "kind", "source", "disposition",
+                          "content_sha256"):
+                if not isinstance(item.get(field), str):
+                    raise LegacyChainInvalidError(
+                        f"legacy snapshot for {package_id} at event index "
+                        f"{index} input entry is missing string field "
+                        f"{field!r}"
+                    )
+        # Artifact fields read by reconstruction (record_draft_artifact):
+        # artifact_id, kind, logical_path, sha256.
         for art in snap["artifacts"]:
-            if not isinstance(art, dict) or not isinstance(
-                art.get("artifact_id"), str
-            ):
+            if not isinstance(art, dict):
                 raise LegacyChainInvalidError(
                     f"legacy snapshot for {package_id} at event index {index} "
-                    "has a malformed artifact entry"
+                    "has a non-object artifact entry"
+                )
+            for field in ("artifact_id", "kind", "logical_path", "sha256"):
+                if not isinstance(art.get(field), str):
+                    raise LegacyChainInvalidError(
+                        f"legacy snapshot for {package_id} at event index "
+                        f"{index} artifact entry is missing string field "
+                        f"{field!r}"
+                    )
+        # Summary fields read by reconstruction (confirm_summary).
+        summary = snap.get("summary")
+        if isinstance(summary, dict):
+            if not isinstance(summary.get("canonical_sha256"), str):
+                raise LegacyChainInvalidError(
+                    f"legacy snapshot for {package_id} at event index {index} "
+                    "summary.canonical_sha256 must be a string"
+                )
+            conf = summary.get("confirmation")
+            if not isinstance(conf, dict):
+                raise LegacyChainInvalidError(
+                    f"legacy snapshot for {package_id} at event index {index} "
+                    "summary.confirmation must be an object"
+                )
+            for field in ("status", "confirmed_at", "operator_id",
+                          "confirmed_summary_sha256"):
+                if field not in conf:
+                    raise LegacyChainInvalidError(
+                        f"legacy snapshot for {package_id} at event index "
+                        f"{index} summary.confirmation is missing {field!r}"
+                    )
+        # Transition fields read by equivalence checks.
+        for field in ("last_event_id", "last_action_id"):
+            if field not in snap["transition"]:
+                raise LegacyChainInvalidError(
+                    f"legacy snapshot for {package_id} at event index {index} "
+                    f"transition is missing {field!r}"
                 )
 
     # ── semantic source inventory (immutability proof) ─────────────────

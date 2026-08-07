@@ -236,13 +236,9 @@ def readonly_uri(db: Path) -> str:
     return f"file:{quote(path_part, safe='/')}?mode=ro"
 
 
-def _readonly_uri(db: Path) -> str:
-    return readonly_uri(db)
-
-
 def _connect(db: Path, read_only: bool, timeout: float = 5.0) -> sqlite3.Connection:
     if read_only:
-        conn = sqlite3.connect(_readonly_uri(db), uri=True, timeout=timeout)
+        conn = sqlite3.connect(readonly_uri(db), uri=True, timeout=timeout)
     else:
         conn = sqlite3.connect(str(db), timeout=timeout)
     conn.row_factory = sqlite3.Row

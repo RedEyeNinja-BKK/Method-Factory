@@ -56,10 +56,22 @@ def _find_fb5641c() -> Path | None:
 
 
 def build_legacy_checkout(dest: Path) -> Path | None:
-    """Create a disposable worktree of fb5641c. Returns the checkout root."""
+    """Create a disposable worktree of fb5641c. Returns the checkout root.
+
+    Skips rebuild when the per-process checkout already exists at the exact
+    commit (parallel-runner safe; avoids two git subprocesses per fixture).
+    """
     repo = _find_fb5641c()
     if repo is None:
         return None
+    # Fast path: checkout exists and is at the frozen commit.
+    if dest.is_dir():
+        probe = subprocess.run(
+            ["git", "-C", str(dest), "rev-parse", "HEAD"],
+            capture_output=True, text=True,
+        )
+        if probe.returncode == 0 and probe.stdout.strip() == LEGACY_COMMIT:
+            return dest
     # If the path is already a registered worktree, remove it cleanly first.
     subprocess.run(
         ["git", "-C", str(repo), "worktree", "remove", "--force", str(dest)],
@@ -545,5 +557,90 @@ def current_invalid_identifier_workflow(engine, root: Path) -> None:
         "package_id": "pkg_badid_001", "expected_revision": 0,
         "action": "record_input", "basis": {},
         "payload": {"input_id": "in 1", "kind": "text", "content": "hello",
+                    "source": "operator", "disposition": "incorporated"},
+    })
+
+
+def invalid_logical_path_workflow(engine, root: Path) -> None:
+    """Artifact logical_path that is public-v0.1.2-valid but
+    current-invalid (absolute path)."""
+    import datetime
+
+    class Clock:
+        def __init__(self, start: str = "2026-08-07T00:00:00+00:00") -> None:
+            self.t = datetime.datetime.fromisoformat(start)
+            self._delta = datetime.timedelta(minutes=1)
+
+        def __call__(self) -> str:
+            s = self.t.isoformat()
+            self.t += self._delta
+            return s
+
+    engine._now = Clock()
+
+    def apply(envdict):
+        return engine.apply_json(json.dumps(envdict))
+
+    engine.create_package("pkg_badpath_001", "bad logical path")
+    apply({
+        "protocol_version": "0.1", "action_id": "act_in_1",
+        "package_id": "pkg_badpath_001", "expected_revision": 0,
+        "action": "record_input", "basis": {},
+        "payload": {"input_id": "in_1", "kind": "text", "content": "hello",
+                    "source": "operator", "disposition": "incorporated"},
+    })
+    apply({
+        "protocol_version": "0.1", "action_id": "act_obj_1",
+        "package_id": "pkg_badpath_001", "expected_revision": 1,
+        "action": "set_objective", "basis": {},
+        "payload": {"statement": "Build a skill"},
+    })
+    m2 = apply({
+        "protocol_version": "0.1", "action_id": "act_prep_1",
+        "package_id": "pkg_badpath_001", "expected_revision": 2,
+        "action": "prepare_summary", "basis": {}, "payload": {},
+    })
+    apply({
+        "protocol_version": "0.1", "action_id": "act_conf_1",
+        "package_id": "pkg_badpath_001", "expected_revision": 3,
+        "action": "confirm_summary",
+        "basis": {"summary_sha256": m2.manifest["summary"]["canonical_sha256"]},
+        "payload": {"operator_id": "vincent"},
+    })
+    apply({
+        "protocol_version": "0.1", "action_id": "act_art_1",
+        "package_id": "pkg_badpath_001", "expected_revision": 4,
+        "action": "record_draft_artifact", "basis": {},
+        "payload": {"artifact_id": "art_1", "kind": "skill",
+                    "logical_path": "/etc/passwd", "content": "body"},
+    })
+
+
+def control_char_identifier_workflow(engine, root: Path) -> None:
+    """input_id containing a control character (public-valid,
+    current-invalid under the compatibility matrix)."""
+    import datetime
+
+    class Clock:
+        def __init__(self, start: str = "2026-08-07T00:00:00+00:00") -> None:
+            self.t = datetime.datetime.fromisoformat(start)
+            self._delta = datetime.timedelta(minutes=1)
+
+        def __call__(self) -> str:
+            s = self.t.isoformat()
+            self.t += self._delta
+            return s
+
+    engine._now = Clock()
+
+    def apply(envdict):
+        return engine.apply_json(json.dumps(envdict))
+
+    engine.create_package("pkg_ctrlchar_001", "control char identifier")
+    apply({
+        "protocol_version": "0.1", "action_id": "act_in_1",
+        "package_id": "pkg_ctrlchar_001", "expected_revision": 0,
+        "action": "record_input", "basis": {},
+        "payload": {"input_id": "in\x01", "kind": "text", "content": "hello",
                     "source": "operator", "disposition": "incorporated"},
     })

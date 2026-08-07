@@ -29,10 +29,11 @@ Frozen algorithm (ADR-0012 amendment §7-§15):
 15. durably write temp receipt;
 16. FINAL source inventory/hash (AFTER) — require exact equality with step 3;
 17. ONLY THEN enter publication:
-     a. durable final receipt publication (os.replace temp -> final; dir fsync);
-     b. durable atomic final DB publication (os.replace temp DB -> final;
+     a. durable final receipt publication (no-clobber os.link temp -> final;
         dir fsync);
-18. final read-only verification.
+     b. durable atomic final DB publication (no-clobber os.link temp DB ->
+        final; dir fsync);
+18. final read-only verification (binds the published receipt to the DB).
 
 A receipt alone is NOT success. Success requires: final DB exists; matching
 final receipt exists; same migration identity; final read-only validation
@@ -84,7 +85,7 @@ from .v012_jsonl import (
     LEGACY_COMMIT,
     LEGACY_TAG,
     LegacySource,
-    legacy_hash_semantic,
+    legacy_action_hash_semantic,
 )
 
 # Receipt format identity.
@@ -137,7 +138,7 @@ def _candidate_hashes(source: LegacySource, pkg, ev, candidates: list[dict]) -> 
     """Return candidates whose legacy hash matches the stored legacy hash."""
     matches = []
     for cand in candidates:
-        if legacy_hash_semantic(cand) == ev.action_sha256:
+        if legacy_action_hash_semantic(cand) == ev.action_sha256:
             matches.append(cand)
     return matches
 
@@ -374,7 +375,11 @@ def migrate_store(
     # Never chmod an EXISTING destination root: when --dest is omitted the
     # default root IS the legacy source root, and mutating its permissions
     # would violate source immutability (ADR-0012 §12). Only newly-created
-    # roots get the private mode.
+    # roots get the private mode. An EXISTING root must already satisfy the
+    # current store-root invariant (0700, ADR-0012 §D): otherwise the
+    # published store could not be reopened by the standard public API, so
+    # migration fails closed with operator instructions rather than
+    # publishing an unreopenable store.
     final_root = final_dest.parent
     root_existed = final_root.is_dir()
     try:
@@ -386,6 +391,20 @@ def migrate_store(
         raise StorageError(
             f"cannot create destination parent directory: {exc}"
         ) from exc
+    if root_existed:
+        try:
+            root_mode = final_root.stat().st_mode & 0o777
+        except OSError as exc:
+            raise StorageError(
+                f"cannot stat destination root {final_root}: {exc}"
+            ) from exc
+        if root_mode != 0o700:
+            raise StorageError(
+                f"destination root {final_root} has mode {root_mode:03o}, "
+                "expected 0700 (ADR-0012 §D store-root invariant). Fix the "
+                "root permissions or pass an explicit --dest under a private "
+                "root; the legacy source root is never chmod'd by migration."
+            )
     temp_root = final_root / f".{final_dest.name}.tmp.{uuid.uuid4().hex}"
 
     # Build the modern store. Blobs publish to the FINAL artifact store root
@@ -805,16 +824,26 @@ def _build_receipt(source: LegacySource, before: dict) -> dict:
 
 
 def _write_durable(path: Path, data: dict) -> None:
-    """Write `data` to `path` durably (fsync file before rename/link).
+    """Write `data` durably to the caller-supplied unique temp path (fsync).
 
-    The temp name is unique (caller supplies it); content is JSON
+    The caller publishes via `_publish_noclobber`; this function only
+    ensures the temp content is on disk before publication. Content is JSON
     canonical, UTF-8, one object.
     """
-    with open(path, "w", encoding="utf-8") as fh:
-        fh.write(json.dumps(data, sort_keys=True, separators=(",", ":"),
-                            ensure_ascii=False))
-        fh.flush()
-        os.fsync(fh.fileno())
+    # O_EXCL: the temp path must never pre-exist or follow a raced symlink.
+    fd = os.open(path, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
+    try:
+        with os.fdopen(fd, "w", encoding="utf-8") as fh:
+            fh.write(json.dumps(data, sort_keys=True, separators=(",", ":"),
+                                ensure_ascii=False))
+            fh.flush()
+            os.fsync(fh.fileno())
+    except BaseException:
+        try:
+            path.unlink()
+        except OSError:
+            pass
+        raise
 
 
 def _publish_noclobber(src: Path, dst: Path) -> None:
@@ -824,6 +853,11 @@ def _publish_noclobber(src: Path, dst: Path) -> None:
     (ADR-0007): os.link fails if dst exists, so a raced destination is never
     replaced. On FileExistsError the publication is aborted with a typed
     error (the caller fails closed).
+
+    After a SUCCESSFUL link the destination is published; the temp source
+    unlink is best-effort. A temp-unlink failure is NOT fatal: an orphan
+    `.tmp.*` file is harmless and a re-raise here would falsely report the
+    publication as failed while the destination is already complete.
     """
     try:
         os.link(src, dst)
@@ -835,13 +869,11 @@ def _publish_noclobber(src: Path, dst: Path) -> None:
         raise MigrationPublishFailedError(
             f"cannot publish {dst}: {exc}"
         ) from exc
-    # Remove the temp source after successful publication.
+    # Best-effort cleanup of the temp source after successful publication.
     try:
         src.unlink()
-    except OSError as exc:
-        raise MigrationPublishFailedError(
-            f"cannot remove temp file {src}: {exc}"
-        ) from exc
+    except OSError:
+        pass  # published-but-unclean; orphan temp is harmless
 
 
 def _fsync_dir(path: Path) -> None:

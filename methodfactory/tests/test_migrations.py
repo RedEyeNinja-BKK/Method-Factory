@@ -73,8 +73,10 @@ from methodfactory.storage.serialization import digest_bytes, sha256_hex
 from ._fixtures import (
     all_action_families_workflow,
     cancel_arbitrary_reason_workflow,
+    control_char_identifier_workflow,
     current_invalid_identifier_workflow,
     generate_fixture,
+    invalid_logical_path_workflow,
     non_ascii_workflow,
     optional_omitted_workflow,
     overlimit_input_workflow,
@@ -120,6 +122,11 @@ def _rewrite_journal(src: Path, mutator) -> None:
     full legacy chain (previous/resulting hashes) so the journal still
     passes the frozen v0.1.2 reader — unless the mutation itself makes a
     hash mismatch the intended failure.
+
+    NOTE: mutations of fields that feed the legacy semantic-action hash
+    (input_id, logical_path, kind, content) are NOT recomputable here
+    (blob content is external); those cases use workflow-generated
+    fixtures (current_invalid_*_workflow) instead of hand-editing.
 
     Removes the cache file: after a journal mutation the cached snapshot is
     stale by definition; these tests target the migration transformation
@@ -433,29 +440,26 @@ class MigrationFailClosedTests(unittest.TestCase):
 
     def test_invalid_logical_path(self):
         """A legacy-valid logical path that fails the current strict path
-        grammar (absolute path) must be MIGRATION_INCOMPATIBLE."""
+        grammar (absolute path) must be MIGRATION_INCOMPATIBLE — proven by a
+        workflow-generated legacy fixture, not hand-editing (the mutation
+        must survive reconstruction and be rejected by the CURRENT
+        boundary)."""
+        src = _generate("badpath", invalid_logical_path_workflow)
         with tempfile.TemporaryDirectory() as td:
-            src = Path(td) / "src"
-            shutil.copytree(self.src, src)
-            def mut(evs):
-                # rev5 is record_draft_artifact with logical_path
-                # skills/x/SKILL.md; rewrite it to an absolute path.
-                evs[5]["manifest_snapshot"]["artifacts"][0]["logical_path"] = "/etc/passwd"
-            _rewrite_journal(src, mut)
-            with self.assertRaises(MigrationIncompatibleError):
+            with self.assertRaises(MigrationIncompatibleError) as ctx:
                 migrate_store(src, Path(td) / "methodfactory.sqlite3")
+            # the failure must be a CURRENT-boundary rejection, not a
+            # reconstruction ambiguity
+            self.assertIn("current-invalid", str(ctx.exception))
 
     def test_control_characters_rejected(self):
         """Control characters in a legacy-valid identifier fail current
-        validation with MIGRATION_INCOMPATIBLE."""
+        validation with MIGRATION_INCOMPATIBLE (workflow-generated)."""
+        src = _generate("ctrlchar", control_char_identifier_workflow)
         with tempfile.TemporaryDirectory() as td:
-            src = Path(td) / "src"
-            shutil.copytree(self.src, src)
-            def mut(evs):
-                evs[1]["manifest_snapshot"]["inputs"][0]["input_id"] = "in\x01"
-            _rewrite_journal(src, mut)
-            with self.assertRaises(MigrationIncompatibleError):
+            with self.assertRaises(MigrationIncompatibleError) as ctx:
                 migrate_store(src, Path(td) / "methodfactory.sqlite3")
+            self.assertIn("current-invalid", str(ctx.exception))
 
     def test_source_symlink_rejected(self):
         """A symlinked artifact blob fails the inventory (immutability proof
@@ -471,17 +475,37 @@ class MigrationFailClosedTests(unittest.TestCase):
 
     def test_dest_root_permissions_untouched(self):
         """Default destination root is the legacy source root; its mode must
-        NOT be chmod'd by migration (ADR-0012 §12 source immutability)."""
+        NOT be chmod'd by migration (ADR-0012 §12 source immutability). A
+        legacy root created by the public code is 0700, so the migrated
+        store must be reopenable."""
         with tempfile.TemporaryDirectory() as td:
             src = Path(td) / "src"
             shutil.copytree(self.src, src)
-            os.chmod(src, 0o755)
+            os.chmod(src, 0o700)
             before_mode = src.stat().st_mode
             # dest defaults to <source>/methodfactory.sqlite3
             migrate_store(src)
             after_mode = src.stat().st_mode
             self.assertEqual(before_mode, after_mode)
             self.assertTrue((src / "methodfactory.sqlite3").is_file())
+            # the published store must reopen via the standard API
+            from methodfactory.migrations.export import export_events
+            n = export_events(src, None, fmt="method-factory-events-v1")
+            self.assertEqual(n, 7)
+
+    def test_dest_root_mode_invariant_fails_closed(self):
+        """An existing destination root that is NOT 0700 must fail closed
+        with a typed error and publish nothing — never chmod the legacy
+        source, never publish an unreopenable store."""
+        with tempfile.TemporaryDirectory() as td:
+            src = Path(td) / "src"
+            shutil.copytree(self.src, src)
+            os.chmod(src, 0o755)
+            before_mode = src.stat().st_mode
+            with self.assertRaises(StorageError):
+                migrate_store(src)  # default dest = source root
+            self.assertEqual(src.stat().st_mode, before_mode)
+            self.assertFalse((src / "methodfactory.sqlite3").exists())
 
     def test_receipt_without_db_is_not_success(self):
         """A fault after receipt publication but before DB publication leaves
@@ -523,6 +547,37 @@ class MigrationFailClosedTests(unittest.TestCase):
             with self.assertRaises(StorageError):
                 export_events(Path(td), raced, fmt=EVENTS_V1_FORMAT)
             self.assertEqual(raced.read_text(), "existing")
+
+    def test_export_link_race_branch(self):
+        """The FileExistsError branch of the no-clobber publication is
+        exercised directly: a destination appearing between the exists-check
+        and os.link must abort typed, leaving no temp and no overwrite."""
+        import methodfactory.migrations.export as exp
+
+        src = _generate("standard", standard_workflow)
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            migrate_store(src, root / "methodfactory.sqlite3")
+            raced = root / "raced.jsonl"
+            original_link = exp.os.link
+            original_exists = Path.exists
+
+            def fake_link(src_path, dst_path):
+                # simulate the race: destination appears right before link
+                raced.write_text("existing", encoding="utf-8")
+                raise FileExistsError("simulated race")
+
+            exp.os.link = fake_link
+            try:
+                with self.assertRaises(StorageError) as ctx:
+                    export_events(root, raced, fmt=EVENTS_V1_FORMAT)
+                self.assertIn("appeared during export", str(ctx.exception))
+            finally:
+                exp.os.link = original_link
+            self.assertEqual(raced.read_text(), "existing")
+            # no temp leftovers
+            leftovers = [p for p in root.iterdir() if ".tmp." in p.name]
+            self.assertEqual(leftovers, [])
 
     def test_destination_exists(self):
         with tempfile.TemporaryDirectory() as td:
@@ -751,20 +806,24 @@ class PublicationFaultTests(unittest.TestCase):
 
     def test_source_changed_detected(self):
         """Mutate the source between the two inventory passes -> SOURCE_CHANGED,
-        no publication."""
+        no publication. Uses a per-test COPY so the shared class fixture is
+        never polluted."""
         old = migrate_module.FAULT_HOOK
         try:
-            def hook(s):
-                if s == "after_source_inventory_before":
-                    # mutate a source file after the BEFORE inventory
-                    journal = self.src / "events/pkg_demo_001.events.jsonl"
-                    with open(journal, "a", encoding="utf-8") as fh:
-                        fh.write("\n")
-            migrate_module.FAULT_HOOK = hook
             with tempfile.TemporaryDirectory() as td:
+                src = Path(td) / "src"
+                shutil.copytree(self.src, src)
+
+                def hook(s):
+                    if s == "after_source_inventory_before":
+                        # mutate a source file after the BEFORE inventory
+                        journal = src / "events/pkg_demo_001.events.jsonl"
+                        with open(journal, "a", encoding="utf-8") as fh:
+                            fh.write("\n")
+                migrate_module.FAULT_HOOK = hook
                 dest = Path(td) / "methodfactory.sqlite3"
                 with self.assertRaises(SourceChangedError):
-                    migrate_store(self.src, dest)
+                    migrate_store(src, dest)
                 self.assertFalse(dest.exists())
                 self.assertFalse(
                     dest.with_name(dest.name + ".receipt.json").exists()

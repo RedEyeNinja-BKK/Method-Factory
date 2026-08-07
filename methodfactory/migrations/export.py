@@ -47,9 +47,10 @@ from ..storage.sqlite import (
 )
 from .v012_jsonl import (
     legacy_digest_json,
-    legacy_hash_semantic,
+    legacy_digest_text,
+    legacy_action_hash_semantic,
     legacy_line_json,
-    legacy_rev0_hash,
+    legacy_action_hash_rev0,
 )
 
 EVENTS_V1_FORMAT = "method-factory-events-v1"
@@ -132,9 +133,9 @@ def _legacy_event_object(row: dict, prev_legacy_hash: str | None) -> dict:
     # Legacy action hash: rev0 special reduced; rev>0 legacy canonical of
     # semantic action (six fields).
     if row["revision"] == 0:
-        action_hash = legacy_rev0_hash(row["package_id"])
+        action_hash = legacy_action_hash_rev0(row["package_id"])
     else:
-        action_hash = legacy_hash_semantic(semantic)
+        action_hash = legacy_action_hash_semantic(semantic)
 
     return {
         "event_id": row["event_id"],
@@ -170,7 +171,7 @@ def _to_legacy_manifest(manifest: dict, prev_legacy_hash: str | None = None) -> 
         body = _render_summary(m)
         m["summary"] = {
             "content": body,
-            "canonical_sha256": summary.get("digest") or _legacy_digest_text(body),
+            "canonical_sha256": summary.get("digest") or legacy_digest_text(body),
             "presented_at": summary.get("presented_at"),
             "confirmation": summary.get("confirmation"),
         }
@@ -181,12 +182,6 @@ def _render_summary(manifest: dict) -> str:
     from ..manifest.render import render_summary
 
     return render_summary(manifest)
-
-
-def _legacy_digest_text(content: str) -> str:
-    from .v012_jsonl import legacy_digest_text
-
-    return legacy_digest_text(content)
 
 
 # ── public API ────────────────────────────────────────────────────────
@@ -269,10 +264,12 @@ def export_events(
             ) from None
         except OSError as exc:
             raise StorageError(f"cannot publish export: {exc}") from exc
+        # Best-effort temp cleanup after successful publication; an orphan
+        # temp is harmless and must not falsely fail the export.
         try:
             tmp.unlink()
-        except OSError as exc:
-            raise StorageError(f"cannot remove export temp: {exc}") from exc
+        except OSError:
+            pass
     except BaseException:
         try:
             tmp.unlink()

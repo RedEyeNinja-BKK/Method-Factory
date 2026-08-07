@@ -667,9 +667,12 @@ class SqliteManifestStore:
 
     def list_package_ids(self) -> list[str]:
         """Return distinct package ids in deterministic (id) order."""
-        rows = self._conn.execute(
-            "SELECT DISTINCT package_id FROM events ORDER BY package_id"
-        ).fetchall()
+        try:
+            rows = self._conn.execute(
+                "SELECT DISTINCT package_id FROM events ORDER BY package_id"
+            ).fetchall()
+        except sqlite3.Error as exc:
+            raise StorageError(f"cannot list package ids: {exc}") from exc
         return [r[0] for r in rows]
 
     def close(self) -> None:
