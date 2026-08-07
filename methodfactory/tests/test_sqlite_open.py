@@ -307,5 +307,59 @@ class ModeEnforcementTests(unittest.TestCase):
             self.assertEqual(os.stat(root / DB_FILENAME).st_mode & 0o777, 0o600)
 
 
+class StringRootTests(unittest.TestCase):
+    """Finding 3: the public root argument may be a plain string. The
+    normalized Path returned by validate_store_root() is passed throughout the
+    open implementation (never the original string form), and root
+    normalization lives inside the typed public error boundary."""
+
+    def test_string_root_creates_new_store(self):
+        with tempfile.TemporaryDirectory() as td:
+            root_str = str(Path(td) / "store")
+            conn = open_database(root_str, read_only=False)
+            close_database(conn)
+            self.assertTrue((Path(root_str) / DB_FILENAME).is_file())
+
+    def test_string_root_reopens_existing_store(self):
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            conn0 = open_database(root, read_only=False)
+            close_database(conn0)
+            conn = open_database(str(root), read_only=False)
+            try:
+                self.assertEqual(
+                    int(conn.execute("PRAGMA user_version").fetchone()[0]), USER_VERSION
+                )
+                self.assertEqual(
+                    conn.execute("PRAGMA journal_mode").fetchone()[0].lower(), "delete"
+                )
+            finally:
+                close_database(conn)
+
+    def test_string_root_missing_store_readonly_not_found(self):
+        """String root on a missing store: typed DatabaseNotFoundError and NO
+        directory/database created (read-only never creates)."""
+        with tempfile.TemporaryDirectory() as td:
+            missing = Path(td) / "missing"
+            with self.assertRaises(DatabaseNotFoundError):
+                open_database(str(missing), read_only=True)
+            self.assertFalse(missing.exists())
+
+    def test_invalid_string_root_typed(self):
+        """Empty string root surfaces as typed InvalidStoreRootError, not a raw
+        pathlib/OS error."""
+        from methodfactory.storage.errors import InvalidStoreRootError
+        with self.assertRaises(InvalidStoreRootError):
+            open_database("   ", read_only=False)
+
+    def test_non_path_root_typed(self):
+        """Local review (bug-2): non-str/Path roots (None, int, float) surface
+        as typed StorageError, never a raw TypeError."""
+        for bad in (None, 123, 3.14):
+            with self.subTest(root=bad):
+                with self.assertRaises(StorageError):
+                    open_database(bad, read_only=False)  # type: ignore[arg-type]
+
+
 if __name__ == "__main__":
     unittest.main()

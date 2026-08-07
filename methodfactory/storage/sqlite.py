@@ -26,7 +26,9 @@ deterministic export are intentionally NOT implemented here.
 
 from __future__ import annotations
 
+import json
 import os
+import re
 import sqlite3
 from datetime import datetime, timezone
 from enum import Enum
@@ -38,6 +40,7 @@ from .errors import (
     DatabaseIdMismatchError,
     DatabaseNotFoundError,
     LegacyStoreDetectedError,
+    ManifestInvalidError,
     SchemaViolationError,
     StorageError,
     UnsupportedSchemaError,
@@ -146,6 +149,28 @@ REQUIRED_TABLES = {
 
 REQUIRED_TRIGGERS = {"events_no_update", "events_no_delete"}
 
+# Canonical normalized trigger bodies (Finding 3 + local review): verification
+# is an EXACT normalized-body match against the DDL Method Factory ships, so
+# no bypass can pass — WHERE 0, WHEN(0), marker-inside-a-literal, extra
+# statements, wrong operation/table/timing all change the normalized body.
+def _normalize_trigger_sql(sql: str) -> str:
+    """Uppercase, collapse whitespace, drop the trailing semicolon SQLite
+    strips from stored trigger SQL."""
+    return re.sub(r"\s+", " ", sql.upper()).strip().rstrip(";").strip()
+
+
+CANONICAL_TRIGGER_SQL: dict[str, str] = {
+    name: _normalize_trigger_sql(ddl)
+    for name, ddl in zip(
+        ("events_no_update", "events_no_delete"), APPEND_ONLY_TRIGGERS_DDL
+    )
+}
+
+# Normalized CHECK constraint for events.revision. The regex requires the
+# closing paren immediately after `0`, so a weakened `CHECK(revision >= 0 OR
+# 1=1)` does NOT match (Finding 3).
+REVISION_CHECK_RE = re.compile(r"CHECK\s*\(\s*REVISION\s*>=\s*0\s*\)")
+
 REQUIRED_METADATA = {"schema_version", "created_at"}
 
 # Current-state lookup (indexed by the composite primary key).
@@ -211,7 +236,16 @@ def _connect(db: Path, read_only: bool, timeout: float = 5.0) -> sqlite3.Connect
     else:
         conn = sqlite3.connect(str(db), timeout=timeout)
     conn.row_factory = sqlite3.Row
-    _apply_or_verify_pragmas(conn, read_only=read_only)
+    try:
+        _apply_or_verify_pragmas(conn, read_only=read_only)
+    except BaseException:
+        # PRAGMA setup or read-back failure must not leak the connection
+        # handle (Finding 3): close before re-raising the typed error.
+        try:
+            conn.close()
+        except sqlite3.Error:
+            pass
+        raise
     return conn
 
 
@@ -394,13 +428,12 @@ def _verify_schema(conn: sqlite3.Connection) -> None:
                     r["name"]
                     for r in conn.execute(f"PRAGMA index_info({idx['name']})")
                 )
-                # SQLite stores UNIQUE column constraints as autoindexes;
-                # compare as sets for single-col event_id, exact for composite.
-                if uniq == ("event_id",):
-                    if idx_cols == uniq or idx_cols == ("event_id",):
-                        found = True
-                elif set(idx_cols) == set(uniq):
+                # EXACT column ORDER required (Finding 3): a reversed composite
+                # unique constraint is a different contract, even though the
+                # column set is the same.
+                if idx_cols == uniq:
                     found = True
+                    break
             if not found:
                 raise SchemaViolationError(
                     f"table {tname!r} missing unique constraint {uniq!r}"
@@ -439,11 +472,14 @@ def _verify_schema(conn: sqlite3.Connection) -> None:
                 )
 
     # ── CHECK constraint (Finding 3) ───────────────────────────────────
-    # revision >= 0 must be present on events. Parse the CREATE TABLE SQL for
-    # the CHECK constraint (normalized: strip whitespace / case-insensitive).
-    events_sql = tables["events"].upper().replace(" ", "")
-    if "CHECK(REVISION>=0)" not in events_sql:
-        raise SchemaViolationError("events table missing CHECK (revision >= 0)")
+    # revision >= 0 must be present UNWEAKENED on events: the normalized
+    # expression must be exactly CHECK(revision >= 0) — no OR/1=1 suffix, no
+    # replaced constraint. Whitespace/case normalized; everything else exact.
+    events_sql = re.sub(r"\s+", " ", tables["events"].upper())
+    if not REVISION_CHECK_RE.search(events_sql):
+        raise SchemaViolationError(
+            "events table missing exact unweakened CHECK (revision >= 0)"
+        )
 
     triggers = {
         r["name"]: (r["sql"] or "")
@@ -455,20 +491,19 @@ def _verify_schema(conn: sqlite3.Connection) -> None:
             f"missing append-only triggers {sorted(missing_triggers)}"
         )
 
-    # ── Trigger body verification (Finding 3) ──────────────────────────
-    # Exact or equivalently normalized trigger definitions. A no-op trigger
-    # (e.g. bodies that no longer RAISE ABORT) must fail. We normalize by
-    # removing whitespace and lowercasing, then require the RAISE(ABORT,
-    # 'events are append-only: ...') marker in both triggers.
+    # ── Trigger contract verification (Finding 3 + local review) ──────
+    # EXACT normalized-body match against the canonical DDL. This is immune to
+    # text-substring bypasses: a trigger with the right name but a disabled
+    # WHEN(0)/WHERE 0 guard, a marker inside a string literal with no RAISE
+    # call, a wrong operation/table/timing, or any extra statement all produce
+    # a different normalized body and FAIL.
     for tname in REQUIRED_TRIGGERS:
-        body = triggers[tname]
-        if "RAISE(ABORT" not in body.upper().replace(" ", ""):
+        norm = _normalize_trigger_sql(triggers[tname])
+        if norm != CANONICAL_TRIGGER_SQL[tname]:
             raise SchemaViolationError(
-                f"trigger {tname!r} does not RAISE(ABORT) (no-op or weakened)"
-            )
-        if "APPEND-ONLY" not in body.upper().replace(" ", "").replace("_", "-"):
-            raise SchemaViolationError(
-                f"trigger {tname!r} message is not the append-only marker"
+                f"trigger {tname!r} body differs from the canonical append-only "
+                f"trigger (BEFORE UPDATE/DELETE ON events, FOR EACH ROW, "
+                f"unconditional RAISE(ABORT))"
             )
 
     meta = {
@@ -530,19 +565,26 @@ def open_database(root: Path | str, read_only: bool = False) -> sqlite3.Connecti
       PRAGMAs + identity + schema without mutation.
 
     Raw sqlite3 exceptions are translated into typed StorageError at this
-    public boundary (Finding 2 item 4) so no sqlite3/OS/type error escapes.
+    public boundary (Finding 2 item 4; local review: root normalization also
+    sits INSIDE the boundary, so non-str/Path roots cannot leak a raw
+    TypeError) and no sqlite3/OS/type error escapes.
     """
-    r = validate_store_root(root)
-    db = r / DB_FILENAME
-    presence = detect_presence(r)
-
+    db: Path | None = None
     try:
-        return _open_database_impl(root, db, presence, read_only)
+        r = validate_store_root(root)
+        db = r / DB_FILENAME
+        presence = detect_presence(r)
+        # The NORMALIZED root returned by validate_store_root() is passed
+        # throughout the open implementation (Finding 3) — never the original
+        # string form — so mode enforcement, mkdir, and stat all operate on
+        # the same resolved path.
+        return _open_database_impl(r, db, presence, read_only)
     except StorageError:
         raise
     except (sqlite3.Error, OSError, ValueError, TypeError) as exc:
         from .errors import StorageError as _SE
-        raise _SE(f"storage open failed for {db}: {exc}") from exc
+        target = db if db is not None else repr(root)
+        raise _SE(f"storage open failed for {target}: {exc}") from exc
 
 
 def _open_database_impl(
@@ -607,9 +649,10 @@ def _open_database_impl(
 def latest_event(conn: sqlite3.Connection, package_id: str) -> dict | None:
     """Return the latest manifest for a package (indexed latest-event read).
 
-    Public boundary (Finding 4): a malformed/invalid-UTF-8 manifest_json BLOB
-    surfaces as a typed StorageError (code MANIFEST_INVALID), never a raw
-    json/Unicode/type exception.
+    Public boundary (Finding 3/Finding 4): ONLY bytes or strings are accepted
+    as stored JSON; unexpected SQLite dynamic types (int/float/None) are
+    translated to MANIFEST_INVALID; the decoded JSON must be an OBJECT; no
+    raw AttributeError/JSON/Unicode/SQLite/type exception escapes.
     """
     try:
         row = conn.execute(LATEST_EVENT_SQL, (package_id,)).fetchone()
@@ -617,17 +660,27 @@ def latest_event(conn: sqlite3.Connection, package_id: str) -> dict | None:
         raise StorageError(f"latest_event query failed: {exc}") from exc
     if row is None:
         return None
-    import json
 
     raw = row["manifest_json"]
+    if not isinstance(raw, (bytes, str)):
+        raise ManifestInvalidError(
+            f"manifest_json for {package_id} has unexpected stored type "
+            f"{type(raw).__name__} (expected bytes or str)"
+        )
     try:
         if isinstance(raw, str):
             raw = raw.encode("utf-8")
-        return json.loads(raw.decode("utf-8"))
-    except (UnicodeDecodeError, json.JSONDecodeError, TypeError, ValueError) as exc:
-        from .errors import ManifestInvalidError as _MIV
-
-        raise _MIV(f"manifest_json corrupt for {package_id}: {exc}") from exc
+        decoded = json.loads(raw.decode("utf-8"))
+    except (UnicodeEncodeError, UnicodeDecodeError, json.JSONDecodeError,
+            TypeError, ValueError, RecursionError) as exc:
+        raise ManifestInvalidError(
+            f"manifest_json corrupt for {package_id}: {exc}"
+        ) from exc
+    if not isinstance(decoded, dict):
+        raise ManifestInvalidError(
+            f"manifest_json for {package_id} is not a JSON object"
+        )
+    return decoded
 
 
 def explain_latest_event_plan(conn: sqlite3.Connection, package_id: str) -> list[tuple]:

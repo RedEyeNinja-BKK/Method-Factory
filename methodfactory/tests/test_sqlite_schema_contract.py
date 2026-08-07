@@ -68,6 +68,124 @@ class TriggerContractTests(unittest.TestCase):
             with self.assertRaises(SchemaViolationError):
                 open_database(root, read_only=False)
 
+    def test_trigger_with_when_zero_rejected(self):
+        """A trigger with the expected NAME, operation, table, and RAISE(ABORT)
+        marker but a disabling WHEN 0 clause must fail: it never fires, so the
+        append-only guarantee is gone."""
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            conn = _make_valid_db(root)
+            close_database(conn)
+            c = _open_conn(root / DB_FILENAME)
+            c.execute("DROP TRIGGER events_no_update")
+            c.execute(
+                "CREATE TRIGGER events_no_update BEFORE UPDATE ON events "
+                "FOR EACH ROW WHEN 0 BEGIN "
+                "SELECT RAISE(ABORT, 'events are append-only: UPDATE not permitted'); END"
+            )
+            c.commit()
+            c.close()
+            with self.assertRaises(SchemaViolationError):
+                open_database(root, read_only=False)
+
+    def test_trigger_wrong_operation_rejected(self):
+        """events_no_update recreated with the correct message but the WRONG
+        operation (INSERT instead of UPDATE) must fail."""
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            conn = _make_valid_db(root)
+            close_database(conn)
+            c = _open_conn(root / DB_FILENAME)
+            c.execute("DROP TRIGGER events_no_update")
+            c.execute(
+                "CREATE TRIGGER events_no_update BEFORE INSERT ON events "
+                "FOR EACH ROW BEGIN "
+                "SELECT RAISE(ABORT, 'events are append-only: UPDATE not permitted'); END"
+            )
+            c.commit()
+            c.close()
+            with self.assertRaises(SchemaViolationError):
+                open_database(root, read_only=False)
+
+    def test_trigger_wrong_table_rejected(self):
+        """events_no_delete recreated on the WRONG table with the correct
+        message must fail."""
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            conn = _make_valid_db(root)
+            close_database(conn)
+            c = _open_conn(root / DB_FILENAME)
+            c.execute("DROP TRIGGER events_no_delete")
+            c.execute("CREATE TABLE other (x TEXT)")  # trigger must target events
+            c.execute(
+                "CREATE TRIGGER events_no_delete BEFORE DELETE ON other "
+                "FOR EACH ROW BEGIN "
+                "SELECT RAISE(ABORT, 'events are append-only: DELETE not permitted'); END"
+            )
+            c.commit()
+            c.close()
+            with self.assertRaises(SchemaViolationError):
+                open_database(root, read_only=False)
+
+    def test_trigger_where_zero_guarded_raise_rejected(self):
+        """Local review (bug-3/sec-1): a RAISE(ABORT) behind WHERE 0 is a
+        no-op that passes substring checks; exact-body verification must
+        reject it."""
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            conn = _make_valid_db(root)
+            close_database(conn)
+            c = _open_conn(root / DB_FILENAME)
+            c.execute("DROP TRIGGER events_no_update")
+            c.execute(
+                "CREATE TRIGGER events_no_update BEFORE UPDATE ON events "
+                "FOR EACH ROW BEGIN "
+                "SELECT RAISE(ABORT, 'events are append-only: UPDATE not permitted') "
+                "WHERE 0; END"
+            )
+            c.commit()
+            c.close()
+            with self.assertRaises(SchemaViolationError):
+                open_database(root, read_only=False)
+
+    def test_trigger_when_no_space_rejected(self):
+        """Local review (q-1): WHEN(0) with no space bypasses a ' WHEN '
+        substring guard; exact-body verification must reject it."""
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            conn = _make_valid_db(root)
+            close_database(conn)
+            c = _open_conn(root / DB_FILENAME)
+            c.execute("DROP TRIGGER events_no_update")
+            c.execute(
+                "CREATE TRIGGER events_no_update BEFORE UPDATE ON events "
+                "FOR EACH ROW WHEN(0) BEGIN "
+                "SELECT RAISE(ABORT, 'events are append-only: UPDATE not permitted'); END"
+            )
+            c.commit()
+            c.close()
+            with self.assertRaises(SchemaViolationError):
+                open_database(root, read_only=False)
+
+    def test_trigger_marker_in_literal_only_rejected(self):
+        """Local review (sec-1): the marker strings inside a string literal
+        with NO RAISE call must fail verification."""
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            conn = _make_valid_db(root)
+            close_database(conn)
+            c = _open_conn(root / DB_FILENAME)
+            c.execute("DROP TRIGGER events_no_update")
+            c.execute(
+                "CREATE TRIGGER events_no_update BEFORE UPDATE ON events "
+                "FOR EACH ROW BEGIN "
+                "SELECT 'events are append-only: UPDATE not permitted'; END"
+            )
+            c.commit()
+            c.close()
+            with self.assertRaises(SchemaViolationError):
+                open_database(root, read_only=False)
+
 
 class CheckConstraintTests(unittest.TestCase):
     def test_weakened_check_constraint_rejected(self):
@@ -90,6 +208,63 @@ class CheckConstraintTests(unittest.TestCase):
             )  # NOTE: no CHECK (revision >= 0)
             c.execute("DROP TABLE events")
             c.execute("ALTER TABLE events_v2 RENAME TO events")
+            c.commit()
+            c.close()
+            with self.assertRaises(SchemaViolationError):
+                open_database(root, read_only=False)
+
+    def test_weakened_check_with_or_rejected(self):
+        """CHECK(revision >= 0 OR 1=1) is a WEAKENED constraint and must fail
+        verification: the unweakened exact CHECK(revision >= 0) is required
+        (Finding 3)."""
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            conn = _make_valid_db(root)
+            close_database(conn)
+            c = _open_conn(root / DB_FILENAME)
+            c.execute("DROP TABLE events")
+            c.execute(
+                "CREATE TABLE events ("
+                "package_id TEXT NOT NULL, revision INTEGER NOT NULL, "
+                "event_id TEXT NOT NULL, action_id TEXT NOT NULL, "
+                "action TEXT NOT NULL, action_sha256 TEXT NOT NULL, "
+                "state_before TEXT, state_after TEXT NOT NULL, "
+                "previous_manifest_sha256 TEXT, resulting_manifest_sha256 TEXT NOT NULL, "
+                "created_at TEXT NOT NULL, action_json BLOB NOT NULL, manifest_json BLOB NOT NULL, "
+                "PRIMARY KEY (package_id, revision), UNIQUE (package_id, action_id), UNIQUE (event_id), "
+                "CHECK (revision >= 0 OR 1=1)"  # weakened
+                ") WITHOUT ROWID"
+            )
+            c.commit()
+            c.close()
+            with self.assertRaises(SchemaViolationError):
+                open_database(root, read_only=False)
+
+
+class UniqueOrderTests(unittest.TestCase):
+    def test_reversed_unique_order_rejected(self):
+        """UNIQUE (action_id, package_id) is a DIFFERENT constraint than
+        UNIQUE (package_id, action_id): exact column ORDER is required
+        (Finding 3)."""
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            conn = _make_valid_db(root)
+            close_database(conn)
+            c = _open_conn(root / DB_FILENAME)
+            c.execute("DROP TABLE events")
+            c.execute(
+                "CREATE TABLE events ("
+                "package_id TEXT NOT NULL, revision INTEGER NOT NULL, "
+                "event_id TEXT NOT NULL, action_id TEXT NOT NULL, "
+                "action TEXT NOT NULL, action_sha256 TEXT NOT NULL, "
+                "state_before TEXT, state_after TEXT NOT NULL, "
+                "previous_manifest_sha256 TEXT, resulting_manifest_sha256 TEXT NOT NULL, "
+                "created_at TEXT NOT NULL, action_json BLOB NOT NULL, manifest_json BLOB NOT NULL, "
+                "PRIMARY KEY (package_id, revision), "
+                "UNIQUE (action_id, package_id), UNIQUE (event_id), "  # REVERSED
+                "CHECK (revision >= 0)"
+                ") WITHOUT ROWID"
+            )
             c.commit()
             c.close()
             with self.assertRaises(SchemaViolationError):
@@ -236,6 +411,65 @@ class HandleCleanupTests(unittest.TestCase):
             # The schema is still the broken one (failed opens did not mutate).
             with self.assertRaises(SchemaViolationError):
                 open_database(root, read_only=True)
+
+    def test_pragma_failure_closes_connection_direct_evidence(self):
+        """DIRECT handle evidence (Finding 3): when PRAGMA setup/read-back
+        fails inside _connect(), the connection is closed before the typed
+        error propagates — verified with a connection spy, not fd counts."""
+        import methodfactory.storage.sqlite as sqlite_mod
+        from methodfactory.storage.sqlite import _connect
+        from unittest import mock
+
+        real_connect = sqlite3.connect
+        opens: list = []
+
+        class SpyConn:
+            def __init__(self, real):
+                self._real = real
+                self.closed = False
+
+            def __getattr__(self, name):
+                return getattr(self._real, name)
+
+            def close(self):
+                self.closed = True
+                return self._real.close()
+
+        def spy_connect(*args, **kwargs):
+            real = real_connect(*args, **kwargs)
+            spy = SpyConn(real)
+            opens.append(spy)
+            return spy
+
+        with tempfile.TemporaryDirectory() as td:
+            db = Path(td) / DB_FILENAME
+            with mock.patch.object(
+                sqlite_mod,
+                "_apply_or_verify_pragmas",
+                side_effect=StorageError("pragma fail"),
+            ), mock.patch(
+                "methodfactory.storage.sqlite.sqlite3.connect", side_effect=spy_connect
+            ):
+                with self.assertRaises(StorageError):
+                    _connect(db, read_only=False)
+        self.assertEqual(len(opens), 1, "exactly one connection was opened")
+        self.assertTrue(opens[0].closed, "connection must be closed on PRAGMA failure")
+
+    def test_pragma_failure_through_public_open_typed(self):
+        """PRAGMA failure surfaces as a typed StorageError through the public
+        open_database() boundary and the handle is closed."""
+        import methodfactory.storage.sqlite as sqlite_mod
+        from unittest import mock
+
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            with mock.patch.object(
+                sqlite_mod,
+                "_apply_or_verify_pragmas",
+                side_effect=StorageError("pragma fail"),
+            ):
+                with self.assertRaises(StorageError):
+                    open_database(root, read_only=False)
 
 
 if __name__ == "__main__":
