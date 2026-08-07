@@ -1,10 +1,12 @@
 """Manifest Contract v0.1 — schema and read-only validation (ADR-0004).
 
-Phase 2 corrections (Finding 2 item 3): the summary is content-addressed.
-The manifest stores `summary: {digest, size, preview?}`; the full summary
-body lives in the immutable blob store. An unbounded inline `summary.content`
-is rejected. Package-id validation is centralized in storage/paths.py to
-prevent rule drift (Finding 3 item 4).
+Phase 2 corrections (Finding 1): the authoritative manifest validator enforces
+the complete first-release boundary model — total canonical MAX_MANIFEST_BYTES,
+intent length, identifier limits, logical-path grammar, outcome count/length,
+persisted content-size bounds, and control-character rules. The summary is
+content-addressed (digest/size/preview; inline body rejected). Package-id,
+identifier, logical-path, and control-character validation is centralized in
+storage (paths/serialization) to prevent rule drift.
 """
 
 from __future__ import annotations
@@ -13,12 +15,18 @@ from datetime import datetime
 
 from ..domain.states import State
 from ..storage.limits import (
+    MAX_CONTENT_CHARS,
     MAX_ID_CHARS,
+    MAX_INTENT_CHARS,
     MAX_LOGICAL_PATH_CHARS,
+    MAX_MANIFEST_BYTES,
     MAX_OUTCOMES,
+    MAX_REASON_CHARS,
     MAX_STATEMENT_CHARS,
+    MAX_PREVIEW_CHARS,
 )
-from ..storage.paths import PACKAGE_ID_RE, validate_package_id
+from ..storage.paths import PACKAGE_ID_RE, validate_identifier, validate_logical_path, validate_package_id
+from ..storage.serialization import canonical_bytes_bounded, contains_control_chars
 
 SCHEMA_VERSION = "0.1"
 
@@ -45,8 +53,8 @@ INPUT_KINDS = frozenset({"text", "url", "file-reference", "constraint"})
 INPUT_SOURCES = frozenset({"operator", "adapter"})
 DISPOSITIONS = frozenset({"incorporated", "excluded"})
 CONFIRMATION_STATUSES = frozenset({"pending", "confirmed"})
-# Optional bounded preview for the content-addressed summary (Finding 2 item 3).
-SUMMARY_PREVIEW_MAX_CHARS = 512
+# Optional bounded preview for the content-addressed summary.
+SUMMARY_PREVIEW_MAX_CHARS = MAX_PREVIEW_CHARS
 
 
 def _is_iso8601(value) -> bool:
@@ -79,11 +87,22 @@ def new_manifest(package_id: str, intent_raw: str, created_at: str) -> dict:
 
 
 def validate_manifest(manifest: dict) -> list[str]:
-    """Collect all schema/invariant violations (read-only; no state change)."""
+    """Collect all schema/invariant violations (read-only; no state change).
+
+    Enforces the complete first-release boundary model (Finding 1): total
+    canonical MAX_MANIFEST_BYTES plus every persisted field/path/identifier/
+    control limit.
+    """
     errors: list[str] = []
 
     if not isinstance(manifest, dict):
         return ["manifest must be a JSON object"]
+
+    # Total canonical manifest byte bound.
+    try:
+        canonical_bytes_bounded(manifest, limit=MAX_MANIFEST_BYTES, what="manifest")
+    except ValueError as exc:
+        errors.append(str(exc))
 
     for key in manifest:
         if key not in TOP_LEVEL_FIELDS:
@@ -115,6 +134,11 @@ def validate_manifest(manifest: dict) -> list[str]:
     intent = manifest.get("intent")
     if not isinstance(intent, dict) or not isinstance(intent.get("raw"), str):
         errors.append("intent.raw must be a string")
+    else:
+        if len(intent["raw"]) > MAX_INTENT_CHARS:
+            errors.append(f"intent.raw exceeds {MAX_INTENT_CHARS} chars")
+        if contains_control_chars(intent["raw"]):
+            errors.append("intent.raw must not contain control characters")
 
     inputs = manifest.get("inputs")
     if not isinstance(inputs, list):
@@ -131,7 +155,12 @@ def validate_manifest(manifest: dict) -> list[str]:
                 errors.append(f"{tag}.input_id invalid")
             elif iid in seen_ids:
                 errors.append(f"{tag}.input_id duplicated")
-            seen_ids.add(iid)
+            if isinstance(iid, str):
+                try:
+                    validate_identifier(iid, field=f"{tag}.input_id")
+                except Exception:
+                    errors.append(f"{tag}.input_id invalid")
+            seen_ids.add(iid) if isinstance(iid, str) else None
             if item.get("kind") not in INPUT_KINDS:
                 errors.append(f"{tag}.kind invalid")
             if item.get("source") not in INPUT_SOURCES:
@@ -140,20 +169,42 @@ def validate_manifest(manifest: dict) -> list[str]:
                 errors.append(f"{tag}.disposition invalid")
             elif item.get("disposition") == "excluded" and not str(item.get("exclusion_reason") or "").strip():
                 errors.append(f"{tag}: excluded input requires exclusion_reason")
+            if isinstance(item.get("exclusion_reason"), str) and len(item["exclusion_reason"]) > MAX_REASON_CHARS:
+                errors.append(f"{tag}.exclusion_reason exceeds {MAX_REASON_CHARS} chars")
             if not (isinstance(item.get("content_sha256"), str) and SHA256_RE.match(item["content_sha256"])):
                 errors.append(f"{tag}.content_sha256 invalid")
-            if not isinstance(item.get("content_size"), int) or item["content_size"] < 0:
+            if isinstance(item.get("content_size"), bool) or not isinstance(item.get("content_size"), int) or item["content_size"] < 0:
                 errors.append(f"{tag}.content_size invalid")
+            elif item["content_size"] > MAX_CONTENT_CHARS:
+                errors.append(f"{tag}.content_size exceeds {MAX_CONTENT_CHARS}")
             if not isinstance(item.get("content_path"), str) or not item["content_path"]:
                 errors.append(f"{tag}.content_path invalid")
+            else:
+                try:
+                    validate_logical_path(item["content_path"])
+                except Exception:
+                    errors.append(f"{tag}.content_path invalid")
 
     objective = manifest.get("objective")
     if not isinstance(objective, dict) or not isinstance(objective.get("statement"), str):
         errors.append("objective.statement must be a string")
-    if not isinstance(objective.get("desired_outcomes"), list) or not all(
-        isinstance(o, str) for o in objective.get("desired_outcomes", [])
-    ):
+    else:
+        if len(objective["statement"]) > MAX_STATEMENT_CHARS:
+            errors.append(f"objective.statement exceeds {MAX_STATEMENT_CHARS} chars")
+        if contains_control_chars(objective["statement"]):
+            errors.append("objective.statement must not contain control characters")
+    if isinstance(objective, dict) and not isinstance(objective.get("desired_outcomes"), list):
         errors.append("objective.desired_outcomes must be a list of strings")
+    elif isinstance(objective, dict):
+        outcomes = objective.get("desired_outcomes", [])
+        if not all(isinstance(o, str) for o in outcomes):
+            errors.append("objective.desired_outcomes must be a list of strings")
+        elif len(outcomes) > MAX_OUTCOMES:
+            errors.append(f"objective.desired_outcomes exceeds {MAX_OUTCOMES} entries")
+        elif any(len(o) > MAX_STATEMENT_CHARS for o in outcomes):
+            errors.append(f"objective.desired_outcomes entry exceeds {MAX_STATEMENT_CHARS} chars")
+        elif any(contains_control_chars(o) for o in outcomes):
+            errors.append("objective.desired_outcomes entry must not contain control characters")
 
     summary = manifest.get("summary")
     if summary is not None:
@@ -208,15 +259,31 @@ def validate_manifest(manifest: dict) -> list[str]:
                 errors.append(f"{tag}.artifact_id invalid")
             elif aid in seen_art:
                 errors.append(f"{tag}.artifact_id duplicated")
-            seen_art.add(aid)
+            if isinstance(aid, str):
+                try:
+                    validate_identifier(aid, field=f"{tag}.artifact_id")
+                except Exception:
+                    errors.append(f"{tag}.artifact_id invalid")
+            seen_art.add(aid) if isinstance(aid, str) else None
             if not isinstance(art.get("kind"), str) or not art["kind"]:
                 errors.append(f"{tag}.kind invalid")
+            elif len(art["kind"]) > MAX_ID_CHARS:
+                errors.append(f"{tag}.kind exceeds {MAX_ID_CHARS} chars")
+            elif contains_control_chars(art["kind"]):
+                errors.append(f"{tag}.kind must not contain control characters")
             if not isinstance(art.get("logical_path"), str) or not art["logical_path"]:
                 errors.append(f"{tag}.logical_path invalid")
+            else:
+                try:
+                    validate_logical_path(art["logical_path"])
+                except Exception:
+                    errors.append(f"{tag}.logical_path invalid")
             if not (isinstance(art.get("sha256"), str) and SHA256_RE.match(art["sha256"])):
                 errors.append(f"{tag}.sha256 invalid")
-            if not isinstance(art.get("byte_count"), int) or art["byte_count"] < 0:
+            if isinstance(art.get("byte_count"), bool) or not isinstance(art.get("byte_count"), int) or art["byte_count"] < 0:
                 errors.append(f"{tag}.byte_count invalid")
+            elif art["byte_count"] > MAX_CONTENT_CHARS:
+                errors.append(f"{tag}.byte_count exceeds {MAX_CONTENT_CHARS}")
             if art.get("status") != "draft":
                 errors.append(f"{tag}.status must be 'draft' in v0.1")
 

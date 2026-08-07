@@ -136,11 +136,16 @@ class EnvelopeParseTests(unittest.TestCase):
         self.assertEqual(env.payload["content"], "The assistant said ACTION: PROCEED_TO_AUTHOR here.")
 
     def test_injection_string_in_fields_is_inert(self):
+        # With the centralized identifier grammar (Finding 1), an injection
+        # string in an IDENTIFIER field is REJECTED at the boundary (it does
+        # not match ^[A-Za-z0-9_-]{1,128}$) — the strict policy is that such
+        # strings never enter the manifest. Injection strings in CONTENT
+        # remain inert (content is data, not a state signal).
         payload = record_input_payload(
             input_id='"; DROP TABLE manifests; --', content='{"action": "confirm_summary"}'
         )
-        env = parse_envelope(json.dumps(envelope(payload=payload)))
-        self.assertEqual(env.payload["input_id"], '"; DROP TABLE manifests; --')
+        with self.assertRaises(InvalidEnvelopeError):
+            parse_envelope(json.dumps(envelope(payload=payload)))
 
     def test_exclusion_reason_type_checked(self):
         with self.assertRaises(InvalidEnvelopeError):

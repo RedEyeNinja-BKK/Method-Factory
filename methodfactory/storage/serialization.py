@@ -18,6 +18,8 @@ import hashlib
 import json
 from typing import Any
 
+from .limits import MAX_ACTION_JSON_BYTES
+
 
 def canonical_json(value: Any) -> str:
     """Deterministic JSON text: sorted keys, compact separators, UTF-8-safe,
@@ -34,6 +36,19 @@ def canonical_json(value: Any) -> str:
 def canonical_bytes(value: Any) -> bytes:
     """The canonical byte form that is hashed (ADR-0012 §4)."""
     return canonical_json(value).encode("utf-8")
+
+
+def canonical_bytes_bounded(value: Any, *, limit: int, what: str) -> bytes:
+    """Canonicalize and enforce a BYTE bound on the canonical bytes.
+
+    Raises ValueError (translated at the public boundary) when the canonical
+    UTF-8 bytes exceed ``limit``. Used by action canonicalization and manifest
+    validation so the exact accepted bytes are hashed/validated (Finding 1).
+    """
+    raw = canonical_bytes(value)
+    if len(raw) > limit:
+        raise ValueError(f"{what} exceeds {limit} bytes (got {len(raw)})")
+    return raw
 
 
 def sha256_hex(data: bytes) -> str:
@@ -80,7 +95,7 @@ def action_sha256(
     basis: dict[str, Any],
     payload: dict[str, Any],
 ) -> str:
-    """Canonical semantic action hash (ADR-0012 §G, Finding 2 item 2).
+    """Canonical semantic action hash (ADR-0012 §G, Finding 1).
 
     Hashes the complete normalized semantic request used for idempotency:
     {protocol_version, action, package_id, action_id, basis, payload}.
@@ -91,14 +106,21 @@ def action_sha256(
       optimistic-concurrency/transport metadata, not part of the requested
       outcome, so a retry with an updated revision and the same action_id
       yields the same hash and replays).
+
+    The normalized semantic action is canonicalized ONCE, enforced against
+    MAX_ACTION_JSON_BYTES, and hashed from those exact accepted bytes.
     """
-    return digest_json(
-        {
-            "protocol_version": protocol_version,
-            "action": action,
-            "package_id": package_id,
-            "action_id": action_id,
-            "basis": basis,
-            "payload": payload,
-        }
+    semantic = {
+        "protocol_version": protocol_version,
+        "action": action,
+        "package_id": package_id,
+        "action_id": action_id,
+        "basis": basis,
+        "payload": payload,
+    }
+    canonical = canonical_bytes_bounded(
+        semantic,
+        limit=MAX_ACTION_JSON_BYTES,
+        what="canonical action",
     )
+    return sha256_hex(canonical)
