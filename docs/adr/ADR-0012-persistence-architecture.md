@@ -543,3 +543,266 @@ migration output, and partial/coherent-enough tampering that violates
 deterministic semantics. They are internal-consistency evidence, not
 cryptographic authenticity: an attacker capable of coherently rewriting and
 rehashing the entire database remains out of scope.
+
+---
+
+## Amendment - migration/export contract correction (design-freeze review 4886392385, 2026-08-08)
+
+Documentation-only contract correction. Freezes the exact public v0.1.2
+compatibility contract that a future migration/export implementation must
+honor. Does not implement migration/export and does not alter the accepted
+SQLite persistence architecture.
+
+### 1. Legacy action-hash semantics (binding)
+
+Public v0.1.2 (`v0.1.2-integrity`, commit `fb5641c`) used two action-hash
+rules:
+
+- **Revision 0** (`create_package`):
+  `sha256(legacy_canonical_json({"action": "create_package", "package_id": <pkg>}))`
+  - a special reduced create hash.
+- **Revision > 0**:
+  `sha256(legacy_canonical_json(envelope_as_dict minus "expected_revision"))`,
+  i.e. the six fields
+  `{protocol_version, action_id, package_id, action, basis, payload}`.
+
+The migration reader must reconstruct each rev>0 semantic action from
+snapshot + blob + predecessor evidence, then **require** the stored legacy
+`action_sha256` to equal the legacy canonical hash of the unique candidate.
+A recovered action is accepted only when the evidence determines exactly one
+candidate. No hash inversion, no invented payload.
+
+### 2. Canonical-serializer relationship (exact wording)
+
+Legacy canonical hashing used:
+
+- `sort_keys=True`;
+- `separators=(",", ":")`;
+- `ensure_ascii=True`;
+- Python's **default** `allow_nan` behavior.
+
+Current canonical hashing uses:
+
+- `sort_keys=True`;
+- `separators=(",", ":")`;
+- `ensure_ascii=False`;
+- `allow_nan=False`.
+
+The relevant public v0.1.2 action/manifest schemas do not contain arbitrary
+floating-point semantic fields, so the observed migration compatibility
+difference is the **ASCII-escape/UTF-8 representation**, not a floating-point
+conversion rule. Do not overclaim equivalence of serializer options.
+
+Legacy digests are therefore not preserved as current canonical digests;
+migration recomputes current hashes from imported content (ADR-0012 §4).
+
+### 3. Public-valid / current-valid compatibility contract
+
+Where a public-valid v0.1.2 value is now current-invalid, migration fails
+closed with `MIGRATION_INCOMPATIBLE` (package_id, revision, action_id,
+reason). Current validation is never weakened; historical IDs are never
+renamed; no truncation, whitespace rewriting, control-character stripping, or
+silent normalization.
+
+| Surface | Public v0.1.2 | Current | Classification |
+|---|---|---|---|
+| `package_id` | `^pkg_[A-Za-z0-9_-]{1,63}$` | identical | A (identical) |
+| `action_id` | non-empty str ≤64, no grammar | ≤64 + `validate_identifier` + control-char | C if legacy used invalid chars, else A |
+| `input_id` / `artifact_id` / `kind` | non-empty str, no grammar | `validate_identifier` + control-char | C if legacy used invalid chars, else A |
+| `operator_id` | any str (or None) | `validate_identifier` | C if legacy used invalid chars, else A |
+| `logical_path` | legacy: lstrip `/`, block `{..,/,\}`, ≤255 | strict relative, no backslash/`%`/control/empty-segment/`.`/`..`, ≤255 | C for `a//b`, leading/trailing `/`, `%2f`, backslash; else A |
+| `intent.raw` | any string, no length/control boundary | `MAX_INTENT_CHARS = 65,536` + control-char validation | C if legacy outside boundary |
+| `intent.clarified` | engine does not populate it (remains `None`) | must be string or null | Non-null legacy `clarified` is **non-reconstructable historical state** → fail closed (see §5) |
+| `record_input.content` | any string, no length limit | `MAX_CONTENT_CHARS` (characters) + persisted UTF-8 blob byte limit (`MAX_ARTIFACT_BYTES`) | C if legacy exceeds either applicable boundary |
+| `record_draft_artifact.content` | any string, no length limit | `MAX_CONTENT_CHARS` (characters) + artifact/blob byte limit (`MAX_ARTIFACT_BYTES`) | C if legacy exceeds either applicable boundary |
+| `statement` | any string | `MAX_STATEMENT_CHARS` (16 KiB) | C if legacy exceeds |
+| `desired_outcomes` | list of str, no count/length limit | `MAX_OUTCOMES` (100) + ≤16 KiB each | C if legacy exceeds |
+| `reason` (exclusion/cancel) | str or None, no length limit | `MAX_REASON_CHARS` (1 KiB) + control-char | C if legacy exceeds |
+| control characters | not validated in legacy envelope | validated on ids/kinds/reasons/statements/outcomes/preview | C where legacy carried control chars in a now-checked field |
+| Unicode / lone surrogate | legacy accepted any str | current rejects lone surrogates at several boundaries | A for well-formed Unicode (hash differs - recomputed); C only if legacy persisted a lone surrogate |
+| `event_id` | `evt_<uuid4hex>` (36 chars) | `validate_identifier` + global UNIQUE | A for legacy format |
+
+`record_input.content` and `record_draft_artifact.content` are frozen as
+**separate** compatibility rows because their current semantic character
+limits and persisted blob byte limits are the same constants but apply to
+different storage boundaries.
+
+### 4. Frozen v0.1.2 journal/cache semantics
+
+- `events/<package_id>.events.jsonl` is the **canonical** public v0.1.2
+  history source.
+- `packages/<package_id>.json` is a **latest-manifest cache**.
+
+The frozen migration reader preserves the public crash-tolerance semantics:
+
+- cache absent while reconstructable journal snapshots exist is acceptable;
+- cache need not equal the latest journal snapshot;
+- a lagging cache is valid if its digest matches **any** committed journal
+  snapshot (matching public `_validate_cache_if_present()` behavior);
+- a cache that matches no committed journal snapshot is invalid;
+- migration derives canonical package history from the **journal**, never from
+  a newer-looking cache.
+
+Do not tighten this into `cache == last event`; that would reject legitimate
+public v0.1.2 crash states.
+
+### 5. Non-reconstructable historical state
+
+Migration compatibility is for histories that can be validated and
+semantically reconstructed - not arbitrary hand-rehashed/tampered structures
+merely tolerated by the old loader. A non-null legacy `intent.clarified`
+(which the public engine never produces) is non-reconstructable and fails
+closed. Arbitrary unrecoverable `cancel.reason` → `MIGRATION_INCOMPATIBLE`.
+
+### 6. Timestamp normalization (advancing-clock evidence)
+
+Public v0.1.2 calls `now()` separately for `summary.presented_at`,
+`summary.confirmation.confirmed_at`, manifest `updated_at`, and event `at`.
+Advancing-clock archaeology at `fb5641c` proved: event `at` is the latest
+timestamp in each event; `updated_at` is 1 tick earlier; `presented_at` /
+`confirmed_at` are 2-3 ticks earlier; rev-0 has all equal.
+
+Frozen normalization rule:
+
+- rev-0 current timestamp = legacy event `at` (creation timestamp);
+- rev>0 current row `created_at` = legacy event `at`;
+- current `next_manifest(..., created_at=legacy_event.at)` deterministically
+  sets modern `updated_at`, `presented_at`, `confirmed_at`.
+
+Original distinct v0.1.2 internal timestamps remain in the untouched legacy
+source/evidence and are **not** copied into current fields whose
+deterministic contract differs.
+
+### 7. Current-engine-as-transformer architecture
+
+Migration must not hand-author rev>0 modern manifests. The architectural path:
+
+```
+legacy validation
+→ exact action reconstruction
+→ current-valid ActionEnvelope
+→ CURRENT next_manifest
+→ modern manifest + blobs
+→ semantic equivalence check
+→ SQLite insertion
+```
+
+No second current state machine. Fields excluded from equivalence because they
+intentionally change representation: canonical-serializer-dependent hashes,
+summary inline-content representation, normalized timestamps, current lineage
+hashes. All other semantics must match the legacy snapshot exactly.
+
+### 8. ID preservation rule
+
+Preserve legacy `event_id` exactly if current-valid and globally unique;
+preserve legacy `action_id` exactly if current-valid; preserve rev-0
+`act_create_package`. Duplicate legacy `event_id` across packages →
+`MIGRATION_INCOMPATIBLE`. The current `store.create()` ID-generation
+convention is not retroactively imposed on migration rows. No silent
+historical-ID renaming.
+
+### 9. Source-stability-before-publication
+
+```
+initial source identity/hash
+→ legacy validation
+→ temporary modern store construction
+→ complete modern validation
+→ FINAL source identity/hash
+→ require exact equality
+→ ONLY THEN destination publication
+```
+
+No final SQLite database becomes visible before the source-stability proof
+succeeds. The residual post-check TOCTOU window is documented honestly; legacy
+locks are not revived to eliminate it.
+
+### 10. Artifact publication boundary (honest)
+
+Current immutable blobs may become visible before canonical DB publication.
+They are content-addressed, immutable, verified, and orphan-safe. Migration is
+therefore **not** claimed to make every filesystem write atomically invisible;
+only canonical SQLite DB publication is atomic. No automatic orphan deletion
+during migration.
+
+### 11. Receipt/database success semantics
+
+Preferred publication order: (1) publish/fsync final receipt; (2) publish/
+fsync final database; (3) final read-only verification.
+
+**A receipt by itself is NOT successful migration.** Migration is successful
+only when:
+
+- final database exists;
+- matching final receipt exists;
+- their identities correspond to the same migration;
+- final read-only database validation succeeds.
+
+Crash state "receipt present + DB absent" is incomplete/ambiguous migration
+evidence, not success. Fail closed with explicit operator recovery
+instructions. No recovery daemon or transaction journal to make two files
+atomically appear together.
+
+### 12. `method-factory-events-v1` (supported export)
+
+Unique per-line field set (no duplicate keys):
+
+```
+format, format_version, package_id, revision, event_id, action_id, action,
+state_before, state_after, action_sha256, previous_manifest_sha256,
+resulting_manifest_sha256, created_at, semantic_action, manifest
+```
+
+One event per line; current canonical UTF-8 JSON (sorted keys, compact
+separators, `ensure_ascii=False`); exactly one LF after each line; exactly one
+final newline. Explicit SQL ordering: `ORDER BY package_id, revision`.
+
+### 13. `legacy-v012-jsonl` - hash canonicalization vs journal-line serialization
+
+These are two different public serializations and must not be conflated.
+
+- Public v0.1.2 **hash canonicalization**:
+  `json.dumps(value, sort_keys=True, separators=(",",":"), ensure_ascii=True)`.
+- Public v0.1.2 **journal-line serialization**:
+  `json.dumps(event, sort_keys=True) + "\n"` - Python's default JSON spacing
+  and `ensure_ascii=True`.
+
+`legacy-v012-jsonl` is a deterministic stream of **reconstructed public
+v0.1.2 event objects** serialized using the public v0.1.2 **event-line writer
+semantics**. It reconstructs the public event SHAPE and byte serializer.
+
+It does NOT promise:
+
+- reproduction of an original historical machine's exact journal;
+- reproduction of original internal timestamp distinctions lost during
+  migration;
+- reconstruction of the entire legacy directory/filesystem layout.
+
+For multi-package output, deterministic ordering is `package_id`, then
+`revision`. This is one evidence stream, whereas the old canonical store used
+one journal file per package.
+
+### 14. Semantic receipt identity posture
+
+Receipt identity is semantic: exact legacy source identity/inventory; exact
+source commit/tag identifier; package count; event count; destination schema
+version; resulting package/event count; migration tool/version identity; full
+validation result. Raw SQLite file bytes are **not** frozen as the public
+semantic compatibility identity.
+
+### 15. Error taxonomy
+
+Small actionable taxonomy, no redundant subclasses per command:
+
+| Code | Condition |
+|---|---|
+| `LEGACY_STORE_DETECTED` (existing) | detect-migration-required on normal open |
+| `LEGACY_SOURCE_INVALID` | unrecognized/unsupported legacy source |
+| `LEGACY_CHAIN_INVALID` | invalid legacy chain |
+| `MIGRATION_INCOMPATIBLE` | unreconstructable historical semantics, or public-valid value now current-invalid |
+| `SOURCE_CHANGED` | source changed during migration (fail before publication) |
+| `MIGRATION_PUBLISH_FAILED` | atomic publication failure |
+| `DESTINATION_EXISTS` | final destination already exists (dedicated stable identity; a CLI caller must distinguish "cannot overwrite" from generic storage failure) |
+
+Reuse current storage/path/manifest errors where their semantics are already
+exact. No alias proliferation.
