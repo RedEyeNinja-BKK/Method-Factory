@@ -14,6 +14,8 @@ Revision 0:
 - resulting manifest package_id == indexed package_id;
 - resulting manifest revision == 0;
 - resulting manifest state == indexed `state_after`;
+- resulting manifest `created_at` == `updated_at` == indexed `created_at`
+  (timestamp contract, invariant-closure review 4885538290);
 - stored action JSON hashes to `action_sha256`;
 - stored manifest JSON hashes to `resulting_manifest_sha256`.
 
@@ -22,6 +24,19 @@ Revision > 0:
 - `state_before(N) == state_after(N-1)`;
 - `previous_manifest_sha256(N) == resulting_manifest_sha256(N-1)`;
 - manifest package_id / revision / state match the indexed row;
+- manifest `updated_at` == indexed `created_at`; manifest `created_at` ==
+  the revision-0 row `created_at` (threaded through the walk);
+- **deterministic replay (invariant closure, review 4885538290):**
+  reconstructing the normal ActionEnvelope from the stored canonical action
+  and applying the SINGLE deterministic transition engine
+  (`engine.apply.next_manifest`) to the predecessor manifest with the
+  indexed event_id and event created_at MUST produce exactly the stored
+  resulting manifest (canonical bytes equal). This proves the action's
+  consequence-bearing fields — input content digest/size/path, objective
+  statement/outcomes, summary digest/size/preview/presented_at/confirmation
+  (incl. confirmed_at/operator_id/confirmed digest), artifact
+  content digest/byte_count/path, state/revision/lineage — without building
+  per-action consequence validators;
 - stored action JSON hashes to `action_sha256`;
 - stored manifest JSON hashes to `resulting_manifest_sha256`.
 
@@ -37,6 +52,13 @@ All revisions:
 - when artifact verification is requested: every referenced input content
   blob, the summary body blob, and every artifact blob exists and verifies
   against its recorded digest.
+
+Replay is **audit-path only**: `validate_chain` enables it; the transactional
+apply hot path does not (it just produced the manifest via the same engine,
+so replay would be redundant work). Replay is side-effect free: the engine's
+`(manifest, blobs_to_write)` return is used for the manifest only — blobs are
+discarded, nothing is persisted, and committed blobs are verified only by the
+optional artifact-verification mode.
 """
 
 from __future__ import annotations
@@ -45,9 +67,10 @@ import json
 import sqlite3
 from typing import Any
 
+from ..domain.errors import MethodFactoryError
 from ..domain.transitions import ACTION_VOCABULARY
-from ..engine.apply import CREATE_PACKAGE_ACTION
-from ..protocol.envelope import PROTOCOL_VERSION
+from ..engine.apply import CREATE_PACKAGE_ACTION, next_manifest
+from ..protocol.envelope import PROTOCOL_VERSION, envelope_from_dict
 from .errors import ChainViolationError, StorageError
 from .paths import validate_identifier
 from .serialization import canonical_bytes, sha256_hex
@@ -161,6 +184,142 @@ def _bind_manifest_fields(
         )
 
 
+def _bind_timestamp_fields(
+    manifest: dict[str, Any],
+    event: dict[str, Any],
+    *,
+    creation_timestamp: str | None,
+    violations: list[str],
+) -> None:
+    """Timestamp contract (invariant-closure review 4885538290).
+
+    Derived from the deterministic transition implementation, not from a
+    blanket "every timestamp must match the row" rule:
+
+    - Revision 0: the create manifest is born with
+      ``created_at == updated_at == event.created_at`` (``new_manifest``),
+      and the A1 semantic action binds ``payload.created_at == event.created_at``,
+      so all four agree.
+    - Revision > 0: ``next_manifest`` sets ``updated_at = created_at`` (the
+      event row timestamp threaded into the engine), and ``created_at`` is
+      carried unchanged from revision 0, so ``updated_at == event.created_at``
+      and ``created_at == revision-0 created_at``.
+
+    Action-specific timestamps (`summary.presented_at` on `prepare_summary`,
+    `summary.confirmation.confirmed_at` on `confirm_summary`) are derived from
+    the event timestamp by the engine and are therefore proven by the
+    deterministic replay check (canonical equality) — they are not bound
+    indiscriminately here.
+    """
+    revision = event.get("revision")
+    row_created = event.get("created_at")
+    created = manifest.get("created_at")
+    updated = manifest.get("updated_at")
+    if revision == 0:
+        if created != row_created:
+            violations.append(
+                f"manifest created_at != indexed created_at at revision 0"
+            )
+        if updated != row_created:
+            violations.append(
+                f"manifest updated_at != indexed created_at at revision 0"
+            )
+    else:
+        if updated != row_created:
+            violations.append(
+                f"manifest updated_at != indexed created_at at revision {revision}"
+            )
+        if creation_timestamp is not None and created != creation_timestamp:
+            violations.append(
+                f"manifest created_at != revision-0 created_at at revision {revision}"
+            )
+
+
+def _replay_violations(
+    *,
+    package_id: str,
+    revision: Any,
+    event: dict[str, Any],
+    action_obj: dict[str, Any] | None,
+    prev_manifest: dict[str, Any] | None,
+    manifest_canonical: bytes | None,
+    violations: list[str],
+) -> None:
+    """Deterministic action -> resulting-manifest validation (invariant
+    closure, review 4885538290).
+
+    Reconstructs the normal internal ActionEnvelope from the stored canonical
+    action (injecting `expected_revision = revision - 1`, the only field the
+    semantic-action form omits by contract), then applies the SINGLE
+    deterministic transition engine to the predecessor manifest with the
+    indexed event_id and created_at. The canonical bytes of the replayed
+    manifest must equal the stored resulting manifest — this proves every
+    consequence-bearing field (input digest/size/path, objective,
+    summary digest/size/preview/presented_at/confirmation, artifact
+    digest/byte_count/path, state/revision/lineage, updated_at) with one
+    rule instead of seven per-action validators.
+
+    Side-effect free: the engine returns `(next_manifest, blobs_to_write)`;
+    blobs are discarded here and nothing is persisted during audit replay.
+    Blob METADATA is proven by canonical equality; committed-blob integrity
+    is verified by the optional artifact-verification mode.
+
+    Fail-closed reconstruction: an unsupported protocol version, unknown
+    action, malformed basis/payload, invalid IDs, or invalid payload
+    structure all fail via the existing envelope validator — the stored bytes
+    are never trusted merely because they were persisted.
+    """
+    if revision == 0:
+        return  # create is validated by its own revision-0 contract, not replay
+    if action_obj is None or manifest_canonical is None:
+        return  # decode failure already reported by the caller
+    if prev_manifest is None:
+        violations.append(
+            f"deterministic replay unavailable at revision {revision}: "
+            "missing predecessor manifest"
+        )
+        return
+
+    try:
+        reconstructed = dict(action_obj)
+        reconstructed["expected_revision"] = revision - 1
+        envelope = envelope_from_dict(reconstructed)
+    except (MethodFactoryError, TypeError, ValueError, UnicodeError, RecursionError) as exc:
+        violations.append(
+            f"stored action cannot be reconstructed at revision {revision}: {exc}"
+        )
+        return
+
+    try:
+        replayed, blobs = next_manifest(
+            prev_manifest,
+            envelope,
+            event_id=event.get("event_id"),
+            created_at=event.get("created_at"),
+        )
+    except MethodFactoryError as exc:
+        violations.append(
+            f"stored action is not a legal deterministic transition at revision {revision}: {exc}"
+        )
+        return
+    del blobs  # side-effect free: never persist blobs during audit replay
+
+    try:
+        replayed_canonical = canonical_bytes(replayed)
+    except (TypeError, RecursionError, UnicodeEncodeError, ValueError) as exc:
+        violations.append(
+            f"replayed manifest cannot be canonicalized at revision {revision}: {exc}"
+        )
+        return
+    if replayed_canonical != manifest_canonical:
+        violations.append(
+            f"stored resulting manifest is not the deterministic result of the "
+            f"stored action at revision {revision}: replayed digest "
+            f"{sha256_hex(replayed_canonical)} != stored "
+            f"{sha256_hex(manifest_canonical)}"
+        )
+
+
 def check_event_invariants(
     *,
     package_id: str,
@@ -171,6 +330,9 @@ def check_event_invariants(
     artifact_store: Any = None,
     check_schema: bool = False,
     decode_blobs: bool = True,
+    prev_manifest: dict[str, Any] | None = None,
+    replay: bool = False,
+    creation_timestamp: str | None = None,
 ) -> list[str]:
     """Return every invariant violation for one event (empty = valid).
 
@@ -186,6 +348,16 @@ def check_event_invariants(
     - `decode_blobs`: decode the stored BLOBs to verify JSON validity.
       True for the on-disk validator; the transactional apply passes False
       because the bytes it stores are self-produced and digest-bound.
+    - `replay`: run the deterministic action -> resulting-manifest replay
+      check (audit/full-validation mode only; the apply hot path passes
+      False because it just produced the manifest via the same engine).
+      Requires `prev_manifest` (decoded predecessor) for revision > 0.
+    - `creation_timestamp`: the revision-0 row `created_at`, threaded through
+      the walk so every revision > 0 can bind `manifest.created_at` to it and
+      `manifest.updated_at` to its own row `created_at`. The create path
+      passes the creation timestamp; the apply path passes None (unchanged
+      hot path — full timestamp binding is enforced by the authoritative
+      validator).
     """
     violations: list[str] = []
     revision = event.get("revision")
@@ -334,6 +506,12 @@ def check_event_invariants(
             manifest, package_id=package_id, revision=revision,
             state_after=state_after, violations=violations,
         )
+        # Timestamp contract (invariant-closure review 4885538290): revision-0
+        # created_at/updated_at and revision>0 updated_at/created_at row
+        # bindings derived from the deterministic transition implementation.
+        _bind_timestamp_fields(
+            manifest, event, creation_timestamp=creation_timestamp, violations=violations,
+        )
         # Manifest-internal lineage claims must match the indexed row (the
         # engine writes these as chain facts; the validator cross-checks them).
         # Revision 0 is exempt: the create manifest's transition fields are
@@ -359,6 +537,23 @@ def check_event_invariants(
 
             for schema_error in _vm(manifest):
                 violations.append(f"manifest schema violation: {schema_error}")
+
+    # ── Deterministic replay (invariant-closure review 4885538290) ───────
+    # Audit-path only: the stored action, replayed through the SINGLE
+    # deterministic transition engine over the predecessor manifest, must
+    # reproduce the stored resulting manifest exactly. Proves every
+    # consequence-bearing field with one rule. Side-effect free (blobs
+    # returned by the engine are discarded).
+    if replay:
+        _replay_violations(
+            package_id=package_id,
+            revision=revision,
+            event=event,
+            action_obj=action_obj,
+            prev_manifest=prev_manifest,
+            manifest_canonical=manifest_canonical,
+            violations=violations,
+        )
 
     # ── Grammar / vocabulary ───────────────────────────────────────────
     for field, value in (("event_id", event_id), ("action_id", action_id)):
@@ -452,9 +647,14 @@ def validate_chain(
 
     Walks every event in revision order (lazily, one row at a time), applies
     the single invariant kernel per event with BLOB decoding + schema
-    validation enabled, and raises ChainViolationError (code CHAIN_VIOLATION)
-    with ALL violations of the failing event on the FIRST invalid event.
-    Returns a summary on success.
+    validation + deterministic replay enabled, and raises ChainViolationError
+    (code CHAIN_VIOLATION) with ALL violations of the failing event on the
+    FIRST invalid event. Returns a summary on success.
+
+    This is the explicit full-chain/audit validation path: it replays every
+    revision > 0 through the deterministic transition engine (side-effect
+    free) and enforces the timestamp contract. The hot paths (load/apply) do
+    not replay history.
     """
     try:
         cursor = conn.execute(EVENTS_BY_REVISION_SQL, (package_id,))
@@ -465,18 +665,26 @@ def validate_chain(
         raise ChainViolationError(f"package {package_id} has no events")
 
     # Lazy walk: one event at a time, so memory stays bounded to a single
-    # event even for long chains (perf, audit path).
+    # event even for long chains (perf, audit path). prev_manifest is the
+    # decoded predecessor manifest needed for deterministic replay;
+    # creation_timestamp is threaded from the revision-0 row for the
+    # timestamp contract.
     prev_event: dict[str, Any] | None = None
+    prev_manifest: dict[str, Any] | None = None
+    creation_timestamp: str | None = None
     event_count = 0
     while row is not None:
         event = dict(row)
         event_count += 1
         # The kernel decodes and reports malformed BLOBs as violations, and
-        # re-validates the manifest schema (audit mode).
+        # re-validates the manifest schema + deterministic replay (audit mode).
         violations = check_event_invariants(
             package_id=package_id,
             event=event,
             prev_event=prev_event,
+            prev_manifest=prev_manifest,
+            replay=True,
+            creation_timestamp=creation_timestamp,
             manifest=None,
             verify_artifacts=verify_artifacts,
             artifact_store=artifact_store,
@@ -488,7 +696,19 @@ def validate_chain(
                 f"chain violation for {package_id} rev {event.get('revision')}: "
                 + "; ".join(violations)
             )
+        if event.get("revision") == 0:
+            creation_timestamp = event.get("created_at")
         prev_event = event
+        # Decode the just-validated manifest for the NEXT event's replay
+        # (bounded to one predecessor; a decode failure here is impossible for
+        # a validated event and would fail the next replay closed).
+        scratch: list[str] = []
+        pm, _ = _decode_canonical_json_object(
+            event.get("manifest_json"),
+            f"manifest_json({package_id}, rev {event.get('revision')})",
+            scratch,
+        )
+        prev_manifest = pm
         row = cursor.fetchone()
 
     return {"package_id": package_id, "events": event_count, "valid": True}

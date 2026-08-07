@@ -451,6 +451,7 @@ class SqliteManifestStore:
                 violations = check_event_invariants(
                     package_id=package_id, event=event, prev_event=None,
                     manifest=manifest, decode_blobs=False,
+                    creation_timestamp=created_at,
                 )
                 if violations:
                     raise ManifestInvalidError(

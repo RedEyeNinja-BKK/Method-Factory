@@ -107,16 +107,43 @@ code-review verify lane on 2026-08-07; each is genuine in the code):
    still pass `validate_chain`; the manifest's own digests are independently
    verified against the blob store. Not in the reviewer's explicit A3
    "at minimum" list; recommended for the next invariant slice.
+
+   > **CLOSED by the invariant closure (senior review 4885538290, Lane 1).**
+   > `validate_chain` now reconstructs the normal internal ActionEnvelope
+   > from the stored canonical `action_json` and replays the SINGLE
+   > deterministic transition engine (`engine.apply.next_manifest`) over the
+   > predecessor manifest with the indexed `event_id` and row `created_at`;
+   > canonical equality with the stored resulting manifest proves every
+   > consequence-bearing field (input digest/size/path, objective,
+   > summary digest/size/preview/presented_at/confirmation incl.
+   > confirmed_at/operator_id/confirmed digest, artifact digest/byte_count/
+   > path, state/revision/lineage, updated_at) with one rule — no per-action
+   > consequence validators. Adversarial tests recompute all immediate
+   > hashes so only the replay invariant can fail.
+
 2. **Manifest created_at/updated_at ↔ row binding**: `_bind_manifest_fields`
    binds package_id/revision/state and rev>0 lineage, but not the manifest's
    own `created_at`/`updated_at` to row timestamps (correct binding for
    `created_at` requires threading the revision-0 row timestamp through the
    kernel walk). Residual; recommended with the above.
+
+   > **CLOSED by the invariant closure (senior review 4885538290, Lane 1).**
+   > Revision 0: `created_at == updated_at == row created_at == action
+   > payload.created_at`. Revision > 0: `updated_at == row created_at` and
+   > `created_at == revision-0 row created_at` (threaded through the walk).
+   > Action-specific timestamps (`presented_at`, `confirmed_at`) are derived
+   > from the event timestamp by the transition and proven by replay — not
+   > bound indiscriminately.
+
 3. **`validate_chain` double canonicalization (audit path)**: with
    `check_schema=True`, each event's manifest is canonicalized once by the A2
    decode and again inside the schema validator. Bounded to the explicit audit
    path (not load/apply); the perf-1 single-pass fix covered
-   `check_current_row_consistency` only.
+   `check_current_row_consistency` only. **Retained as an accepted
+   performance residual** (senior review 4885538290 §8: the audit-path double
+   canonicalization may remain unless measurements show a meaningful problem).
+
 4. **Test tamper-pattern duplication (nit)**: `test_transactional_store.py`
    and `test_chain_validator.py` each carry an inline drop-triggers/UPDATE
-   tamper pattern rather than a shared helper; cosmetic.
+   tamper pattern rather than a shared helper; cosmetic. **Retained** (the
+   replay module keeps a self-contained local helper).

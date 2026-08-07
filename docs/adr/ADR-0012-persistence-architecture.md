@@ -475,3 +475,71 @@ Before any evidence capture, the local worktree must be clean: the `.gitignore` 
 ### L. Architecture CI honesty (item 12)
 
 As of this amendment, architecture CI is **unproven**: run `31127787460` was cancelled without executing steps. It is neither failed nor passed. CI is considered evidence only after a run executes successfully on the exact branch SHA. The Phase 2 submission runs CI on the exact final head SHA and reports the run URL and conclusion.
+
+---
+
+## Amendment - invariant closure (senior review 4885538290, 2026-08-08)
+
+Pre-migration invariant closure (Lane 1). Closes the two accepted residuals
+from closure A (`public-surface.md` #1 and #2) WITHOUT reopening the
+persistence architecture, changing the state representation, or adding a new
+event format.
+
+### Deterministic action → resulting-manifest validation
+
+The authoritative full-chain validator (`storage.chain.validate_chain` - the
+`mf validate --full` / migration / release-evidence path) now proves that the
+recorded resulting manifest is exactly the deterministic result Method
+Factory would have produced:
+
+```text
+replay(predecessor_manifest, stored_action, event_id, event_created_at)
+    == stored resulting manifest        (canonical bytes equal)
+```
+
+- Stored-action reconstruction reuses the normal envelope validator
+  (`envelope_from_dict`) on the canonical stored `action_json` with
+  `expected_revision = revision - 1` injected (the only field the
+  semantic-action form omits by contract). Fail-closed: unsupported protocol
+  version, unknown action, malformed basis/payload, invalid IDs, or invalid
+  payload structure are rejected even though the bytes were persisted.
+- The transition is the SINGLE existing deterministic engine
+  (`engine.apply.next_manifest`). No per-action consequence validators are
+  created; there is still exactly one transition implementation.
+- Replay is side-effect free: the engine's `blobs_to_write` are discarded and
+  nothing is persisted during validation. Blob metadata is proven by
+  canonical equality; committed-blob integrity is verified only by the
+  optional artifact-verification mode.
+- Replay re-evaluates the same legality and gate rules from persisted
+  evidence (all gates are self-contained: predecessor manifest + stored
+  action; no external runtime state). A historical event that could not
+  legally have been produced fails full-chain validation.
+- No recursive validator dependencies: the validator calls the pure engine
+  with decoded, validated persisted evidence; it never calls the
+  transactional mutation path (`store.apply`).
+- The replay check lives ONLY on the explicit full-chain/audit path.
+  `load()` remains indexed latest-row; transaction apply remains bounded and
+  does not replay history.
+
+### Timestamp contract
+
+Derived from the deterministic transition implementation, not a blanket rule:
+
+| Revision | Contract |
+|---|---|
+| 0 | manifest `created_at == updated_at == row created_at == action payload.created_at` |
+| > 0 | manifest `updated_at == row created_at`; manifest `created_at == revision-0 row created_at` (threaded through the walk) |
+
+`summary.presented_at` (`prepare_summary`) and
+`summary.confirmation.confirmed_at` (`confirm_summary`) are derived from the
+event timestamp by the transition and are therefore proven by deterministic
+replay - they are not bound indiscriminately. Independent corruption tests
+cover each binding.
+
+### Threat-model note (unchanged)
+
+These checks detect internally inconsistent history, writer defects, malformed
+migration output, and partial/coherent-enough tampering that violates
+deterministic semantics. They are internal-consistency evidence, not
+cryptographic authenticity: an attacker capable of coherently rewriting and
+rehashing the entire database remains out of scope.
