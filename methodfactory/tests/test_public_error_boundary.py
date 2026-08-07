@@ -1,4 +1,5 @@
-"""Complete public error-boundary tests (Finding 4, review 4879090471).
+"""Complete public error-boundary tests (Finding 4, review 4879090471;
+closure review 4879440857).
 
 Every currently exposed storage/artifact operation must surface typed
 MethodFactoryError (never raw sqlite3/JSON/Unicode/OS/type), with specific
@@ -12,12 +13,15 @@ import unittest
 from pathlib import Path
 
 from methodfactory.adapters.artifact_store import ArtifactStore
-from methodfactory.domain.errors import MethodFactoryError
-from methodfactory.storage.errors import ManifestInvalidError
+from methodfactory.domain.errors import InvalidEnvelopeError, MethodFactoryError
+from methodfactory.protocol.envelope import envelope_from_dict
+from methodfactory.storage.errors import ManifestInvalidError, SerializationError, StorageError
 from methodfactory.storage.paths import DB_FILENAME
+from methodfactory.storage.serialization import action_sha256
 from methodfactory.storage.sqlite import (
     APPLICATION_ID,
     close_database,
+    explain_latest_event_plan,
     latest_event,
     open_database,
 )
@@ -191,6 +195,66 @@ class ArtifactBoundaryTests(unittest.TestCase):
             blob.write_bytes(b"tampered")
             with self.assertRaises(MethodFactoryError):
                 store.get(d)
+
+
+class SerializationBoundaryTests(unittest.TestCase):
+    def _semantic(self, **over):
+        s = {
+            "protocol_version": "0.1",
+            "action": "record_input",
+            "package_id": "pkg_demo_001",
+            "action_id": "act_1",
+            "basis": {},
+            "payload": {"content": "x"},
+        }
+        s.update(over)
+        return s
+
+    def test_over_limit_action_typed(self):
+        with self.assertRaises(SerializationError) as ctx:
+            action_sha256(**self._semantic(payload={"content": "x" * (4 * 1024 * 1024)}))
+        self.assertEqual(ctx.exception.code, "SERIALIZATION")
+
+    def test_lone_surrogate_action_typed(self):
+        with self.assertRaises(SerializationError) as ctx:
+            action_sha256(**self._semantic(payload={"content": "x\ud800"}))
+        self.assertEqual(ctx.exception.code, "SERIALIZATION")
+
+    def test_non_serializable_payload_typed(self):
+        with self.assertRaises(SerializationError) as ctx:
+            action_sha256(**self._semantic(payload={"content": object()}))
+        self.assertEqual(ctx.exception.code, "SERIALIZATION")
+
+
+class EnvelopeFromDictBoundaryTests(unittest.TestCase):
+    def test_non_dict_input_translated(self):
+        for bad in (None, "x", 5, []):
+            with self.subTest(value=bad):
+                with self.assertRaises(InvalidEnvelopeError):
+                    envelope_from_dict(bad)  # type: ignore[arg-type]
+
+
+class SqliteHelperBoundaryTests(unittest.TestCase):
+    def test_explain_latest_event_plan_sqlite_error_typed(self):
+        class BrokenConn:
+            def execute(self, *args, **kwargs):
+                raise __import__("sqlite3").Error("boom")
+
+        with self.assertRaises(MethodFactoryError):
+            explain_latest_event_plan(BrokenConn(), "pkg_demo_001")  # type: ignore[arg-type]
+
+    def test_close_database_sqlite_error_typed(self):
+        class BrokenConn:
+            def close(self):
+                raise __import__("sqlite3").Error("boom")
+
+        with self.assertRaises(MethodFactoryError):
+            close_database(BrokenConn())  # type: ignore[arg-type]
+
+    def test_public_open_database_accepts_string_and_returns_closable(self):
+        with tempfile.TemporaryDirectory() as td:
+            conn = open_database(str(Path(td) / "nested" / "store"), read_only=False)
+            close_database(conn)
 
 
 if __name__ == "__main__":

@@ -684,12 +684,27 @@ def latest_event(conn: sqlite3.Connection, package_id: str) -> dict | None:
 
 
 def explain_latest_event_plan(conn: sqlite3.Connection, package_id: str) -> list[tuple]:
-    """EXPLAIN QUERY PLAN for the latest-event lookup (ADR-0012 §9 item 14)."""
-    rows = conn.execute(
-        f"EXPLAIN QUERY PLAN {LATEST_EVENT_SQL}", (package_id,)
-    ).fetchall()
+    """EXPLAIN QUERY PLAN for the latest-event lookup (ADR-0012 §9 item 14).
+
+    Public boundary (Finding 4): sqlite3 failures are translated to typed
+    StorageError; no raw sqlite3.Error escapes.
+    """
+    try:
+        rows = conn.execute(
+            f"EXPLAIN QUERY PLAN {LATEST_EVENT_SQL}", (package_id,)
+        ).fetchall()
+    except sqlite3.Error as exc:
+        raise StorageError(f"explain latest-event plan failed: {exc}") from exc
     return [tuple(r) for r in rows]
 
 
 def close_database(conn: sqlite3.Connection) -> None:
-    conn.close()
+    """Close a connection returned by open_database().
+
+    Public boundary (Finding 4): a sqlite3 close failure is translated to
+    typed StorageError; no raw sqlite3.Error escapes.
+    """
+    try:
+        conn.close()
+    except sqlite3.Error as exc:
+        raise StorageError(f"cannot close database: {exc}") from exc

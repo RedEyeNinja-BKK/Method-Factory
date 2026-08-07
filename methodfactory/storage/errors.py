@@ -109,3 +109,15 @@ class ManifestInvalidError(StorageError):
     """A stored manifest BLOB is malformed or invalid UTF-8 (Finding 4)."""
 
     code = "MANIFEST_INVALID"
+
+
+class SerializationError(StorageError):
+    """A value cannot be canonicalized or exceeds its canonical byte bound.
+
+    Public boundary for action_sha256 (Finding 4): unsupported JSON types,
+    excessive recursion, lone-surrogate encoding, and canonical-size overflow
+    are all translated into this typed error — never leaked as raw
+    TypeError/RecursionError/UnicodeEncodeError/ValueError.
+    """
+
+    code = "SERIALIZATION"

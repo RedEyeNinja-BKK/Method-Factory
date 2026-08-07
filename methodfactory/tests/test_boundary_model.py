@@ -12,6 +12,7 @@ import unittest
 
 from methodfactory.domain.errors import InvalidEnvelopeError
 from methodfactory.protocol.envelope import parse_envelope
+from methodfactory.storage.errors import SerializationError
 from methodfactory.storage.limits import (
     MAX_ACTION_JSON_BYTES,
     MAX_ARTIFACT_BODY_BYTES,
@@ -214,13 +215,13 @@ class CanonicalActionBoundaryTests(unittest.TestCase):
         over = dict(semantic)
         over["payload"] = dict(semantic["payload"], content="x" * (k + 1))
         self.assertEqual(len(canonical_bytes(over)), MAX_ACTION_JSON_BYTES + 1)
-        with self.assertRaises(ValueError):
+        with self.assertRaises(SerializationError):
             action_sha256(**over)
 
     def test_action_hash_unicode_and_recursion_failures_do_not_leak_raw(self):
         """Non-canonicalizable semantic payloads (lone surrogate, deep
-        recursion) must surface as a controlled error, never a raw
-        UnicodeEncodeError/RecursionError."""
+        recursion) must surface as typed SerializationError, never a raw
+        UnicodeEncodeError/RecursionError (Finding 4)."""
         sur = {
             "protocol_version": "0.1", "action": "record_input",
             "package_id": "pkg_demo_001", "action_id": "act_1",

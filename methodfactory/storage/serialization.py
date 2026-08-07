@@ -18,6 +18,7 @@ import hashlib
 import json
 from typing import Any
 
+from .errors import SerializationError
 from .limits import MAX_ACTION_JSON_BYTES
 
 
@@ -126,6 +127,12 @@ def action_sha256(
 
     The normalized semantic action is canonicalized ONCE, enforced against
     MAX_ACTION_JSON_BYTES, and hashed from those exact accepted bytes.
+
+    Public error boundary (Finding 4): every native failure — unsupported
+    JSON types, excessive recursion, lone-surrogate encoding, and canonical
+    byte overflow — is translated into SerializationError (a public
+    MethodFactoryError with code SERIALIZATION); no raw
+    TypeError/RecursionError/UnicodeEncodeError/ValueError escapes.
     """
     semantic = {
         "protocol_version": protocol_version,
@@ -135,9 +142,12 @@ def action_sha256(
         "basis": basis,
         "payload": payload,
     }
-    canonical = canonical_bytes_bounded(
-        semantic,
-        limit=MAX_ACTION_JSON_BYTES,
-        what="canonical action",
-    )
+    try:
+        canonical = canonical_bytes_bounded(
+            semantic,
+            limit=MAX_ACTION_JSON_BYTES,
+            what="canonical action",
+        )
+    except (TypeError, RecursionError, UnicodeEncodeError, ValueError) as exc:
+        raise SerializationError(f"cannot canonicalize action: {exc}") from exc
     return sha256_hex(canonical)

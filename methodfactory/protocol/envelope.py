@@ -141,6 +141,10 @@ def parse_envelope(raw: str) -> ActionEnvelope:
 
 
 def envelope_from_dict(d: dict) -> ActionEnvelope:
+    if not isinstance(d, dict):
+        raise InvalidEnvelopeError(
+            f"envelope dict must be a JSON object, got {type(d).__name__}"
+        )
     _validate_envelope_dict(d)
     return ActionEnvelope(
         protocol_version=d["protocol_version"],
