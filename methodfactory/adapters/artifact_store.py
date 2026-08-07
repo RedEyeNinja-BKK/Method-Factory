@@ -1,58 +1,68 @@
 """Filesystem ArtifactStore — immutable content-addressed blobs (ADR-0007).
 
-Phase 2 corrections (Finding 3): durable, atomic blob writes.
+Phase 2 corrections (Finding 2, review 4879090471): blob publication is
+genuinely immutable via a no-clobber hard-link primitive.
 
-Write path (put):
-1. Validate logical path + size limits.
-2. Write content to a SAME-DIRECTORY temporary file (.tmp.<random>).
+Publication algorithm (put):
+1. Validate logical path, package ID, and size limits.
+2. Write content to a same-directory temporary file (.tmp.<uuid>).
 3. fsync the temporary file.
-4. Promote (os.replace) WITHOUT overwriting an existing canonical digest path.
-5. fsync the containing directory after promotion.
-6. If the canonical digest path already exists, VERIFY the existing blob
-   matches the digest before treating the write as idempotently successful.
+4. Publish it to the digest path via os.link(tmp, dest) — an atomic
+   no-overwrite primitive. On FileExistsError, treat it as a publication
+   race and VERIFY the existing canonical blob matches the digest.
+5. Remove the temporary link/file.
+6. fsync the containing directory.
 
-A partial final digest path is never exposed as a successful blob: if the
-temporary write fails, the temp is removed and no canonical path exists.
+An existing canonical digest path is NEVER replaced, even when the expected
+content is identical. A partial final digest path is never exposed as
+success.
+
+All artifact OS/Unicode/type failures are translated into the public Method
+Factory error hierarchy (InvalidPayloadError), with the original exception
+retained as the cause (Finding 2 / Finding 4).
 """
 
 from __future__ import annotations
 
 import os
-import re
 import uuid
 from pathlib import Path
 
 from ..domain.errors import InvalidPayloadError
-from ..storage.limits import (
-    MAX_ARTIFACT_BYTES,
-    MAX_LOGICAL_PATH_CHARS,
-    MAX_CONTENT_CHARS,
-)
-from ..storage.paths import validate_logical_path
+from ..storage.limits import MAX_ARTIFACT_BYTES, MAX_CONTENT_CHARS
+from ..storage.paths import validate_logical_path, validate_package_id
 from ..storage.serialization import digest_bytes
-
-DIGEST_RE = re.compile(r"^[0-9a-f]{64}$")
 
 
 class ArtifactStore:
     def __init__(self, root: Path | str) -> None:
-        self.root = Path(root)
-        self.root.mkdir(parents=True, exist_ok=True)
-        self.blobs = self.root / "blobs"
-        self.blobs.mkdir(parents=True, exist_ok=True)
+        try:
+            self.root = Path(root)
+            self.root.mkdir(parents=True, exist_ok=True)
+            self.blobs = self.root / "blobs"
+            self.blobs.mkdir(parents=True, exist_ok=True)
+        except OSError as exc:
+            raise InvalidPayloadError(f"cannot initialize artifact store at {root}: {exc}") from exc
 
     def _blob_path(self, digest: str) -> Path:
-        if not isinstance(digest, str) or not DIGEST_RE.fullmatch(digest):
+        if not isinstance(digest, str) or len(digest) != 64:
+            raise InvalidPayloadError(f"invalid artifact digest: {digest!r}")
+        try:
+            int(digest, 16)
+        except ValueError:
             raise InvalidPayloadError(f"invalid artifact digest: {digest!r}")
         return self.blobs / digest
 
     def put(self, package_id: str, logical_path: str, content: str) -> tuple[str, int]:
-        """Store content once under its SHA-256 digest (atomic + durable).
+        """Store content once under its SHA-256 digest (atomic, no-clobber).
 
-        ``package_id`` is reserved for a stable call signature with engine
-        callers (ADR-0007); it is not part of the storage address.
+        ``package_id`` is validated (Finding 2) and reserved for a stable call
+        signature with engine callers; it is not part of the storage address.
         """
+        validate_package_id(package_id)
         validate_logical_path(logical_path)
+        if not isinstance(content, str):
+            raise InvalidPayloadError("artifact content must be a string")
         data = content.encode("utf-8")
         if len(data) > MAX_ARTIFACT_BYTES:
             raise InvalidPayloadError(
@@ -64,37 +74,62 @@ class ArtifactStore:
             )
         digest = digest_bytes(data)
         dest = self._blob_path(digest)
-        if dest.exists():
-            # Idempotent: verify the existing blob matches the digest before
-            # reporting success (Finding 3 item 2). Never accept a partial or
-            # corrupt canonical blob as a successful write.
-            try:
-                existing = dest.read_bytes()
-            except OSError as exc:
-                raise InvalidPayloadError(f"cannot read existing blob {digest}: {exc}") from exc
-            if digest_bytes(existing) != digest:
-                raise InvalidPayloadError(f"existing blob does not match digest {digest}")
-            return digest, len(data)
 
-        # Atomic same-directory write: temp file -> fsync -> promote -> dir fsync.
+        # Same-directory temporary file.
         tmp = self.blobs / f".tmp.{uuid.uuid4().hex}"
         try:
-            fd = os.open(tmp, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
+            try:
+                fd = os.open(tmp, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
+            except OSError as exc:
+                raise InvalidPayloadError(f"cannot create temp blob: {exc}") from exc
             try:
                 with os.fdopen(fd, "wb") as fh:
                     fh.write(data)
                     fh.flush()
-                    os.fsync(fh.fileno())
-            finally:
-                # If fdopen succeeded, it owns fd; ensure close on the raw fd
-                # only if fdopen never took ownership.
-                pass
-            # Promote WITHOUT overwriting an existing canonical digest path.
-            os.replace(tmp, dest)
-            # fsync the containing directory after promotion (durability).
-            dir_fd = os.open(self.blobs, os.O_RDONLY)
+                    try:
+                        os.fsync(fh.fileno())
+                    except OSError as exc:
+                        raise InvalidPayloadError(f"fsync temp blob failed: {exc}") from exc
+            except InvalidPayloadError:
+                raise
+            except OSError as exc:
+                raise InvalidPayloadError(f"write temp blob failed: {exc}") from exc
+
+            # No-clobber publication via hard link (atomic; never replaces an
+            # existing canonical digest path).
             try:
-                os.fsync(dir_fd)
+                os.link(tmp, dest)
+            except FileExistsError:
+                # Publication race: verify the existing canonical blob matches
+                # the digest. Never replace it.
+                try:
+                    existing = dest.read_bytes()
+                except OSError as exc:
+                    raise InvalidPayloadError(
+                        f"cannot read raced destination blob {digest}: {exc}"
+                    ) from exc
+                if digest_bytes(existing) != digest:
+                    raise InvalidPayloadError(
+                        f"raced destination does not match digest {digest}"
+                    )
+            except OSError as exc:
+                raise InvalidPayloadError(f"publish blob failed: {exc}") from exc
+            finally:
+                try:
+                    tmp.unlink(missing_ok=True)
+                except OSError:
+                    pass
+
+            # fsync the containing directory after publication.
+            try:
+                dir_fd = os.open(self.blobs, os.O_RDONLY)
+            except OSError as exc:
+                raise InvalidPayloadError(f"cannot open blobs dir for fsync: {exc}") from exc
+            try:
+                try:
+                    os.fsync(dir_fd)
+                except OSError as exc:
+                    raise InvalidPayloadError(f"fsync blobs dir failed: {exc}") from exc
             finally:
                 os.close(dir_fd)
         except BaseException:
