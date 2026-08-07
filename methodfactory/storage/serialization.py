@@ -104,6 +104,61 @@ def contains_control_chars(value: str) -> bool:
     return False
 
 
+def semantic_action(
+    *,
+    protocol_version: str,
+    action: str,
+    package_id: str,
+    action_id: str,
+    basis: dict[str, Any],
+    payload: dict[str, Any],
+) -> dict[str, Any]:
+    """The normalized semantic action dict (ADR-0012 §G).
+
+    Single construction point so the stored action JSON, the idempotency
+    hash, and any consumer always see identical bytes. `action_sha256` and
+    `canonical_action_bytes` both derive from this; the transactional store
+    uses the same dict for the immutable action_json column.
+    """
+    return {
+        "protocol_version": protocol_version,
+        "action": action,
+        "package_id": package_id,
+        "action_id": action_id,
+        "basis": basis,
+        "payload": payload,
+    }
+
+
+def canonical_action_bytes(
+    *,
+    protocol_version: str,
+    action: str,
+    package_id: str,
+    action_id: str,
+    basis: dict[str, Any],
+    payload: dict[str, Any],
+) -> bytes:
+    """Canonical bytes of the normalized semantic action (stored as
+    action_json). Raises SerializationError on non-canonicalizable input or
+    when the canonical bytes exceed MAX_ACTION_JSON_BYTES."""
+    try:
+        return canonical_bytes_bounded(
+            semantic_action(
+                protocol_version=protocol_version,
+                action=action,
+                package_id=package_id,
+                action_id=action_id,
+                basis=basis,
+                payload=payload,
+            ),
+            limit=MAX_ACTION_JSON_BYTES,
+            what="canonical action",
+        )
+    except (TypeError, RecursionError, UnicodeEncodeError, ValueError) as exc:
+        raise SerializationError(f"cannot canonicalize action: {exc}") from exc
+
+
 def action_sha256(
     *,
     protocol_version: str,
@@ -134,20 +189,11 @@ def action_sha256(
     MethodFactoryError with code SERIALIZATION); no raw
     TypeError/RecursionError/UnicodeEncodeError/ValueError escapes.
     """
-    semantic = {
-        "protocol_version": protocol_version,
-        "action": action,
-        "package_id": package_id,
-        "action_id": action_id,
-        "basis": basis,
-        "payload": payload,
-    }
-    try:
-        canonical = canonical_bytes_bounded(
-            semantic,
-            limit=MAX_ACTION_JSON_BYTES,
-            what="canonical action",
-        )
-    except (TypeError, RecursionError, UnicodeEncodeError, ValueError) as exc:
-        raise SerializationError(f"cannot canonicalize action: {exc}") from exc
-    return sha256_hex(canonical)
+    return sha256_hex(canonical_action_bytes(
+        protocol_version=protocol_version,
+        action=action,
+        package_id=package_id,
+        action_id=action_id,
+        basis=basis,
+        payload=payload,
+    ))

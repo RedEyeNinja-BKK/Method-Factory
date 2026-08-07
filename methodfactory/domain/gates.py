@@ -46,7 +46,13 @@ def check_action_gate(action: Action, manifest: dict, envelope: "ActionEnvelope"
 
     elif action == Action.CONFIRM_SUMMARY:
         summary = manifest.get("summary")
-        current = (summary or {}).get("canonical_sha256")
+        if not isinstance(summary, dict):
+            raise GateUnsatisfiedError("cannot confirm: no summary prepared", **ctx)
+        # Content-addressed summary (ADR-0012): the canonical hash of the
+        # rendered summary body is summary.digest (the old JSONL-era
+        # canonical_sha256 field does not exist in the content-addressed
+        # manifest schema).
+        current = summary.get("digest")
         if not current:
             raise GateUnsatisfiedError("cannot confirm: no summary prepared", **ctx)
         want = envelope.basis.get("summary_sha256")
@@ -60,11 +66,16 @@ def check_action_gate(action: Action, manifest: dict, envelope: "ActionEnvelope"
             )
 
     elif action == Action.RECORD_DRAFT_ARTIFACT:
-        summary = manifest.get("summary") or {}
-        conf = summary.get("confirmation") or {}
+        summary = manifest.get("summary")
+        if not isinstance(summary, dict):
+            raise GateUnsatisfiedError(
+                "authoring requires a confirmed summary bound to the current summary digest", **ctx
+            )
+        conf = summary.get("confirmation")
         confirmed_ok = (
-            conf.get("status") == "confirmed"
-            and conf.get("confirmed_summary_sha256") == summary.get("canonical_sha256")
+            isinstance(conf, dict)
+            and conf.get("status") == "confirmed"
+            and conf.get("confirmed_summary_sha256") == summary.get("digest")
         )
         if not confirmed_ok:
             raise GateUnsatisfiedError(

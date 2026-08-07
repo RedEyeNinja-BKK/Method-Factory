@@ -96,15 +96,28 @@ def validate_manifest(manifest: dict) -> list[str]:
     canonical MAX_MANIFEST_BYTES plus every persisted field/path/identifier/
     control limit.
     """
+    errors, _ = validate_manifest_canonical(manifest)
+    return errors
+
+
+def validate_manifest_canonical(manifest: dict) -> tuple[list[str], "bytes | None"]:
+    """Collect violations AND return the accepted canonical bytes in one pass.
+
+    Single canonicalization per call: the transactional store validates a
+    resulting manifest and then stores its exact canonical bytes; this helper
+    avoids canonicalizing twice under the write lock.
+    Returns ``(errors, canonical_bytes)`` — canonical_bytes is None when
+    validation failed (the manifest cannot be accepted).
+    """
     errors: list[str] = []
 
     if not isinstance(manifest, dict):
-        return ["manifest must be a JSON object"]
+        return ["manifest must be a JSON object"], None
 
     # Total canonical manifest byte bound. Native canonicalization failures
     # (unsupported types, deep recursion, lone-surrogate encoding) are
     # translated into manifest errors — never leaked raw (Finding 1).
-    _, canonical_error = try_canonical_bytes_bounded(
+    canonical, canonical_error = try_canonical_bytes_bounded(
         manifest, limit=MAX_MANIFEST_BYTES, what="manifest"
     )
     if canonical_error is not None:
@@ -339,4 +352,4 @@ def validate_manifest(manifest: dict) -> list[str]:
                 except Exception:
                     errors.append(f"transition.{f} invalid identifier")
 
-    return errors
+    return errors, canonical

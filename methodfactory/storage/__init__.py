@@ -8,13 +8,18 @@ contracts and the SQLite schema creation/identity/append-only guards.
 from .errors import (
     ActionIdConflictError,
     AppendOnlyViolationError,
+    ArtifactVerificationError,
+    ChainViolationError,
     DatabaseEmptyError,
     DatabaseIdMismatchError,
     DatabaseNotFoundError,
     InvalidPackageIdError,
     InvalidStoreRootError,
     LegacyStoreDetectedError,
+    ManifestInvalidError,
+    PackageNotFoundError,
     SchemaViolationError,
+    SerializationError,
     StorageError,
     UnsupportedSchemaError,
 )
@@ -43,10 +48,13 @@ from .serialization import (
     digest_text,
     sha256_hex,
 )
+from .store import SqliteManifestStore
 
 __all__ = [
     "ActionIdConflictError",
     "AppendOnlyViolationError",
+    "ArtifactVerificationError",
+    "ChainViolationError",
     "DB_FILENAME",
     "DatabaseEmptyError",
     "DatabaseIdMismatchError",
@@ -54,6 +62,7 @@ __all__ = [
     "InvalidPackageIdError",
     "InvalidStoreRootError",
     "LegacyStoreDetectedError",
+    "ManifestInvalidError",
     "ManifestStore",
     "MAX_ACTION_JSON_BYTES",
     "MAX_ARTIFACT_BYTES",
@@ -67,7 +76,10 @@ __all__ = [
     "MAX_REASON_CHARS",
     "MAX_STATEMENT_CHARS",
     "MethodFactoryError",
+    "PackageNotFoundError",
     "SchemaViolationError",
+    "SerializationError",
+    "SqliteManifestStore",
     "StorageError",
     "UnsupportedSchemaError",
     "action_sha256",

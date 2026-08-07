@@ -175,7 +175,9 @@ REQUIRED_METADATA = {"schema_version", "created_at"}
 
 # Current-state lookup (indexed by the composite primary key).
 LATEST_EVENT_SQL = """
-SELECT manifest_json
+SELECT package_id, revision, event_id, action_id, action, action_sha256,
+       state_before, state_after, previous_manifest_sha256,
+       resulting_manifest_sha256, created_at, action_json, manifest_json
 FROM events
 WHERE package_id = ?
 ORDER BY revision DESC
@@ -646,6 +648,19 @@ def _open_database_impl(
     return conn
 
 
+def latest_event_row(conn: sqlite3.Connection, package_id: str) -> sqlite3.Row | None:
+    """Return the latest event ROW for a package (indexed latest-event read).
+
+    Hot-path primitive used by `latest_event`, the transactional store's
+    `load`, and apply's current-state load. Uses the (package_id, revision)
+    primary key via ORDER BY revision DESC LIMIT 1 — never a history scan.
+    """
+    try:
+        return conn.execute(LATEST_EVENT_SQL, (package_id,)).fetchone()
+    except sqlite3.Error as exc:
+        raise StorageError(f"latest_event query failed: {exc}") from exc
+
+
 def latest_event(conn: sqlite3.Connection, package_id: str) -> dict | None:
     """Return the latest manifest for a package (indexed latest-event read).
 
@@ -654,10 +669,7 @@ def latest_event(conn: sqlite3.Connection, package_id: str) -> dict | None:
     translated to MANIFEST_INVALID; the decoded JSON must be an OBJECT; no
     raw AttributeError/JSON/Unicode/SQLite/type exception escapes.
     """
-    try:
-        row = conn.execute(LATEST_EVENT_SQL, (package_id,)).fetchone()
-    except sqlite3.Error as exc:
-        raise StorageError(f"latest_event query failed: {exc}") from exc
+    row = latest_event_row(conn, package_id)
     if row is None:
         return None
 

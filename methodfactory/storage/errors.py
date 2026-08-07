@@ -121,3 +121,24 @@ class SerializationError(StorageError):
     """
 
     code = "SERIALIZATION"
+
+
+class PackageNotFoundError(StorageError):
+    """The requested package has no committed events (load/apply on missing)."""
+
+    code = "PACKAGE_NOT_FOUND"
+
+
+class ArtifactVerificationError(StorageError):
+    """A manifest-referenced artifact blob is missing, corrupt, or does not
+    match its digest at transaction/chain verification time."""
+
+    code = "ARTIFACT_VERIFICATION"
+
+
+class ChainViolationError(StorageError):
+    """The authoritative revision-chain validator found an invariant violation
+    (revision zero rules, lineage, state continuity, digest binding, grammar,
+    or referenced-artifact integrity)."""
+
+    code = "CHAIN_VIOLATION"

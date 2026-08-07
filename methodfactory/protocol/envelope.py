@@ -178,6 +178,16 @@ def _validate_envelope_dict(d: dict) -> None:
         raise InvalidEnvelopeError("action_id must not contain control characters")
     if len(action_id) > 64:
         raise InvalidEnvelopeError("action_id must be <= 64 chars")
+    # Enforce the identifier grammar AT the untrusted-input boundary so a
+    # caller-supplied action_id outside the grammar is rejected here
+    # (INVALID_ENVELOPE), not deep in the transaction as MANIFEST_INVALID.
+    # Effective boundary limit is 64 chars (validated above); the shared
+    # identifier validator permits 128 for internally generated ids
+    # (e.g. create's action_id), which never pass through this boundary.
+    try:
+        validate_identifier(action_id, field="action_id")
+    except Exception as exc:
+        raise InvalidEnvelopeError(f"invalid action_id {action_id!r}") from exc
 
     package_id = d["package_id"]
     try:
