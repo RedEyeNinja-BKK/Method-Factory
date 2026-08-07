@@ -121,6 +121,18 @@ class ManifestSchemaTests(unittest.TestCase):
         self.assertEqual(validate_manifest(m1), [])
         self.assertEqual(validate_manifest(m2), [])
 
+    def test_non_dict_input_collected_not_crashed(self):
+        """validate_manifest must collect (never raise) for non-dict input,
+        and validate_manifest_canonical must honor its 2-tuple contract."""
+        for bad in (None, "x", 5, [1, 2, 3]):
+            with self.subTest(value=bad):
+                errors = validate_manifest(bad)  # type: ignore[arg-type]
+                self.assertTrue(any("must be a JSON object" in e for e in errors))
+        from methodfactory.manifest.schema import validate_manifest_canonical
+        errors, canonical = validate_manifest_canonical(None)  # type: ignore[arg-type]
+        self.assertIsNone(canonical)
+        self.assertTrue(any("must be a JSON object" in e for e in errors))
+
 
 if __name__ == "__main__":
     unittest.main()

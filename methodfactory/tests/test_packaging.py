@@ -39,12 +39,22 @@ class PackagingTests(unittest.TestCase):
 
     def test_old_jsonl_engine_is_absent(self):
         # The JSONL-era store/engine were removed in the persistence reset and
-        # must not be importable (ADR-0012 §8 discard list).
+        # must not be importable (ADR-0012 §8 discard list). The package name
+        # `methodfactory.engine` is now the NEW pure transition-logic package
+        # (no persistence, no JSONL-era API), so the guard asserts the
+        # JSONL-era module and legacy submodules are absent and the new engine
+        # exposes no legacy surface.
         import importlib
 
-        for mod in ("methodfactory.engine", "methodfactory.manifest.store"):
-            with self.assertRaises(ImportError):
-                importlib.import_module(mod)
+        with self.assertRaises(ImportError):
+            importlib.import_module("methodfactory.manifest.store")
+        with self.assertRaises(ImportError):
+            importlib.import_module("methodfactory.engine.jsonl")
+        import methodfactory.engine as engine
+
+        self.assertFalse(hasattr(engine, "Engine"))
+        self.assertFalse(hasattr(engine, "JsonlStore"))
+        self.assertTrue(callable(engine.apply.next_manifest))
 
 
 if __name__ == "__main__":

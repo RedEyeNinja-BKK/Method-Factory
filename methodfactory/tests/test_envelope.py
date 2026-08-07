@@ -125,6 +125,15 @@ class EnvelopeParseTests(unittest.TestCase):
         with self.assertRaises(InvalidEnvelopeError):
             parse_envelope(json.dumps(envelope(action_id="a" * 65)))
 
+    def test_action_id_grammar_enforced_at_boundary(self):
+        """Local review (sec-3): action_id must obey the identifier grammar
+        ([A-Za-z0-9_-]{1,128}) AT the envelope boundary — rejected as
+        INVALID_ENVELOPE, never deep in the transaction."""
+        for bad in ("bad id", "a/b", "../x", "a\x00b", "a;b"):
+            with self.subTest(action_id=bad):
+                with self.assertRaises(InvalidEnvelopeError):
+                    parse_envelope(json.dumps(envelope(action_id=bad)))
+
     def test_confirm_requires_basis_summary_sha256(self):
         with self.assertRaises(InvalidEnvelopeError):
             parse_envelope(json.dumps(envelope(action="confirm_summary", payload={})))
