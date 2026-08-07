@@ -443,11 +443,29 @@ def open_database(root: Path | str, read_only: bool = False) -> sqlite3.Connecti
     - read-only: never creates; NO_STORE -> DatabaseNotFoundError; LEGACY_ONLY
       -> LegacyStoreDetectedError; zero-byte -> DatabaseEmptyError; verify
       PRAGMAs + identity + schema without mutation.
+
+    Raw sqlite3 exceptions are translated into typed StorageError at this
+    public boundary (Finding 2 item 4) so no sqlite3/OS/type error escapes.
     """
     r = validate_store_root(root)
     db = r / DB_FILENAME
     presence = detect_presence(r)
 
+    try:
+        return _open_database_impl(root, db, presence, read_only)
+    except StorageError:
+        raise
+    except (sqlite3.Error, OSError, ValueError, TypeError) as exc:
+        from .errors import StorageError as _SE
+        raise _SE(f"storage open failed for {db}: {exc}") from exc
+
+
+def _open_database_impl(
+    root: Path,
+    db: Path,
+    presence: "StorePresence",
+    read_only: bool,
+) -> sqlite3.Connection:
     if read_only:
         if presence == StorePresence.LEGACY_ONLY:
             raise LegacyStoreDetectedError(
@@ -455,10 +473,7 @@ def open_database(root: Path | str, read_only: bool = False) -> sqlite3.Connecti
             )
         if presence == StorePresence.NO_STORE:
             raise DatabaseNotFoundError(f"no database at {db}")
-        try:
-            conn = _connect(db, read_only=True)
-        except sqlite3.OperationalError as exc:
-            raise DatabaseNotFoundError(f"cannot open {db} read-only: {exc}") from exc
+        conn = _connect(db, read_only=True)
         if db.stat().st_size == 0:
             conn.close()
             raise DatabaseEmptyError(f"database {db} is zero bytes")
@@ -471,15 +486,10 @@ def open_database(root: Path | str, read_only: bool = False) -> sqlite3.Connecti
             "v0.1.2 JSONL store detected; run `mf migrate-store`",
         )
     if presence == StorePresence.NO_STORE:
-        r.mkdir(parents=True, exist_ok=True)
+        root.mkdir(parents=True, exist_ok=True)
         conn = _connect(db, read_only=False)
         initialize_database(conn)
-        try:
-            os.chmod(db, 0o600)
-        except OSError as exc:
-            conn.close()
-            raise StorageError(f"cannot set database mode 0600: {exc}") from exc
-        _enforce_modes(r, db)
+        _enforce_modes(root, db)
         _verify_schema(conn)
         return conn
 
@@ -488,10 +498,10 @@ def open_database(root: Path | str, read_only: bool = False) -> sqlite3.Connecti
     if db.stat().st_size == 0:
         # Genuinely new/empty file: initialize atomically.
         initialize_database(conn)
-        _enforce_modes(r, db)
+        _enforce_modes(root, db)
         _verify_schema(conn)
         return conn
-    _enforce_modes(r, db)
+    _enforce_modes(root, db)
     _verify_schema(conn)
     return conn
 
