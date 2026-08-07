@@ -142,3 +142,40 @@ class ChainViolationError(StorageError):
     or referenced-artifact integrity)."""
 
     code = "CHAIN_VIOLATION"
+
+
+class LegacySourceInvalidError(StorageError):
+    """The legacy v0.1.2 source is unrecognized or unsupported (migration)."""
+
+    code = "LEGACY_SOURCE_INVALID"
+
+
+class LegacyChainInvalidError(StorageError):
+    """The legacy v0.1.2 chain is invalid (migration fails closed)."""
+
+    code = "LEGACY_CHAIN_INVALID"
+
+
+class MigrationIncompatibleError(StorageError):
+    """A legacy semantic action cannot be reconstructed or a public-valid value
+    is now current-invalid (migration fails closed; no weakening)."""
+
+    code = "MIGRATION_INCOMPATIBLE"
+
+
+class SourceChangedError(StorageError):
+    """The legacy source changed during migration; publication is refused."""
+
+    code = "SOURCE_CHANGED"
+
+
+class MigrationPublishFailedError(StorageError):
+    """Atomic migration publication failed (rename/fsync/receipt)."""
+
+    code = "MIGRATION_PUBLISH_FAILED"
+
+
+class DestinationExistsError(StorageError):
+    """The migration destination already exists; no overwrite is performed."""
+
+    code = "DESTINATION_EXISTS"

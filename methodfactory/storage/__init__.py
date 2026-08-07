@@ -1,8 +1,9 @@
 """Storage layer — protocol, canonical primitives, limits, and SQLite schema.
 
-Phase 2 (ADR-0012 commits 2–4). The transactional store, migration, and export
-are implemented in later commits; this package carries the storage-independent
-contracts and the SQLite schema creation/identity/append-only guards.
+Phase 2 (ADR-0012 commits 2–4) established the storage-independent contracts
+and SQLite schema creation/identity/append-only guards. The transactional
+store, deterministic migration, and exports are implemented in
+`storage.store`, `migrations.migrate`, and `migrations.export`.
 """
 
 from .errors import (
@@ -13,13 +14,19 @@ from .errors import (
     DatabaseEmptyError,
     DatabaseIdMismatchError,
     DatabaseNotFoundError,
+    DestinationExistsError,
     InvalidPackageIdError,
     InvalidStoreRootError,
+    LegacyChainInvalidError,
+    LegacySourceInvalidError,
     LegacyStoreDetectedError,
     ManifestInvalidError,
+    MigrationIncompatibleError,
+    MigrationPublishFailedError,
     PackageNotFoundError,
     SchemaViolationError,
     SerializationError,
+    SourceChangedError,
     StorageError,
     UnsupportedSchemaError,
 )
@@ -59,8 +66,11 @@ __all__ = [
     "DatabaseEmptyError",
     "DatabaseIdMismatchError",
     "DatabaseNotFoundError",
+    "DestinationExistsError",
     "InvalidPackageIdError",
     "InvalidStoreRootError",
+    "LegacyChainInvalidError",
+    "LegacySourceInvalidError",
     "LegacyStoreDetectedError",
     "ManifestInvalidError",
     "ManifestStore",
@@ -76,9 +86,12 @@ __all__ = [
     "MAX_REASON_CHARS",
     "MAX_STATEMENT_CHARS",
     "MethodFactoryError",
+    "MigrationIncompatibleError",
+    "MigrationPublishFailedError",
     "PackageNotFoundError",
     "SchemaViolationError",
     "SerializationError",
+    "SourceChangedError",
     "SqliteManifestStore",
     "StorageError",
     "UnsupportedSchemaError",
