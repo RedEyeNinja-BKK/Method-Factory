@@ -137,6 +137,30 @@ def _tamper_blob(root: Path, package_id: str, revision: int, column: str, data: 
     c.close()
 
 
+def _tamper_action_raw(root: Path, package_id: str, revision: int, raw: bytes) -> None:
+    """Write raw action_json bytes and recompute action_sha256 over THOSE raw
+    bytes, so only canonical-form (A2) or action-binding (A3) invariants can
+    fail."""
+    c = _raw(root)
+    c.execute(
+        "UPDATE events SET action_json=?, action_sha256=? "
+        "WHERE package_id=? AND revision=?",
+        (raw, sha256_hex(raw), package_id, revision),
+    )
+    c.commit()
+    c.close()
+
+
+def _tamper_action_canonical(
+    root: Path, package_id: str, revision: int, semantic: dict
+) -> None:
+    """Write a CANONICAL semantic action (possibly for a different package /
+    action_id / action) and recompute action_sha256 over those canonical
+    bytes, so only the action-binding (A3) invariants can fail."""
+    data = canonical_bytes(semantic)
+    _tamper_action_raw(root, package_id, revision, data)
+
+
 class ChainValidatorTests(unittest.TestCase):
     def test_valid_chain_passes(self):
         with tempfile.TemporaryDirectory() as td:
@@ -158,6 +182,19 @@ class ChainValidatorTests(unittest.TestCase):
                     store.validate_chain("pkg_missing_999")
             finally:
                 store.close()
+
+    def test_semantic_action_fields_pinned_to_serializer(self):
+        """The kernel's frozen semantic-action field set must never drift from
+        the canonical serializer's output (single source of truth)."""
+        from methodfactory.storage.chain import SEMANTIC_ACTION_FIELDS
+        from methodfactory.storage.serialization import semantic_action
+
+        produced = set(semantic_action(
+            protocol_version="0.1", action="record_input",
+            package_id="pkg_demo_001", action_id="act_1",
+            basis={}, payload={},
+        ).keys())
+        self.assertEqual(produced, SEMANTIC_ACTION_FIELDS)
 
 
 class RevisionZeroInvariantTests(unittest.TestCase):
@@ -341,6 +378,155 @@ class StoredBytesInvariantTests(unittest.TestCase):
                 with self.assertRaises(ChainViolationError) as ctx:
                     store.validate_chain("pkg_demo_001")
                 self.assertIn("action_json", str(ctx.exception))
+            finally:
+                store.close()
+
+
+class CanonicalFormInvariantTests(unittest.TestCase):
+    """Closure review A2: stored action/manifest JSON must themselves be
+    canonical. A syntactically valid but NON-canonical representation with a
+    recomputed raw-byte digest must fail canonical-form verification."""
+
+    def _non_canonical_bytes(self, obj: dict) -> bytes:
+        # Semantically equal but NOT the canonical serialization: unsorted
+        # keys + different separators. canonical_bytes(obj) != this output.
+        text = json.dumps(obj, sort_keys=False, separators=(", ", ": "),
+                          ensure_ascii=False)
+        self.assertNotEqual(
+            text.encode("utf-8"),
+            canonical_bytes(obj),
+            "fixture must actually be non-canonical",
+        )
+        return text.encode("utf-8")
+
+    def test_non_canonical_action_json_rejected(self):
+        with tempfile.TemporaryDirectory() as td:
+            store = SqliteManifestStore(td)
+            try:
+                _full_chain(store)
+                # read a valid stored action, re-serialize non-canonically,
+                # recompute the hash over the raw tampered bytes
+                c = _raw(Path(td))
+                row = c.execute(
+                    "SELECT action_json FROM events "
+                    "WHERE package_id='pkg_demo_001' AND revision=1"
+                ).fetchone()
+                action = json.loads(row[0])
+                c.close()
+                raw = self._non_canonical_bytes(action)
+                _tamper_action_raw(Path(td), "pkg_demo_001", 1, raw)
+                with self.assertRaises(ChainViolationError) as ctx:
+                    store.validate_chain("pkg_demo_001")
+                self.assertIn("canonical", str(ctx.exception))
+            finally:
+                store.close()
+
+    def test_non_canonical_manifest_json_rejected(self):
+        with tempfile.TemporaryDirectory() as td:
+            store = SqliteManifestStore(td)
+            try:
+                _full_chain(store)
+                c = _raw(Path(td))
+                row = c.execute(
+                    "SELECT manifest_json FROM events "
+                    "WHERE package_id='pkg_demo_001' AND revision=1"
+                ).fetchone()
+                manifest = json.loads(row[0])
+                c.close()
+                raw = self._non_canonical_bytes(manifest)
+                _tamper_blob(Path(td), "pkg_demo_001", 1, "manifest_json", raw)
+                c = _raw(Path(td))
+                c.execute(
+                    "UPDATE events SET resulting_manifest_sha256=? "
+                    "WHERE package_id='pkg_demo_001' AND revision=1",
+                    (sha256_hex(raw),),
+                )
+                c.commit()
+                c.close()
+                with self.assertRaises(ChainViolationError) as ctx:
+                    store.validate_chain("pkg_demo_001")
+                self.assertIn("canonical", str(ctx.exception))
+            finally:
+                store.close()
+
+
+class ActionBindingInvariantTests(unittest.TestCase):
+    """Closure review A3: the decoded semantic action object is bound back to
+    the indexed event. Canonical actions for a DIFFERENT package / action_id /
+    action (with recomputed hashes) must all be rejected."""
+
+    def test_action_for_different_package_rejected(self):
+        with tempfile.TemporaryDirectory() as td:
+            store = SqliteManifestStore(td)
+            try:
+                _full_chain(store)
+                c = _raw(Path(td))
+                row = c.execute(
+                    "SELECT action_json FROM events "
+                    "WHERE package_id='pkg_demo_001' AND revision=1"
+                ).fetchone()
+                action = json.loads(row[0])
+                c.close()
+                action["package_id"] = "pkg_evil_001"
+                _tamper_action_canonical(Path(td), "pkg_demo_001", 1, action)
+                with self.assertRaises(ChainViolationError) as ctx:
+                    store.validate_chain("pkg_demo_001")
+                self.assertIn("package_id != indexed", str(ctx.exception))
+            finally:
+                store.close()
+
+    def test_action_id_inside_action_json_rejected(self):
+        with tempfile.TemporaryDirectory() as td:
+            store = SqliteManifestStore(td)
+            try:
+                _full_chain(store)
+                c = _raw(Path(td))
+                row = c.execute(
+                    "SELECT action_json FROM events "
+                    "WHERE package_id='pkg_demo_001' AND revision=1"
+                ).fetchone()
+                action = json.loads(row[0])
+                c.close()
+                action["action_id"] = "act_evil_99"
+                _tamper_action_canonical(Path(td), "pkg_demo_001", 1, action)
+                with self.assertRaises(ChainViolationError) as ctx:
+                    store.validate_chain("pkg_demo_001")
+                self.assertIn("action_id != indexed", str(ctx.exception))
+            finally:
+                store.close()
+
+    def test_action_name_inside_action_json_rejected(self):
+        with tempfile.TemporaryDirectory() as td:
+            store = SqliteManifestStore(td)
+            try:
+                _full_chain(store)
+                c = _raw(Path(td))
+                row = c.execute(
+                    "SELECT action_json FROM events "
+                    "WHERE package_id='pkg_demo_001' AND revision=1"
+                ).fetchone()
+                action = json.loads(row[0])
+                c.close()
+                action["action"] = "cancel"
+                _tamper_action_canonical(Path(td), "pkg_demo_001", 1, action)
+                with self.assertRaises(ChainViolationError) as ctx:
+                    store.validate_chain("pkg_demo_001")
+                self.assertIn("action != indexed", str(ctx.exception))
+            finally:
+                store.close()
+
+    def test_non_semantic_field_set_rejected(self):
+        """A canonical JSON object that is NOT a semantic action (extra or
+        missing fields) must fail the frozen field-set check."""
+        with tempfile.TemporaryDirectory() as td:
+            store = SqliteManifestStore(td)
+            try:
+                _full_chain(store)
+                not_semantic = {"action": "record_input", "extra": 1}
+                _tamper_action_canonical(Path(td), "pkg_demo_001", 1, not_semantic)
+                with self.assertRaises(ChainViolationError) as ctx:
+                    store.validate_chain("pkg_demo_001")
+                self.assertIn("field set", str(ctx.exception))
             finally:
                 store.close()
 

@@ -30,10 +30,15 @@ from methodfactory.storage.sqlite import (
 class LatestEventBoundaryTests(unittest.TestCase):
     def _db_with_manifest(self, raw: bytes):
         """Create a valid store, then write a specific manifest_json blob into
-        the events table (bypassing the store) to test the read boundary."""
+        the events table (bypassing the store) to test the read boundary.
+
+        The temp store is removed when the test completes (closure review 4882624484-A4:
+        no leaked host temp stores)."""
+        import shutil
         import sqlite3
 
         root = Path(tempfile.mkdtemp())
+        self.addCleanup(shutil.rmtree, root, ignore_errors=True)
         conn = open_database(root, read_only=False)
         close_database(conn)
         c = sqlite3.connect(str(root / DB_FILENAME))
@@ -94,30 +99,31 @@ class LatestEventBoundaryTests(unittest.TestCase):
         AttributeError (Finding 3)."""
         import sqlite3
 
-        root = Path(tempfile.mkdtemp())
-        conn = open_database(root, read_only=False)
-        close_database(conn)
-        c = sqlite3.connect(str(root / DB_FILENAME))
-        c.execute(
-            "INSERT INTO events (package_id, revision, event_id, action_id, action, "
-            "action_sha256, state_before, state_after, previous_manifest_sha256, "
-            "resulting_manifest_sha256, created_at, action_json, manifest_json) "
-            "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
-            (
-                "pkg_int_001", 0, "evt_int", "act_int", "create_package", "0" * 64,
-                None, "INTAKE", None, "0" * 64, "2026-08-07T00:00:00+00:00",
-                b'{"action":"create_package"}', 12345,
-            ),
-        )
-        c.commit()
-        c.close()
-        conn = open_database(root, read_only=True)
-        try:
-            with self.assertRaises(MethodFactoryError) as ctx:
-                latest_event(conn, "pkg_int_001")
-            self.assertEqual(ctx.exception.code, "MANIFEST_INVALID")
-        finally:
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            conn = open_database(root, read_only=False)
             close_database(conn)
+            c = sqlite3.connect(str(root / DB_FILENAME))
+            c.execute(
+                "INSERT INTO events (package_id, revision, event_id, action_id, action, "
+                "action_sha256, state_before, state_after, previous_manifest_sha256, "
+                "resulting_manifest_sha256, created_at, action_json, manifest_json) "
+                "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                (
+                    "pkg_int_001", 0, "evt_int", "act_int", "create_package", "0" * 64,
+                    None, "INTAKE", None, "0" * 64, "2026-08-07T00:00:00+00:00",
+                    b'{"action":"create_package"}', 12345,
+                ),
+            )
+            c.commit()
+            c.close()
+            conn = open_database(root, read_only=True)
+            try:
+                with self.assertRaises(MethodFactoryError) as ctx:
+                    latest_event(conn, "pkg_int_001")
+                self.assertEqual(ctx.exception.code, "MANIFEST_INVALID")
+            finally:
+                close_database(conn)
 
     def test_non_object_json_translated(self):
         """A manifest_json BLOB containing a JSON ARRAY (not an object) is
@@ -135,28 +141,29 @@ class LatestEventBoundaryTests(unittest.TestCase):
         """A TEXT-typed manifest_json is accepted and decoded (Finding 3)."""
         import sqlite3
 
-        root = Path(tempfile.mkdtemp())
-        conn = open_database(root, read_only=False)
-        close_database(conn)
-        c = sqlite3.connect(str(root / DB_FILENAME))
-        c.execute(
-            "INSERT INTO events (package_id, revision, event_id, action_id, action, "
-            "action_sha256, state_before, state_after, previous_manifest_sha256, "
-            "resulting_manifest_sha256, created_at, action_json, manifest_json) "
-            "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
-            (
-                "pkg_str_001", 0, "evt_str", "act_str", "create_package", "0" * 64,
-                None, "INTAKE", None, "0" * 64, "2026-08-07T00:00:00+00:00",
-                b'{"action":"create_package"}', '{"schema_version":"0.1"}',
-            ),
-        )
-        c.commit()
-        c.close()
-        conn = open_database(root, read_only=True)
-        try:
-            self.assertEqual(latest_event(conn, "pkg_str_001"), {"schema_version": "0.1"})
-        finally:
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            conn = open_database(root, read_only=False)
             close_database(conn)
+            c = sqlite3.connect(str(root / DB_FILENAME))
+            c.execute(
+                "INSERT INTO events (package_id, revision, event_id, action_id, action, "
+                "action_sha256, state_before, state_after, previous_manifest_sha256, "
+                "resulting_manifest_sha256, created_at, action_json, manifest_json) "
+                "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                (
+                    "pkg_str_001", 0, "evt_str", "act_str", "create_package", "0" * 64,
+                    None, "INTAKE", None, "0" * 64, "2026-08-07T00:00:00+00:00",
+                    b'{"action":"create_package"}', '{"schema_version":"0.1"}',
+                ),
+            )
+            c.commit()
+            c.close()
+            conn = open_database(root, read_only=True)
+            try:
+                self.assertEqual(latest_event(conn, "pkg_str_001"), {"schema_version": "0.1"})
+            finally:
+                close_database(conn)
 
 
 class ArtifactBoundaryTests(unittest.TestCase):

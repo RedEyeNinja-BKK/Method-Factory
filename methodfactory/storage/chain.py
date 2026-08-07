@@ -29,7 +29,11 @@ All revisions:
 - event_id / action_id obey the identifier grammar (uniqueness is schema-
   enforced by the UNIQUE constraints on event_id and (package_id, action_id));
 - action is the frozen vocabulary (or `create_package` at revision 0);
-- stored JSON BLOBs are valid UTF-8 JSON objects;
+- stored JSON BLOBs are valid UTF-8 JSON objects AND are stored in the
+  canonical serialized form (canonical_bytes(decoded) == stored bytes), with
+  digests bound to those canonical bytes;
+- the decoded semantic action object is bound back to the indexed event
+  (protocol_version, package_id, action_id, action; frozen field set);
 - when artifact verification is requested: every referenced input content
   blob, the summary body blob, and every artifact blob exists and verifies
   against its recorded digest.
@@ -43,9 +47,10 @@ from typing import Any
 
 from ..domain.transitions import ACTION_VOCABULARY
 from ..engine.apply import CREATE_PACKAGE_ACTION
+from ..protocol.envelope import PROTOCOL_VERSION
 from .errors import ChainViolationError, StorageError
 from .paths import validate_identifier
-from .serialization import sha256_hex
+from .serialization import canonical_bytes, sha256_hex
 
 EVENTS_BY_REVISION_SQL = """
 SELECT package_id, revision, event_id, action_id, action, action_sha256,
@@ -56,23 +61,81 @@ WHERE package_id = ?
 ORDER BY revision ASC
 """
 
+# The frozen semantic-action field set (single canonical serializer output;
+# closure review 4882624484-A3). Any deviation is a chain violation.
+SEMANTIC_ACTION_FIELDS = frozenset(
+    {"protocol_version", "action", "package_id", "action_id", "basis", "payload"}
+)
 
-def _decode_json_object(data: bytes, what: str, violations: list[str]) -> dict | None:
-    """Decode a stored JSON BLOB; report a violation (not raise) on failure."""
+
+def _check_canonical_form(
+    decoded: dict[str, Any],
+    stored_bytes: Any,
+    expected_hash: str | None,
+    what: str,
+    violations: list[str],
+    canonical: bytes | None = None,
+) -> bytes | None:
+    """Canonical-form + digest binding (senior review 4882624484, A2).
+
+    The SINGLE implementation of the canonical-JSON invariant used by both the
+    validator decode path and the hot-path current-row check:
+    1. canonicalize the decoded object with the single canonical serializer;
+    2. require canonical_bytes(decoded) == stored bytes (a non-canonical
+       representation fails even when its raw-byte hash is recomputed);
+    3. when expected_hash is given, require sha256(canonical) == expected_hash.
+
+    Callers that already canonicalized (e.g. the schema validator's single
+    pass) pass `canonical` to avoid a second serialization.
+    """
+    if canonical is None:
+        try:
+            canonical = canonical_bytes(decoded)
+        except (TypeError, RecursionError, UnicodeEncodeError, ValueError) as exc:
+            violations.append(f"{what} cannot be canonicalized: {exc}")
+            return None
     try:
-        text = data.decode("utf-8")
-    except (UnicodeDecodeError, AttributeError) as exc:
-        violations.append(f"{what} is not valid UTF-8: {exc}")
+        stored = bytes(stored_bytes)
+    except (TypeError, ValueError):
+        violations.append(f"{what} is not bytes")
         return None
+    if canonical != stored:
+        violations.append(f"{what} is not stored in canonical JSON form")
+    if expected_hash is not None and sha256_hex(canonical) != expected_hash:
+        violations.append(f"{what} does not hash to its stored digest")
+    return canonical
+
+
+def _decode_canonical_json_object(
+    data: Any, what: str, violations: list[str]
+) -> tuple[dict | None, bytes | None]:
+    """Decode a stored JSON BLOB and canonicalize it (senior review
+    4882624484, A2).
+
+    Returns ``(decoded_object, canonical_bytes)`` or ``(None, None)`` after
+    reporting a violation for: invalid UTF-8, invalid JSON, a non-object
+    value, or a NON-CANONICAL representation. Uses the single canonical
+    serialization primitive — no second serializer is created.
+    """
+    if not isinstance(data, (bytes, bytearray)):
+        violations.append(f"{what} is not bytes")
+        return None, None
+    raw = bytes(data)
+    try:
+        text = raw.decode("utf-8")
+    except UnicodeDecodeError as exc:
+        violations.append(f"{what} is not valid UTF-8: {exc}")
+        return None, None
     try:
         value = json.loads(text)
     except (json.JSONDecodeError, RecursionError) as exc:
         violations.append(f"{what} is not valid JSON: {exc}")
-        return None
+        return None, None
     if not isinstance(value, dict):
         violations.append(f"{what} is not a JSON object")
-        return None
-    return value
+        return None, None
+    canonical = _check_canonical_form(value, raw, None, what, violations)
+    return value, canonical
 
 
 def _bind_manifest_fields(
@@ -133,33 +196,107 @@ def check_event_invariants(
     event_id = event.get("event_id")
     action_id = event.get("action_id")
 
-    # ── Stored BLOB validity + digest binding ──────────────────────────
+    # ── Stored BLOB validity + canonical form + digest binding ─────────
+    # (closure review 4882624484-A2): a syntactically valid but non-canonical JSON
+    # representation with a recomputed raw-byte hash must FAIL — the digest is
+    # bound to the CANONICAL bytes of the decoded object.
     manifest_from_bytes = None
+    manifest_canonical = None
+    action_obj = None
+    action_canonical = None
     if decode_blobs:
-        manifest_from_bytes = _decode_json_object(
-            event.get("manifest_json"), f"manifest_json({package_id}, rev {revision})", violations
+        manifest_from_bytes, manifest_canonical = _decode_canonical_json_object(
+            event.get("manifest_json"),
+            f"manifest_json({package_id}, rev {revision})", violations,
         )
-        _decode_json_object(
-            event.get("action_json"), f"action_json({package_id}, rev {revision})", violations
+        action_obj, action_canonical = _decode_canonical_json_object(
+            event.get("action_json"),
+            f"action_json({package_id}, rev {revision})", violations,
         )
     if manifest is None and manifest_from_bytes is not None:
         # Caller (validator) did not pre-decode; use the kernel's decode so
         # field checks still run.
         manifest = manifest_from_bytes
-    try:
-        if sha256_hex(bytes(event.get("manifest_json"))) != resulting_hash:
+
+    manifest_raw = None
+    if isinstance(event.get("manifest_json"), (bytes, bytearray)):
+        manifest_raw = bytes(event["manifest_json"])
+    elif decode_blobs:
+        # Non-bytes stored types are already reported by the decoder above.
+        pass
+    else:
+        try:
+            manifest_raw = bytes(event.get("manifest_json"))
+        except (TypeError, ValueError):
+            violations.append(f"manifest_json({package_id}, rev {revision}) is not bytes")
+    if manifest_raw is not None:
+        digest_input = manifest_canonical if manifest_canonical is not None else manifest_raw
+        if sha256_hex(digest_input) != resulting_hash:
             violations.append(
                 f"manifest_json({package_id}, rev {revision}) does not hash to resulting_manifest_sha256"
             )
-    except (TypeError, ValueError):
-        violations.append(f"manifest_json({package_id}, rev {revision}) is not bytes")
-    try:
-        if sha256_hex(bytes(event.get("action_json"))) != action_hash:
+    action_raw = None
+    if isinstance(event.get("action_json"), (bytes, bytearray)):
+        action_raw = bytes(event["action_json"])
+    elif decode_blobs:
+        pass
+    else:
+        try:
+            action_raw = bytes(event.get("action_json"))
+        except (TypeError, ValueError):
+            violations.append(f"action_json({package_id}, rev {revision}) is not bytes")
+    if action_raw is not None:
+        digest_input = action_canonical if action_canonical is not None else action_raw
+        if sha256_hex(digest_input) != action_hash:
             violations.append(
                 f"action_json({package_id}, rev {revision}) does not hash to action_sha256"
             )
-    except (TypeError, ValueError):
-        violations.append(f"action_json({package_id}, rev {revision}) is not bytes")
+
+    # ── Semantic-action binding (senior review 4882624484, A3) ─────────
+    # Bind the decoded action object back to the indexed event: exact frozen
+    # field set, protocol_version, package_id, action_id, action; revision 0
+    # requires the canonical create_package structure (including the semantic
+    # creation timestamp bound to the row).
+    # NOTE (upgrade policy): protocol_version is bound by EXACT equality with
+    # the current constant. When PROTOCOL_VERSION increments, historical rows
+    # written under the old version must be migrated (recompute canonical
+    # action bytes + hashes) before validate_chain — see ADR-0012 §G / the
+    # migration slice. Fail-closed is deliberate.
+    if action_obj is not None:
+        awhat = f"action_json({package_id}, rev {revision})"
+        if set(action_obj.keys()) != SEMANTIC_ACTION_FIELDS:
+            violations.append(
+                f"{awhat} is not a canonical semantic action (field set mismatch)"
+            )
+        else:
+            if action_obj.get("protocol_version") != PROTOCOL_VERSION:
+                violations.append(f"{awhat} protocol_version != {PROTOCOL_VERSION!r}")
+            if action_obj.get("package_id") != package_id:
+                violations.append(f"{awhat} package_id != indexed {package_id!r}")
+            if action_obj.get("action_id") != action_id:
+                violations.append(f"{awhat} action_id != indexed {action_id!r}")
+            if action_obj.get("action") != action_name:
+                violations.append(f"{awhat} action != indexed action {action_name!r}")
+            if not isinstance(action_obj.get("basis"), dict) or not isinstance(
+                action_obj.get("payload"), dict
+            ):
+                violations.append(f"{awhat} basis/payload must be objects")
+            if revision == 0:
+                if action_obj.get("action") != CREATE_PACKAGE_ACTION:
+                    violations.append(f"{awhat} action must be create_package")
+                if action_obj.get("basis") != {}:
+                    violations.append(f"{awhat} basis must be empty")
+                payload = action_obj.get("payload")
+                if not isinstance(payload, dict) or not isinstance(
+                    payload.get("intent"), str
+                ):
+                    violations.append(
+                        f"{awhat} payload must contain intent string"
+                    )
+                if not isinstance(payload, dict) or payload.get("created_at") != event.get("created_at"):
+                    violations.append(
+                        f"{awhat} payload.created_at != indexed created_at"
+                    )
 
     # ── Revision-zero contract ─────────────────────────────────────────
     if revision == 0:
@@ -283,18 +420,23 @@ def check_current_row_consistency(
         manifest, package_id=package_id, revision=event.get("revision"),
         state_after=event.get("state_after"), violations=violations,
     )
-    try:
-        if sha256_hex(bytes(manifest_json_bytes)) != event.get("resulting_manifest_sha256"):
-            violations.append(
-                "manifest_json bytes do not hash to resulting_manifest_sha256"
-            )
-    except (TypeError, ValueError):
-        violations.append("manifest_json is not bytes")
-    if check_schema:
-        from ..manifest.schema import validate_manifest as _vm
+    # Canonical-form + digest binding (senior review 4882624484, A2) with a
+    # SINGLE canonicalization: the schema validator's canonical pass feeds the
+    # A2 compare/hash, so the hot path does not serialize the manifest twice.
+    from ..manifest.schema import validate_manifest_canonical as _vmc
 
-        for schema_error in _vm(manifest):
+    schema_errors, manifest_canonical = _vmc(manifest)
+    if check_schema:
+        for schema_error in schema_errors:
             violations.append(f"manifest schema violation: {schema_error}")
+    _check_canonical_form(
+        manifest,
+        manifest_json_bytes,
+        event.get("resulting_manifest_sha256"),
+        f"manifest_json({package_id})",
+        violations,
+        canonical=manifest_canonical,
+    )
     return violations
 
 

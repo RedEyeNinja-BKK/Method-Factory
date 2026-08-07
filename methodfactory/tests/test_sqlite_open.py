@@ -219,27 +219,28 @@ class SchemaVerifierTests(unittest.TestCase):
 class UriPathTests(unittest.TestCase):
     def test_readonly_uri_with_significant_paths(self):
         """Finding 1 item 5: paths with spaces, Unicode, ?, #, % must open
-        correctly and create no sibling/alternate file."""
-        base = tempfile.mkdtemp()
-        for name in (
-            "store with space",
-            "สโตร์",
-            "store?with#special%chars",
-        ):
-            root = Path(base) / name
-            root.mkdir(parents=True)
-            conn0 = open_database(root, read_only=False)
-            close_database(conn0)
-            before = sorted(p.name for p in root.iterdir())
-            conn = open_database(root, read_only=True)
-            close_database(conn)
-            after = sorted(p.name for p in root.iterdir())
-            self.assertEqual(before, after, f"ro open created files in {name}")
-        # No sibling file created anywhere under the base dir beyond the 3
-        # intended store roots.
-        expected_roots = {"store with space", "สโตร์", "store?with#special%chars"}
-        actual_roots = {p.name for p in Path(base).iterdir()}
-        self.assertEqual(actual_roots, expected_roots)
+        correctly and create no sibling/alternate file. The base temp dir is
+        removed on completion (closure review 4882624484-A4: no leaked temp stores)."""
+        with tempfile.TemporaryDirectory() as base:
+            for name in (
+                "store with space",
+                "สโตร์",
+                "store?with#special%chars",
+            ):
+                root = Path(base) / name
+                root.mkdir(parents=True)
+                conn0 = open_database(root, read_only=False)
+                close_database(conn0)
+                before = sorted(p.name for p in root.iterdir())
+                conn = open_database(root, read_only=True)
+                close_database(conn)
+                after = sorted(p.name for p in root.iterdir())
+                self.assertEqual(before, after, f"ro open created files in {name}")
+            # No sibling file created anywhere under the base dir beyond the 3
+            # intended store roots.
+            expected_roots = {"store with space", "สโตร์", "store?with#special%chars"}
+            actual_roots = {p.name for p in Path(base).iterdir()}
+            self.assertEqual(actual_roots, expected_roots)
 
     def test_ro_missing_no_create(self):
         with tempfile.TemporaryDirectory() as td:

@@ -30,6 +30,18 @@ exception contract and are not part of the supported surface.
 | `close_database(conn)` | `sqlite3.Connection` | `None` | `StorageError` (`STORAGE_ERROR`) | `sqlite3.Error` |
 | `SqliteManifestStore(root, *, artifact_store=None)` | `str`/`Path` root, optional `ArtifactStore` | store object | `InvalidStoreRootError` (`INVALID_STORE_ROOT`), `StorageError` (`STORAGE_ERROR`) | `TypeError`/`ValueError` (root), `OSError`, `sqlite3.Error` |
 | `SqliteManifestStore.create(package_id, intent_raw, created_at=None)` | str + str + optional str | complete revision-0 manifest `dict` | `DuplicatePackageError` (`PACKAGE_EXISTS`, non-replay duplicate), `InvalidPayloadError` (`INVALID_PAYLOAD`), `InvalidPackageIdError` (`INVALID_PACKAGE_ID`), `ManifestInvalidError` (`MANIFEST_INVALID`), `ConcurrencyError` (`CONCURRENCY`), `StorageError` (`STORAGE_ERROR`) | `TypeError`/`ValueError`/`UnicodeError`/`RecursionError`, `OSError`, `sqlite3.Error` (incl. locked -> `CONCURRENCY`) |
+
+> **Create identity (senior review 4882624484, A1):** `created_at` is SEMANTIC.
+> It is normalized to UTC ISO-8601 (naive/offset-less timestamps rejected) and
+> included in the canonical `create_package` action payload, so it is part of
+> `action_sha256`. Exact replay requires the same normalized instant; a repeat
+> with an explicitly DIFFERENT instant is `PACKAGE_EXISTS`; a retry that omits
+> `created_at` replays using the stored creation time. This is a deliberate
+> pre-release breaking change to the SQLite store format (revision-0
+> `action_json` payload now carries `created_at`); no released stores exist
+> (PR #1 Draft, v2.0.0a1), so no migration is required — any pre-A1 test store
+> must be recreated. The authoritative chain validator binds
+> `payload.created_at` to the indexed row `created_at`.
 | `SqliteManifestStore.apply(envelope)` | `dict` (parsed Action Envelope) | complete resulting manifest `dict` | `InvalidEnvelopeError` (`INVALID_ENVELOPE`), `InvalidPayloadError` (`INVALID_PAYLOAD`), `PackageNotFoundError` (`PACKAGE_NOT_FOUND`), `StaleActionError` (`STALE_ACTION`), `IllegalTransitionError` (`ILLEGAL_TRANSITION`), `GateUnsatisfiedError` (`GATE_UNSATISFIED`), `ActionIdConflictError` (`ACTION_ID_CONFLICT`), `SerializationError` (`SERIALIZATION`), `ArtifactVerificationError` (`ARTIFACT_VERIFICATION`), `ManifestInvalidError` (`MANIFEST_INVALID`), `ConcurrencyError` (`CONCURRENCY`), `StorageError` (`STORAGE_ERROR`) | `TypeError`/`ValueError`/`UnicodeError`/`RecursionError`, `OSError`, `sqlite3.Error` (incl. locked -> `CONCURRENCY`) |
 | `SqliteManifestStore.load(package_id)` | str | complete current manifest `dict` | `PackageNotFoundError` (`PACKAGE_NOT_FOUND`), `ManifestInvalidError` (`MANIFEST_INVALID`), `StorageError` (`STORAGE_ERROR`) | `TypeError`/`ValueError`/`UnicodeError`/`RecursionError`, `sqlite3.Error` |
 | `SqliteManifestStore.read_events(package_id)` | str | ordered `list[dict]` (decoded action/manifest) | `ManifestInvalidError` (`MANIFEST_INVALID`), `StorageError` (`STORAGE_ERROR`) | `sqlite3.Error`, decode/JSON errors |
@@ -80,3 +92,31 @@ Validation failure handling is deliberate and split by surface:
   aborts the operation).
 
 Both surfaces are stable; neither leaks raw native exceptions.
+
+## Accepted residuals (closure A, senior review 4882624484)
+
+Recorded here so the acceptance is repository-durable (verified by the
+code-review verify lane on 2026-08-07; each is genuine in the code):
+
+1. **Action payload → manifest consequence cross-binding (A3)**: for
+   revisions > 0 the semantic-action binding anchors the frozen field set,
+   `protocol_version`, `package_id`, `action_id`, `action`, and basis/payload
+   object types, but NOT payload content against manifest consequence digests
+   (e.g. `record_input` content vs `inputs[].content_sha256`). A store-writer
+   who recomputes `action_sha256` could rewrite action payload content and
+   still pass `validate_chain`; the manifest's own digests are independently
+   verified against the blob store. Not in the reviewer's explicit A3
+   "at minimum" list; recommended for the next invariant slice.
+2. **Manifest created_at/updated_at ↔ row binding**: `_bind_manifest_fields`
+   binds package_id/revision/state and rev>0 lineage, but not the manifest's
+   own `created_at`/`updated_at` to row timestamps (correct binding for
+   `created_at` requires threading the revision-0 row timestamp through the
+   kernel walk). Residual; recommended with the above.
+3. **`validate_chain` double canonicalization (audit path)**: with
+   `check_schema=True`, each event's manifest is canonicalized once by the A2
+   decode and again inside the schema validator. Bounded to the explicit audit
+   path (not load/apply); the perf-1 single-pass fix covered
+   `check_current_row_consistency` only.
+4. **Test tamper-pattern duplication (nit)**: `test_transactional_store.py`
+   and `test_chain_validator.py` each carry an inline drop-triggers/UPDATE
+   tamper pattern rather than a shared helper; cosmetic.

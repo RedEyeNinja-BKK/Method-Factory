@@ -177,6 +177,129 @@ class CreateTests(unittest.TestCase):
             finally:
                 store.close()
 
+    def test_create_normalized_timestamp_replays(self):
+        """Closure review A1: semantically equal timestamps normalize to the
+        same canonical text, so equivalent spellings replay exactly."""
+        with tempfile.TemporaryDirectory() as td:
+            store = SqliteManifestStore(td)
+            try:
+                m1 = store.create("pkg_demo_001", "Build a skill",
+                                  created_at="2026-08-07T00:00:00Z")
+                m2 = store.create("pkg_demo_001", "Build a skill",
+                                  created_at="2026-08-07T00:00:00+00:00")
+                self.assertEqual(m1, m2)
+                self.assertEqual(_event_count(Path(td)), 1)
+            finally:
+                store.close()
+
+    def test_create_invalid_created_at_rejected(self):
+        """Closure review A1: an unparseable timestamp is rejected typed at
+        the public boundary (it can never become part of the identity)."""
+        with tempfile.TemporaryDirectory() as td:
+            store = SqliteManifestStore(td)
+            try:
+                for bad in ("not-a-date", "2026-13-40T99:99:99", 12345):
+                    with self.subTest(created_at=bad):
+                        with self.assertRaises(InvalidPayloadError):
+                            store.create("pkg_demo_001", "Build a skill",
+                                         created_at=bad)  # type: ignore[arg-type]
+                self.assertEqual(_event_count(Path(td)), 0)
+            finally:
+                store.close()
+
+    def test_create_naive_timestamp_rejected(self):
+        """A naive (offset-less) timestamp is ambiguous in the creation
+        identity and must be rejected (A1 normalization requires UTC)."""
+        with tempfile.TemporaryDirectory() as td:
+            store = SqliteManifestStore(td)
+            try:
+                with self.assertRaises(InvalidPayloadError):
+                    store.create("pkg_demo_001", "Build a skill",
+                                 created_at="2026-08-07T00:00:00")
+                self.assertEqual(_event_count(Path(td)), 0)
+            finally:
+                store.close()
+
+    def test_create_cross_timezone_same_instant_replays(self):
+        """A1 normalization collapses every spelling of the SAME INSTANT to
+        UTC, so retries from different timezones replay identically."""
+        with tempfile.TemporaryDirectory() as td:
+            store = SqliteManifestStore(td)
+            try:
+                m1 = store.create("pkg_demo_001", "Build a skill",
+                                  created_at="2026-08-07T07:00:00+07:00")
+                m2 = store.create("pkg_demo_001", "Build a skill",
+                                  created_at="2026-08-07T00:00:00+00:00")
+                self.assertEqual(m1, m2)
+                self.assertEqual(m1["created_at"], "2026-08-07T00:00:00+00:00")
+                self.assertEqual(_event_count(Path(td)), 1)
+            finally:
+                store.close()
+
+    def test_create_omitted_timestamp_replays(self):
+        """A retry that omits created_at must replay the original create
+        (using the stored creation time), not fail stale on a fresh now()."""
+        with tempfile.TemporaryDirectory() as td:
+            store = SqliteManifestStore(td)
+            try:
+                m1 = store.create("pkg_demo_001", "Build a skill")
+                m2 = store.create("pkg_demo_001", "Build a skill")
+                self.assertEqual(m1, m2)
+                self.assertEqual(_event_count(Path(td)), 1)
+            finally:
+                store.close()
+
+    def test_create_explicit_different_timestamp_still_conflicts(self):
+        """An EXPLICIT different timestamp (a different instant) is NOT a
+        replay even when intent matches (A1 contract)."""
+        with tempfile.TemporaryDirectory() as td:
+            store = SqliteManifestStore(td)
+            try:
+                store.create("pkg_demo_001", "Build a skill",
+                             created_at="2026-08-07T00:00:00+00:00")
+                with self.assertRaises(DuplicatePackageError):
+                    store.create("pkg_demo_001", "Build a skill",
+                                 created_at="2026-08-07T01:00:00+00:00")
+                self.assertEqual(_event_count(Path(td)), 1)
+            finally:
+                store.close()
+
+    def test_create_semantic_identity_chain_binding(self):
+        """Closure review A1/A3: the stored revision-0 action_json carries
+        the semantic created_at and the chain validator binds it to the row —
+        tampering payload.created_at with a recomputed hash is rejected."""
+        import json as _json
+
+        from methodfactory.storage.serialization import canonical_bytes, sha256_hex
+        with tempfile.TemporaryDirectory() as td:
+            store = SqliteManifestStore(td)
+            try:
+                store.create("pkg_demo_001", "Build a skill",
+                             created_at="2026-08-07T00:00:00+00:00")
+                c = sqlite3.connect(str(Path(td) / DB_FILENAME))
+                c.execute("DROP TRIGGER IF EXISTS events_no_update")
+                c.execute("DROP TRIGGER IF EXISTS events_no_delete")
+                row = c.execute(
+                    "SELECT action_json, action_sha256 FROM events "
+                    "WHERE package_id='pkg_demo_001' AND revision=0"
+                ).fetchone()
+                action = _json.loads(row[0])
+                action["payload"]["created_at"] = "2026-08-07T09:00:00+00:00"
+                data = canonical_bytes(action)
+                c.execute(
+                    "UPDATE events SET action_json=?, action_sha256=? "
+                    "WHERE package_id='pkg_demo_001' AND revision=0",
+                    (data, sha256_hex(data)),
+                )
+                c.commit()
+                c.close()
+                from methodfactory.storage.errors import ChainViolationError
+                with self.assertRaises(ChainViolationError) as ctx:
+                    store.validate_chain("pkg_demo_001")
+                self.assertIn("created_at", str(ctx.exception))
+            finally:
+                store.close()
+
     def test_create_different_intent_is_duplicate(self):
         with tempfile.TemporaryDirectory() as td:
             store = SqliteManifestStore(td)

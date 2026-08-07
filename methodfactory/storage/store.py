@@ -100,7 +100,7 @@ INSERT INTO events (
 
 ACTION_LOOKUP_SQL = """
 SELECT package_id, revision, action_sha256, state_after,
-       resulting_manifest_sha256, manifest_json
+       resulting_manifest_sha256, created_at, manifest_json
 FROM events
 WHERE package_id = ? AND action_id = ?
 """
@@ -143,6 +143,36 @@ def _rollback(conn: sqlite3.Connection) -> None:
 
 def _utcnow() -> str:
     return datetime.now(timezone.utc).isoformat()
+
+
+def _normalize_created_at(value: str | None) -> str:
+    """Normalize a caller-supplied creation timestamp to canonical UTC ISO-8601.
+
+    Semantic identity (senior review 4882624484, A1): ``fromisoformat`` then
+    ``astimezone(UTC)`` collapses every spelling of the SAME INSTANT to one
+    canonical text form (``Z``, ``+00:00``, any offset), so retries from any
+    timezone replay identically. Naive/date-only timestamps are rejected: the
+    manifest contract requires an explicit UTC offset (no ambiguous local
+    wall-clock time in the identity).
+    """
+    if value is None:
+        return _utcnow()
+    if not isinstance(value, str):
+        raise InvalidPayloadError(
+            f"created_at must be an ISO-8601 string, got {type(value).__name__}"
+        )
+    try:
+        dt = datetime.fromisoformat(value)
+    except ValueError as exc:
+        raise InvalidPayloadError(
+            f"created_at is not valid ISO-8601: {value!r}"
+        ) from exc
+    if dt.tzinfo is None:
+        raise InvalidPayloadError(
+            "created_at must include a UTC offset (naive timestamps are "
+            "ambiguous in the creation identity)"
+        )
+    return dt.astimezone(timezone.utc).isoformat()
 
 
 def _is_locked(exc: sqlite3.Error) -> bool:
@@ -325,9 +355,15 @@ class SqliteManifestStore:
     ) -> dict[str, Any]:
         """Create a package at revision 0 (exactly one event).
 
+        `created_at` is SEMANTIC (closure review 4882624484-A1): the normalized creation
+        timestamp is part of the canonical create_package semantic action and
+        therefore of the resulting action_sha256. A repeat with the same
+        package/intent but a DIFFERENT timestamp is NOT an exact replay — it
+        raises DuplicatePackageError. Omitted -> internal UTC now.
+
         Duplicate create raises DuplicatePackageError unless it is an exact
         idempotent replay of the original creation action (same deterministic
-        action_id + same semantic action hash).
+        action_id + same semantic action hash including the timestamp).
         """
         validate_package_id(package_id)
         if not isinstance(intent_raw, str):
@@ -340,7 +376,8 @@ class SqliteManifestStore:
             raise InvalidPayloadError(
                 "intent_raw must not contain control characters"
             )
-        created_at = created_at or _utcnow()
+        created_at_provided = created_at is not None
+        created_at = _normalize_created_at(created_at)
         action_id = f"act_create_{package_id}"
         event_id = f"evt_{package_id}_0"
 
@@ -350,7 +387,7 @@ class SqliteManifestStore:
             package_id=package_id,
             action_id=action_id,
             basis={},
-            payload={"intent": intent_raw},
+            payload={"intent": intent_raw, "created_at": created_at},
         )
         action_hash = sha256_hex(action_bytes)
 
@@ -359,13 +396,29 @@ class SqliteManifestStore:
             with _Transaction(conn):
                 existing = _find_action(conn, package_id, action_id)
                 if existing is not None:
+                    if not created_at_provided:
+                        # Omitted timestamp on a retry: idempotent replay uses
+                        # the STORED creation time (A1) so a caller that did
+                        # not pin a timestamp can replay the original create.
+                        action_bytes = canonical_action_bytes(
+                            protocol_version=PROTOCOL_VERSION,
+                            action=CREATE_PACKAGE_ACTION,
+                            package_id=package_id,
+                            action_id=action_id,
+                            basis={},
+                            payload={
+                                "intent": intent_raw,
+                                "created_at": existing["created_at"],
+                            },
+                        )
+                        action_hash = sha256_hex(action_bytes)
                     if existing["action_sha256"] == action_hash:
                         return _decode_and_check_row(existing, package_id=package_id)
-                    # The package exists (its create was committed with a
-                    # different intent). Per the create contract, attempting
-                    # to create an existing package returns the stable
-                    # PACKAGE_EXISTS error — exact idempotent replay is the
-                    # only accepted repeat.
+                    # The package exists and the requested creation differs
+                    # (different intent or an EXPLICIT different timestamp).
+                    # Per the create contract, attempting to create an existing
+                    # package returns the stable PACKAGE_EXISTS error — exact
+                    # idempotent replay is the only accepted repeat.
                     raise DuplicatePackageError(
                         f"package {package_id} already exists", package_id=package_id
                     )
