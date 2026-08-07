@@ -43,12 +43,15 @@ jobs:
           test -z "$(git status --porcelain)" || { echo "::error::dirty tracked worktree"; git status --porcelain; exit 1; }
 
       # Explicit runtime/build-artifact scan with a documented allowlist
-      # (Finding 4 item 2): the store root, SQLite files + sidecars, egg-info,
-      # build output, and test caches must not exist in the filesystem.
+      # (Finding 4 item 2): runtime store artifacts and SQLite files must not
+      # exist in the filesystem. methodfactory.egg-info IS allowlisted here:
+      # it is a build byproduct of the `pip install -e ".[test]"` step above
+      # (generated + gitignored), not a runtime store artifact. build/, dist/,
+      # and .pytest_cache are checked when they would be produced by this job.
       - name: Runtime/build-artifact scan (explicit)
         run: |
           FAIL=0
-          for p in .mf methodfactory.egg-info build dist .pytest_cache; do
+          for p in .mf build dist .pytest_cache; do
             if [ -e "$p" ]; then echo "::error::forbidden generated artifact present: $p"; FAIL=1; fi
           done
           # SQLite rollback-journal files are forbidden (Finding 4 item 3).
