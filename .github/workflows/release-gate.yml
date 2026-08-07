@@ -26,7 +26,7 @@ jobs:
       - name: Install with test extras
         run: pip install -e ".[test]"
 
-      - name: Unit tests (canonical gate)
+      - name: Canonical unit tests
         run: python -m unittest discover -s methodfactory/tests -t .
 
       - name: Packaging smoke — mf entry point
@@ -34,7 +34,25 @@ jobs:
           mf --version
           python -m methodfactory --version
 
-      - name: No runtime/build artifacts in worktree
+      # Honest terminology (Finding 4 item 2): this proves a CLEAN TRACKED
+      # WORKTREE (no uncommitted/untracked tracked-tree changes). Generated
+      # runtime/build files are gitignored, so their absence is proven by the
+      # explicit artifact scan below, not by git status alone.
+      - name: Clean tracked worktree
         run: |
-          test ! -d .mf || { echo "::error::unexpected .mf/ store in tree"; exit 1; }
-          test -z "$(git status --porcelain)" || { echo "::error::dirty worktree"; git status --porcelain; exit 1; }
+          test -z "$(git status --porcelain)" || { echo "::error::dirty tracked worktree"; git status --porcelain; exit 1; }
+
+      # Explicit runtime/build-artifact scan with a documented allowlist
+      # (Finding 4 item 2): the store root, SQLite files + sidecars, egg-info,
+      # build output, and test caches must not exist in the filesystem.
+      - name: Runtime/build-artifact scan (explicit)
+        run: |
+          FAIL=0
+          for p in .mf methodfactory.egg-info build dist .pytest_cache; do
+            if [ -e "$p" ]; then echo "::error::forbidden generated artifact present: $p"; FAIL=1; fi
+          done
+          # SQLite rollback-journal files are forbidden (Finding 4 item 3).
+          found=$(find . -name '*.sqlite3' -o -name '*.sqlite' -o -name '*.db' \
+            -o -name '*.wal' -o -name '*.shm' -o -name '*.journal' 2>/dev/null | grep -v '^\./\.git/' || true)
+          if [ -n "$found" ]; then echo "::error::forbidden SQLite/journal artifact:"; echo "$found"; FAIL=1; fi
+          exit $FAIL

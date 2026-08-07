@@ -351,7 +351,7 @@ Operator-authorized, evidence and development-visibility only:
 | Process crash | SQLite ACID; uncommitted work lost, committed work intact |
 | Host power loss | SQLite durable commits (journal_mode DELETE + synchronous FULL); same as above |
 | Concurrent sanctioned writers | SQLite write serialization + revision predicate → typed `STALE_ACTION` |
-| Accidental file corruption | `integrity_check` on open; typed `MANIFEST_INVALID`; no auto-repair |
+| Accidental file corruption | Typed `MANIFEST_INVALID` on detected mismatch; hot path does **not** run `integrity_check` (only `mf validate --full` does); no auto-repair |
 | External local tampering | Hash chain in export = **internal consistency evidence only**, not cryptographic authenticity without an anchored/signed root |
 | Malicious local writers | Out of scope for single-operator local tool; documented (a local attacker with store write access can rewrite the DB and recompute ordinary hashes) |
 
