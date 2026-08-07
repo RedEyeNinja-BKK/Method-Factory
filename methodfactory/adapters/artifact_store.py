@@ -92,7 +92,16 @@ def _close_fd(fd: int) -> None:
 
 
 class ArtifactStore:
-    def __init__(self, root: Path | str) -> None:
+    def __init__(self, root: Path | str, *, chmod_existing: bool = True) -> None:
+        """Artifact store over content-addressed blobs.
+
+        ``chmod_existing=False`` (migration only): when the root already
+        exists, do not chmod it. The migration publishes blobs into the final
+        destination root, which (with the default destination) is the legacy
+        source root itself; mutating its permissions would violate source
+        immutability (ADR-0012 §12). The blobs subdirectory is always
+        created private.
+        """
         if not isinstance(root, (str, os.PathLike)):
             raise InvalidPayloadError(
                 f"artifact store root must be a path, got {type(root).__name__}"
@@ -103,10 +112,12 @@ class ArtifactStore:
             # umask-inherited group/world-writable blobs dir would let other
             # local users unlink blobs or plant symlinks in the digest
             # namespace, defeating the immutable-store guarantees.
+            root_existed = self.root.is_dir()
             os.makedirs(self.root, mode=0o700, exist_ok=True)
             self.blobs = self.root / "blobs"
             os.makedirs(self.blobs, mode=0o700, exist_ok=True)
-            os.chmod(self.root, 0o700)
+            if chmod_existing or not root_existed:
+                os.chmod(self.root, 0o700)
             os.chmod(self.blobs, 0o700)
         except OSError as exc:
             raise InvalidPayloadError(

@@ -82,6 +82,21 @@ def legacy_digest_text(content: str) -> str:
     return legacy_digest_bytes(content.encode("utf-8"))
 
 
+def legacy_rev0_hash(package_id: str) -> str:
+    """Public v0.1.2 special revision-0 action hash:
+    sha256(legacy_canonical_json({"action": "create_package",
+                                  "package_id": package_id}))."""
+    return legacy_digest_json(
+        {"action": "create_package", "package_id": package_id}
+    )
+
+
+def legacy_hash_semantic(semantic: dict) -> str:
+    """Public v0.1.2 rev>0 action hash: sha256 of the six-field semantic
+    action in legacy hash canonicalization."""
+    return legacy_digest_json(semantic)
+
+
 class LegacyEvent:
     """Immutable normalized record from a public v0.1.2 journal line."""
 
@@ -309,8 +324,23 @@ class LegacySource:
             self._validate_package(pkg)
 
     def _validate_package(self, pkg: LegacyPackage) -> None:
+        # A discovered package must have a revision-0 create event. An empty
+        # or truncated journal (no revision 0) is not a valid v0.1.2 chain
+        # and must fail closed — never silently drop the package.
+        if not pkg.events:
+            raise LegacyChainInvalidError(
+                f"legacy journal for {pkg.package_id} is empty; "
+                "revision 0 create event missing"
+            )
+        first = pkg.events[0]
+        if first.revision != 0:
+            raise LegacyChainInvalidError(
+                f"legacy chain break for {pkg.package_id}: first event "
+                f"revision {first.revision!r}, expected 0"
+            )
         previous: dict | None = None
         previous_digest: str | None = None
+        verified_blobs: set[str] = set()
         for index, ev in enumerate(pkg.events):
             if ev.revision != index:
                 raise LegacyChainInvalidError(
@@ -323,6 +353,7 @@ class LegacySource:
                     f"{index}: state_before does not match prior state_after"
                 )
             snap = ev.manifest_snapshot
+            self._validate_snapshot_shape(pkg.package_id, index, snap)
             if snap.get("state") != ev.state_after:
                 raise LegacyChainInvalidError(
                     f"legacy chain break for {pkg.package_id} at event index "
@@ -345,15 +376,19 @@ class LegacySource:
                     f"legacy chain break for {pkg.package_id} at event index "
                     f"{index}: resulting_manifest_sha256 does not match snapshot"
                 )
-            # Validate referenced blobs exist + match digest (public semantics).
+            # Validate referenced blobs exist + match digest (public
+            # semantics). Each digest is verified once per package (the same
+            # blob is referenced by many snapshots).
             for item in snap.get("inputs", []):
                 d = item.get("content_sha256")
-                if d:
+                if d and d not in verified_blobs:
                     self.artifact_bytes(d)
+                    verified_blobs.add(d)
             for art in snap.get("artifacts", []):
                 d = art.get("sha256")
-                if d:
+                if d and d not in verified_blobs:
                     self.artifact_bytes(d)
+                    verified_blobs.add(d)
             previous = {"state": snap["state"], "digest": digest}
             previous_digest = digest
         if pkg.cache_status == "invalid":
@@ -362,12 +397,83 @@ class LegacySource:
                 "journal snapshot"
             )
 
+    def _validate_snapshot_shape(self, package_id: str, index: int, snap: dict) -> None:
+        """Validate the public v0.1.2 manifest-snapshot container shape.
+
+        Reconstruction (`migrate._reconstruct_*`) reads typed container keys
+        from the snapshot; a chain-valid-but-malformed snapshot must fail
+        here as a typed LegacyChainInvalidError, never leak a raw
+        KeyError/TypeError during migration.
+        """
+        for key in ("package_id", "revision", "state", "schema_version",
+                    "created_at", "updated_at", "intent", "inputs",
+                    "objective", "artifacts", "transition"):
+            if key not in snap:
+                raise LegacyChainInvalidError(
+                    f"legacy snapshot for {package_id} at event index {index} "
+                    f"is missing {key!r}"
+                )
+        if not isinstance(snap["intent"], dict) or not isinstance(
+            snap["intent"].get("raw"), str
+        ):
+            raise LegacyChainInvalidError(
+                f"legacy snapshot for {package_id} at event index {index} "
+                "has invalid intent"
+            )
+        if not isinstance(snap["inputs"], list):
+            raise LegacyChainInvalidError(
+                f"legacy snapshot for {package_id} at event index {index} "
+                "inputs must be a list"
+            )
+        if not isinstance(snap["objective"], dict):
+            raise LegacyChainInvalidError(
+                f"legacy snapshot for {package_id} at event index {index} "
+                "objective must be an object"
+            )
+        if not isinstance(snap["artifacts"], list):
+            raise LegacyChainInvalidError(
+                f"legacy snapshot for {package_id} at event index {index} "
+                "artifacts must be a list"
+            )
+        if not isinstance(snap.get("summary"), (dict, type(None))):
+            raise LegacyChainInvalidError(
+                f"legacy snapshot for {package_id} at event index {index} "
+                "summary must be an object or null"
+            )
+        if not isinstance(snap["transition"], dict):
+            raise LegacyChainInvalidError(
+                f"legacy snapshot for {package_id} at event index {index} "
+                "transition must be an object"
+            )
+        for item in snap["inputs"]:
+            if not isinstance(item, dict) or not isinstance(
+                item.get("input_id"), str
+            ):
+                raise LegacyChainInvalidError(
+                    f"legacy snapshot for {package_id} at event index {index} "
+                    "has a malformed input entry"
+                )
+        for art in snap["artifacts"]:
+            if not isinstance(art, dict) or not isinstance(
+                art.get("artifact_id"), str
+            ):
+                raise LegacyChainInvalidError(
+                    f"legacy snapshot for {package_id} at event index {index} "
+                    "has a malformed artifact entry"
+                )
+
     # ── semantic source inventory (immutability proof) ─────────────────
     def source_inventory(self) -> dict[str, dict[str, Any]]:
         """Deterministic inventory over the frozen semantic source set.
 
         Excludes `.lock` files (transient coordination state). Keys are
         relative paths; values are {sha256, size, type}.
+
+        Symlinks FAIL LOUDLY: a symlinked event/cache/blob is rejected at
+        read time already; the inventory must not silently drop or follow
+        them (a dropped entry would attest an incomplete source set, and a
+        followed entry could escape the source root). TOCTOU residual
+        (check-then-read) is documented honestly in ADR-0012 §12.
         """
         inventory: dict[str, dict[str, Any]] = {}
         for pattern, base in (
@@ -375,20 +481,33 @@ class LegacySource:
             ("*.json", self.packages_dir),
         ):
             for p in sorted(base.glob(pattern)):
-                if p.is_symlink():
-                    continue  # already rejected during read
+                self._assert_not_symlink(p)
                 rel = str(p.relative_to(self.root))
                 inventory[rel] = self._file_entry(p)
         blobs = self.artifacts_dir / "blobs"
         if blobs.is_dir():
             for p in sorted(blobs.iterdir()):
-                if p.is_file() and not p.is_symlink():
+                if p.is_file():
+                    self._assert_not_symlink(p)
                     rel = str(p.relative_to(self.root))
                     inventory[rel] = self._file_entry(p)
         return inventory
 
     @staticmethod
+    def _assert_not_symlink(p: Path) -> None:
+        if p.is_symlink():
+            raise LegacySourceInvalidError(
+                f"legacy source path must not be a symlink: {p}"
+            )
+
+    @staticmethod
     def _file_entry(p: Path) -> dict[str, Any]:
+        # Reject symlinks defensively even if a path changed between the
+        # directory walk and this read (the read follows the final link).
+        if p.is_symlink():
+            raise LegacySourceInvalidError(
+                f"legacy source path must not be a symlink: {p}"
+            )
         data = p.read_bytes()
         return {
             "sha256": legacy_digest_bytes(data),

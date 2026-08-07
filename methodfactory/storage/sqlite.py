@@ -220,9 +220,13 @@ def detect_presence(root: Path | str) -> StorePresence:
     return StorePresence.NO_STORE
 
 
-def _readonly_uri(db: Path) -> str:
+def readonly_uri(db: Path) -> str:
     """Build a read-only SQLite URI that correctly escapes path-significant
-    characters (spaces, Unicode, ?, #, %) — Finding 1 item 5."""
+    characters (spaces, Unicode, ?, #, %) — Finding 1 item 5.
+
+    Public helper: reused by the migration final verification and any
+    caller that must open an exact DB file read-only without creating it.
+    """
     # quote() with safe='' percent-encodes everything including ? # %;
     # sqlite3 URI parsing then unquotes the path component. The 'file:' scheme
     # requires an absolute path with forward slashes for the authority form.
@@ -230,6 +234,10 @@ def _readonly_uri(db: Path) -> str:
     if os.sep == "\\":
         path_part = path_part.replace("\\", "/")
     return f"file:{quote(path_part, safe='/')}?mode=ro"
+
+
+def _readonly_uri(db: Path) -> str:
+    return readonly_uri(db)
 
 
 def _connect(db: Path, read_only: bool, timeout: float = 5.0) -> sqlite3.Connection:

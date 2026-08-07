@@ -61,34 +61,30 @@ from ..domain.errors import (
     StaleActionError,
 )
 from ..engine.apply import CREATE_PACKAGE_ACTION, next_manifest
-from ..manifest.schema import validate_manifest_canonical
 from ..protocol.envelope import PROTOCOL_VERSION, envelope_from_dict
 from ..storage.errors import (
     ChainViolationError,
     DestinationExistsError,
-    LegacyChainInvalidError,
-    LegacySourceInvalidError,
     MigrationIncompatibleError,
     MigrationPublishFailedError,
     SourceChangedError,
     StorageError,
 )
-from ..storage.paths import DB_FILENAME, validate_package_id
+from ..storage.paths import DB_FILENAME
 from ..storage.serialization import canonical_bytes, sha256_hex
 from ..storage.sqlite import (
     APPLICATION_ID,
     USER_VERSION,
     close_database,
     open_database,
+    readonly_uri,
 )
 from .v012_jsonl import (
     LEGACY_ACTION_CREATE,
     LEGACY_COMMIT,
     LEGACY_TAG,
     LegacySource,
-    legacy_canonical_json,
-    legacy_digest_json,
-    legacy_line_json,
+    legacy_hash_semantic,
 )
 
 # Receipt format identity.
@@ -111,23 +107,6 @@ INSERT INTO events (
     resulting_manifest_sha256, created_at, action_json, manifest_json
 ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 """
-
-
-def _legacy_hash_semantic(semantic: dict) -> str:
-    """Legacy rev>0 action hash: sha256(legacy_canonical_json(semantic))."""
-    import hashlib
-
-    return hashlib.sha256(legacy_canonical_json(semantic)).hexdigest()
-
-
-def _legacy_rev0_hash(package_id: str) -> str:
-    import hashlib
-
-    return hashlib.sha256(
-        legacy_canonical_json(
-            {"action": "create_package", "package_id": package_id}
-        )
-    ).hexdigest()
 
 
 # ── semantic-action reconstruction ────────────────────────────────────
@@ -158,7 +137,7 @@ def _candidate_hashes(source: LegacySource, pkg, ev, candidates: list[dict]) -> 
     """Return candidates whose legacy hash matches the stored legacy hash."""
     matches = []
     for cand in candidates:
-        if _legacy_hash_semantic(cand) == ev.action_sha256:
+        if legacy_hash_semantic(cand) == ev.action_sha256:
             matches.append(cand)
     return matches
 
@@ -391,10 +370,18 @@ def migrate_store(
     # NOTE: the current API treats a store path as a ROOT DIRECTORY (it
     # appends DB_FILENAME and creates blobs/). The temp build therefore uses
     # a temp root directory; publication moves the DB FILE to the final path.
+    #
+    # Never chmod an EXISTING destination root: when --dest is omitted the
+    # default root IS the legacy source root, and mutating its permissions
+    # would violate source immutability (ADR-0012 §12). Only newly-created
+    # roots get the private mode.
     final_root = final_dest.parent
+    root_existed = final_root.is_dir()
     try:
         final_root.mkdir(parents=True, exist_ok=True)
-        os.chmod(final_root, 0o700)
+        # chmod only when this call actually created the root directory.
+        if not root_existed:
+            os.chmod(final_root, 0o700)
     except OSError as exc:
         raise StorageError(
             f"cannot create destination parent directory: {exc}"
@@ -403,7 +390,10 @@ def migrate_store(
 
     # Build the modern store. Blobs publish to the FINAL artifact store root
     # (orphan-safe on failure; ADR-0012 §11), while the DB builds at temp_root.
-    artifacts = ArtifactStore(final_root)
+    # chmod_existing=False: the default destination root IS the legacy source
+    # root; its permissions must not be mutated (ADR-0012 §12 source
+    # immutability).
+    artifacts = ArtifactStore(final_root, chmod_existing=False)
     try:
         _fault("before_build_store")
         _build_store(temp_root, source, artifacts)
@@ -430,19 +420,23 @@ def migrate_store(
         raise
 
     # Publication: receipt first, then DB (ADR-0012 §11).
-    receipt = _build_receipt(source, before, temp_root)
-    temp_receipt = final_dest.with_name(final_dest.name + ".receipt.json.tmp")
+    receipt = _build_receipt(source, before)
+    temp_receipt = final_dest.with_name(
+        f".{final_dest.name}.receipt.tmp.{uuid.uuid4().hex}"
+    )
     final_receipt = final_dest.with_name(final_dest.name + ".receipt.json")
 
+    db_replaced = False
     try:
         _fault("before_receipt_write")
         _write_durable(temp_receipt, receipt)
         _fault("before_receipt_replace")
-        _atomic_replace(temp_receipt, final_receipt)
+        _publish_noclobber(temp_receipt, final_receipt)
         _fault("before_dir_fsync_receipt")
         _fsync_dir(final_root)
         _fault("before_db_replace")
-        _atomic_replace(temp_root / DB_FILENAME, final_dest)
+        _publish_noclobber(temp_root / DB_FILENAME, final_dest)
+        db_replaced = True
         _fault("before_dir_fsync_db")
         _fsync_dir(final_root)
         _fault("after_publication")
@@ -458,10 +452,24 @@ def migrate_store(
                     p.unlink()
             except OSError:
                 pass
+        # A durable PASS receipt without its database is a misleading crash
+        # state: remove the final receipt unless the DB itself was already
+        # published (DB-with-receipt is complete-but-unverified; the raise
+        # below prevents any success claim).
+        if not db_replaced:
+            try:
+                if final_receipt.exists():
+                    final_receipt.unlink()
+            except OSError:
+                pass
         if isinstance(exc, MethodFactoryError):
             raise
         raise MigrationPublishFailedError(
-            f"migration publication failed: {exc}"
+            "migration publication failed; the destination may be incomplete. "
+            f"Operator instructions: if {final_receipt.name} exists without "
+            f"{final_dest.name}, remove the receipt and re-run. If both exist, "
+            f"run `mf export`/validation to confirm the DB, then re-run after "
+            f"removing the destination. Cause: {exc}"
         ) from exc
 
     # Success-path hygiene: the temp root dir is now empty (DB file moved out).
@@ -470,9 +478,9 @@ def migrate_store(
     if temp_root.exists():
         shutil.rmtree(temp_root, ignore_errors=True)
 
-    # Final read-only verification.
+    # Final read-only verification (binds the published receipt to the DB).
     _fault("before_final_verify")
-    _verify_final(final_dest)
+    _verify_final(final_dest, receipt=receipt)
     _fault("after_final_verify")
 
     return receipt
@@ -683,9 +691,6 @@ def _validate_temp_store(temp_root: Path, artifacts: ArtifactStore) -> None:
         row = conn.execute("PRAGMA integrity_check").fetchone()
         if row is None or row[0] != "ok":
             raise StorageError("temporary SQLite integrity_check failed")
-        counts = conn.execute(
-            "SELECT COUNT(*), COUNT(DISTINCT package_id) FROM events"
-        ).fetchone()
     finally:
         close_database(conn)
     # authoritative full chain validation via a store wrapper
@@ -693,11 +698,7 @@ def _validate_temp_store(temp_root: Path, artifacts: ArtifactStore) -> None:
 
     store = SqliteManifestStore(temp_root, artifact_store=artifacts)
     try:
-        for package_id in sorted(
-            r[0] for r in store._conn.execute(
-                "SELECT DISTINCT package_id FROM events"
-            ).fetchall()
-        ):
+        for package_id in store.list_package_ids():
             try:
                 store.validate_chain(package_id, verify_artifacts=True)
             except ChainViolationError as exc:
@@ -711,16 +712,18 @@ def _validate_temp_store(temp_root: Path, artifacts: ArtifactStore) -> None:
         store.close()
 
 
-def _verify_final(final_dest: Path) -> None:
+def _verify_final(final_dest: Path, receipt: dict | None = None) -> None:
     """Read-only verification of the FINAL DB FILE (not a store root).
 
-    Opens the exact file path read-only; never creates or mutates.
+    Opens the exact file path read-only; never creates or mutates. When a
+    receipt dict is provided (the one just published), its semantic identity
+    is validated against the final DB so a mismatched or stale receipt can
+    never be reported as success (ADR-0012 §11 success predicate).
     """
     import sqlite3
-    from urllib.parse import quote
 
     db = final_dest.resolve()
-    uri = f"file:{quote(str(db), safe='/')}?mode=ro"
+    uri = readonly_uri(db)
     conn = None
     try:
         conn = sqlite3.connect(uri, uri=True, timeout=5.0)
@@ -735,6 +738,8 @@ def _verify_final(final_dest: Path) -> None:
             raise MigrationPublishFailedError(
                 "final database identity mismatch after publication"
             )
+        if receipt is not None:
+            _verify_receipt_against_db(final_dest, receipt, conn)
     except sqlite3.Error as exc:
         raise MigrationPublishFailedError(
             f"final database read-only verification failed: {exc}"
@@ -744,7 +749,41 @@ def _verify_final(final_dest: Path) -> None:
             conn.close()
 
 
-def _build_receipt(source: LegacySource, before: dict, temp_db: Path) -> dict:
+def _verify_receipt_against_db(
+    final_dest: Path, receipt: dict, conn: sqlite3.Connection
+) -> None:
+    """Bind the published receipt to the published DB (success predicate)."""
+    pkg_count = int(
+        conn.execute("SELECT COUNT(DISTINCT package_id) FROM events").fetchone()[0]
+    )
+    ev_count = int(conn.execute("SELECT COUNT(*) FROM events").fetchone()[0])
+    if receipt.get("destination_package_count") != pkg_count:
+        raise MigrationPublishFailedError(
+            "published receipt package count does not match final database"
+        )
+    if receipt.get("destination_event_count") != ev_count:
+        raise MigrationPublishFailedError(
+            "published receipt event count does not match final database"
+        )
+    if receipt.get("validation_verdict") != "PASS":
+        raise MigrationPublishFailedError(
+            "published receipt does not carry a PASS verdict"
+        )
+    # The receipt must be the exact file that was just published.
+    receipt_path = final_dest.with_name(final_dest.name + ".receipt.json")
+    try:
+        on_disk = json.loads(receipt_path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError, UnicodeDecodeError) as exc:
+        raise MigrationPublishFailedError(
+            f"cannot re-read published receipt {receipt_path}: {exc}"
+        ) from exc
+    if on_disk != receipt:
+        raise MigrationPublishFailedError(
+            "published receipt does not match the migration result"
+        )
+
+
+def _build_receipt(source: LegacySource, before: dict) -> dict:
     src_event_count = sum(len(p.events) for p in source.packages.values())
     dst_event_count = src_event_count  # 1:1 revision mapping
     return {
@@ -766,17 +805,43 @@ def _build_receipt(source: LegacySource, before: dict, temp_db: Path) -> dict:
 
 
 def _write_durable(path: Path, data: dict) -> None:
-    tmp = path.with_name(path.name + ".tmp")
-    with open(tmp, "w", encoding="utf-8") as fh:
+    """Write `data` to `path` durably (fsync file before rename/link).
+
+    The temp name is unique (caller supplies it); content is JSON
+    canonical, UTF-8, one object.
+    """
+    with open(path, "w", encoding="utf-8") as fh:
         fh.write(json.dumps(data, sort_keys=True, separators=(",", ":"),
                             ensure_ascii=False))
         fh.flush()
         os.fsync(fh.fileno())
-    os.replace(tmp, path)
 
 
-def _atomic_replace(src: Path, dst: Path) -> None:
-    os.replace(src, dst)
+def _publish_noclobber(src: Path, dst: Path) -> None:
+    """Atomically publish src to dst WITHOUT overwriting an existing dst.
+
+    Uses the same no-clobber hard-link primitive as the artifact store
+    (ADR-0007): os.link fails if dst exists, so a raced destination is never
+    replaced. On FileExistsError the publication is aborted with a typed
+    error (the caller fails closed).
+    """
+    try:
+        os.link(src, dst)
+    except FileExistsError:
+        raise DestinationExistsError(
+            f"publication destination appeared during migration: {dst}"
+        ) from None
+    except OSError as exc:
+        raise MigrationPublishFailedError(
+            f"cannot publish {dst}: {exc}"
+        ) from exc
+    # Remove the temp source after successful publication.
+    try:
+        src.unlink()
+    except OSError as exc:
+        raise MigrationPublishFailedError(
+            f"cannot remove temp file {src}: {exc}"
+        ) from exc
 
 
 def _fsync_dir(path: Path) -> None:

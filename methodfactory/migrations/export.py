@@ -10,11 +10,20 @@ Two formats:
    PUBLIC v0.1.2 event SHAPE using public v0.1.2 semantics:
    - inline summary content;
    - legacy canonical manifest hashes (ensure_ascii=True, compact);
-   - legacy predecessor hashes;
+   - legacy predecessor hashes (event-level AND snapshot-level, both in the
+     legacy hash space, so the exported journal re-validates under the
+     frozen v0.1.2 reader);
    - legacy rev>0 action hashes using legacy canonical hash serialization;
    - legacy special rev0 action hash;
    - journal-line serialization `json.dumps(event, sort_keys=True) + "\\n"`
      (Python default spacing, ASCII escaping).
+
+   LIMITATION (honest): the export reconstructs the public v0.1.2 event
+   SHAPE and line serializer, not byte identity with the original journal:
+   summary timestamps are the normalized current-era values (ADR-0012 §9),
+   and lineage/action hashes are recomputed over the reconstructed shapes.
+   It is an evidence stream, not a byte-for-byte replay of the source
+   journal.
 
 Both are read-only and deterministic: same DB + same exporter version ->
 byte-identical output. Export never mutates the store; it uses a read-only
@@ -30,7 +39,6 @@ from pathlib import Path
 from typing import Any
 
 from ..storage.errors import StorageError
-from ..storage.serialization import canonical_bytes, sha256_hex
 from ..storage.sqlite import (
     APPLICATION_ID,
     USER_VERSION,
@@ -39,7 +47,9 @@ from ..storage.sqlite import (
 )
 from .v012_jsonl import (
     legacy_digest_json,
+    legacy_hash_semantic,
     legacy_line_json,
+    legacy_rev0_hash,
 )
 
 EVENTS_V1_FORMAT = "method-factory-events-v1"
@@ -105,7 +115,7 @@ def _legacy_event_object(row: dict, prev_legacy_hash: str | None) -> dict:
     # canonical_sha256. The summary body is stored as a blob; we need its
     # bytes. We recompute the summary body via the deterministic renderer
     # (byte-identical to public v0.1.2) when summary present.
-    legacy_manifest = _to_legacy_manifest(manifest)
+    legacy_manifest = _to_legacy_manifest(manifest, prev_legacy_hash)
 
     # Legacy manifest hashes (ensure_ascii=True).
     resulting = legacy_digest_json(legacy_manifest)
@@ -113,15 +123,18 @@ def _legacy_event_object(row: dict, prev_legacy_hash: str | None) -> dict:
     # exported line's reconstructed manifest (rows process in package_id,
     # revision order). This keeps the exported chain fully consistent in the
     # LEGACY hash space, even when the current-era stored previous hash
-    # differs (non-ASCII content; ensure_ascii divergence).
+    # differs (non-ASCII content; ensure_ascii divergence). The snapshot's
+    # previous_manifest_sha256 is set to the same value (see
+    # _to_legacy_manifest) so the exported journal re-validates under the
+    # frozen v0.1.2 reader.
     prev = prev_legacy_hash
 
     # Legacy action hash: rev0 special reduced; rev>0 legacy canonical of
     # semantic action (six fields).
     if row["revision"] == 0:
-        action_hash = _legacy_rev0_hash(row["package_id"])
+        action_hash = legacy_rev0_hash(row["package_id"])
     else:
-        action_hash = _legacy_hash_semantic(semantic)
+        action_hash = legacy_hash_semantic(semantic)
 
     return {
         "event_id": row["event_id"],
@@ -138,16 +151,20 @@ def _legacy_event_object(row: dict, prev_legacy_hash: str | None) -> dict:
     }
 
 
-def _to_legacy_manifest(manifest: dict) -> dict:
+def _to_legacy_manifest(manifest: dict, prev_legacy_hash: str | None = None) -> dict:
     """Convert current manifest to public v0.1.2 manifest shape.
 
     - summary inline content: regenerate via the deterministic renderer.
     - summary canonical_sha256 = digest of inline content (== current digest).
     - drop content-addressed digest/size/preview; add content + canonical.
+    - previous_manifest_sha256: recomputed in the LEGACY hash space when the
+      predecessor hash is threaded in (rev>0). Revision 0 stays None.
     """
     import copy
 
     m = copy.deepcopy(manifest)
+    if prev_legacy_hash is not None:
+        m["previous_manifest_sha256"] = prev_legacy_hash
     summary = m.get("summary")
     if isinstance(summary, dict):
         body = _render_summary(m)
@@ -170,24 +187,6 @@ def _legacy_digest_text(content: str) -> str:
     from .v012_jsonl import legacy_digest_text
 
     return legacy_digest_text(content)
-
-
-def _legacy_rev0_hash(package_id: str) -> str:
-    from .v012_jsonl import legacy_canonical_json
-
-    import hashlib
-
-    return hashlib.sha256(
-        legacy_canonical_json({"action": "create_package", "package_id": package_id})
-    ).hexdigest()
-
-
-def _legacy_hash_semantic(semantic: dict) -> str:
-    from .v012_jsonl import legacy_canonical_json
-
-    import hashlib
-
-    return hashlib.sha256(legacy_canonical_json(semantic)).hexdigest()
 
 
 # ── public API ────────────────────────────────────────────────────────
@@ -223,13 +222,19 @@ def export_events(
     for row in rows:
         if fmt == EVENTS_V1_FORMAT:
             obj = _current_event_object(row)
+            line = json.dumps(obj, sort_keys=True, separators=(",", ":"),
+                              ensure_ascii=False)
         else:
+            # legacy-v012-jsonl: PUBLIC v0.1.2 journal-line serializer
+            # (Python default spacing + ASCII escaping), NOT the compact
+            # current serializer. The HASH serializer remains legacy
+            # canonical (ensure_ascii compact) for action/manifest digests.
             obj = _legacy_event_object(
                 row, prev_legacy.get(row["package_id"])
             )
             prev_legacy[row["package_id"]] = obj["resulting_manifest_sha256"]
-        lines.append(json.dumps(obj, sort_keys=True, separators=(",", ":"),
-                                ensure_ascii=False))
+            line = legacy_line_json(obj)
+        lines.append(line)
 
     payload = ("\n".join(lines) + "\n").encode("utf-8") if lines else b""
 
@@ -242,12 +247,38 @@ def export_events(
     out = Path(output)
     if out.exists():
         raise StorageError(f"export destination exists: {out}")
-    tmp = out.with_name(out.name + ".tmp")
-    with open(tmp, "wb") as fh:
-        fh.write(payload)
-        fh.flush()
-        os.fsync(fh.fileno())
-    os.replace(tmp, out)
+    # Unique same-directory temp (O_EXCL) then atomic no-clobber publication:
+    # a raced destination is never overwritten (CWE-377 / no-clobber).
+    import uuid
+
+    tmp = out.with_name(f".{out.name}.tmp.{uuid.uuid4().hex}")
+    try:
+        fd = os.open(tmp, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
+    except OSError as exc:
+        raise StorageError(f"cannot create export temp file: {exc}") from exc
+    try:
+        with os.fdopen(fd, "wb") as fh:
+            fh.write(payload)
+            fh.flush()
+            os.fsync(fh.fileno())
+        try:
+            os.link(tmp, out)
+        except FileExistsError:
+            raise StorageError(
+                f"export destination appeared during export: {out}"
+            ) from None
+        except OSError as exc:
+            raise StorageError(f"cannot publish export: {exc}") from exc
+        try:
+            tmp.unlink()
+        except OSError as exc:
+            raise StorageError(f"cannot remove export temp: {exc}") from exc
+    except BaseException:
+        try:
+            tmp.unlink()
+        except OSError:
+            pass
+        raise
     _fsync_dir(out.parent)
     return len(rows)
 

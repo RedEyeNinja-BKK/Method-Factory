@@ -14,19 +14,42 @@ mutation/review/trial/ship/triage) remain unavailable.
 from __future__ import annotations
 
 import argparse
+import json
+import sqlite3
 import sys
 
 from . import __version__
 from .domain.errors import MethodFactoryError
 
-AVAILABILITY = (
-    "Method Factory storage is under architecture reset (ADR-0012); "
-    "lifecycle commands return in a later phase."
+# Native exceptions the public boundary promises to translate (docs
+# public-surface.md). The CLI is the last line: anything that escapes the
+# typed boundary still surfaces as a stable STORAGE_ERROR, never a raw
+# traceback of an unhandled native exception.
+_BOUNDARY_NATIVES = (
+    OSError,
+    sqlite3.Error,
+    json.JSONDecodeError,
+    UnicodeError,
+    TypeError,
+    ValueError,
+    RecursionError,
 )
 
 
 def _fail(err: MethodFactoryError) -> int:
     print(err.as_dict(), file=sys.stderr)
+    return 1
+
+
+def _fail_native(exc: BaseException) -> int:
+    print(
+        json.dumps(
+            {"code": "STORAGE_ERROR",
+             "message": f"unexpected {type(exc).__name__}: {exc}"},
+            sort_keys=True,
+        ),
+        file=sys.stderr,
+    )
     return 1
 
 
@@ -37,7 +60,8 @@ def _cmd_migrate_store(args) -> int:
         receipt = migrate_store(args.source, dest=args.dest)
     except MethodFactoryError as exc:
         return _fail(exc)
-    import json
+    except _BOUNDARY_NATIVES as exc:
+        return _fail_native(exc)
 
     print(json.dumps(receipt, sort_keys=True, indent=2))
     return 0
@@ -50,6 +74,8 @@ def _cmd_export(args) -> int:
         count = export_events(args.store, args.output, fmt=args.format)
     except MethodFactoryError as exc:
         return _fail(exc)
+    except _BOUNDARY_NATIVES as exc:
+        return _fail_native(exc)
     if args.output is None:
         # events already written to stdout; report count on stderr
         print(f"exported {count} events", file=sys.stderr)

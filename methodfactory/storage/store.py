@@ -665,5 +665,12 @@ class SqliteManifestStore:
         """EXPLAIN QUERY PLAN for the hot-path latest-event lookup."""
         return explain_latest_event_plan(self._conn, package_id)
 
+    def list_package_ids(self) -> list[str]:
+        """Return distinct package ids in deterministic (id) order."""
+        rows = self._conn.execute(
+            "SELECT DISTINCT package_id FROM events ORDER BY package_id"
+        ).fetchall()
+        return [r[0] for r in rows]
+
     def close(self) -> None:
         close_database(self._conn)

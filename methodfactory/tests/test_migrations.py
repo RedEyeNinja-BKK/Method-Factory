@@ -115,6 +115,36 @@ def _inventory(root: Path) -> dict[str, tuple[str, int]]:
     return inv
 
 
+def _rewrite_journal(src: Path, mutator) -> None:
+    """Load a legacy journal, apply `mutator(events)`, then recompute the
+    full legacy chain (previous/resulting hashes) so the journal still
+    passes the frozen v0.1.2 reader — unless the mutation itself makes a
+    hash mismatch the intended failure.
+
+    Removes the cache file: after a journal mutation the cached snapshot is
+    stale by definition; these tests target the migration transformation
+    boundary, not cache semantics (cache cases have their own tests).
+    """
+    journal = src / "events/pkg_demo_001.events.jsonl"
+    events = [json.loads(l) for l in journal.read_text().splitlines()]
+    mutator(events)
+    prev_hash = None
+    for ev in events:
+        snap = ev["manifest_snapshot"]
+        snap["previous_manifest_sha256"] = prev_hash
+        ev["previous_manifest_sha256"] = prev_hash
+        resulting = legacy_digest_json(snap)
+        ev["resulting_manifest_sha256"] = resulting
+        prev_hash = resulting
+    journal.write_text(
+        "\n".join(json.dumps(e, sort_keys=True) for e in events) + "\n",
+        encoding="utf-8",
+    )
+    cache = src / "packages/pkg_demo_001.json"
+    if cache.exists():
+        cache.unlink()
+
+
 def _open_db(path: Path) -> sqlite3.Connection:
     conn = sqlite3.connect(str(path))
     conn.row_factory = sqlite3.Row
@@ -374,6 +404,125 @@ class MigrationFailClosedTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as td:
             with self.assertRaises(MigrationIncompatibleError):
                 migrate_store(src, Path(td) / "methodfactory.sqlite3")
+
+    def test_empty_journal_fails_closed(self):
+        """An empty/truncated journal (no revision 0) must fail
+        LEGACY_CHAIN_INVALID — never silently drop the package."""
+        with tempfile.TemporaryDirectory() as td:
+            src = Path(td) / "src"
+            shutil.copytree(self.src, src)
+            (src / "events/pkg_demo_001.events.jsonl").write_text("", encoding="utf-8")
+            (src / "packages/pkg_demo_001.json").unlink()  # absent cache
+            with self.assertRaises(LegacyChainInvalidError):
+                migrate_store(src, Path(td) / "methodfactory.sqlite3")
+            self.assertFalse((Path(td) / "methodfactory.sqlite3").exists())
+
+    def test_within_package_duplicate_event_id(self):
+        """Two events in the SAME package with the same event_id must fail."""
+        with tempfile.TemporaryDirectory() as td:
+            src = Path(td) / "src"
+            shutil.copytree(self.src, src)
+            def mut(evs):
+                # Duplicate event_id of rev0 onto rev1 (event_id is part of
+                # the snapshot transition, so the chain is recomputed below).
+                evs[1]["event_id"] = evs[0]["event_id"]
+                evs[1]["manifest_snapshot"]["transition"]["last_event_id"] = evs[0]["event_id"]
+            _rewrite_journal(src, mut)
+            with self.assertRaises(MigrationIncompatibleError):
+                migrate_store(src, Path(td) / "methodfactory.sqlite3")
+
+    def test_invalid_logical_path(self):
+        """A legacy-valid logical path that fails the current strict path
+        grammar (absolute path) must be MIGRATION_INCOMPATIBLE."""
+        with tempfile.TemporaryDirectory() as td:
+            src = Path(td) / "src"
+            shutil.copytree(self.src, src)
+            def mut(evs):
+                # rev5 is record_draft_artifact with logical_path
+                # skills/x/SKILL.md; rewrite it to an absolute path.
+                evs[5]["manifest_snapshot"]["artifacts"][0]["logical_path"] = "/etc/passwd"
+            _rewrite_journal(src, mut)
+            with self.assertRaises(MigrationIncompatibleError):
+                migrate_store(src, Path(td) / "methodfactory.sqlite3")
+
+    def test_control_characters_rejected(self):
+        """Control characters in a legacy-valid identifier fail current
+        validation with MIGRATION_INCOMPATIBLE."""
+        with tempfile.TemporaryDirectory() as td:
+            src = Path(td) / "src"
+            shutil.copytree(self.src, src)
+            def mut(evs):
+                evs[1]["manifest_snapshot"]["inputs"][0]["input_id"] = "in\x01"
+            _rewrite_journal(src, mut)
+            with self.assertRaises(MigrationIncompatibleError):
+                migrate_store(src, Path(td) / "methodfactory.sqlite3")
+
+    def test_source_symlink_rejected(self):
+        """A symlinked artifact blob fails the inventory (immutability proof
+        attests only real in-root files)."""
+        with tempfile.TemporaryDirectory() as td:
+            src = Path(td) / "src"
+            shutil.copytree(self.src, src)
+            blob = next((src / "artifacts/blobs").iterdir())
+            blob.unlink()
+            blob.symlink_to(src / "events/pkg_demo_001.events.jsonl")
+            with self.assertRaises(LegacySourceInvalidError):
+                migrate_store(src, Path(td) / "methodfactory.sqlite3")
+
+    def test_dest_root_permissions_untouched(self):
+        """Default destination root is the legacy source root; its mode must
+        NOT be chmod'd by migration (ADR-0012 §12 source immutability)."""
+        with tempfile.TemporaryDirectory() as td:
+            src = Path(td) / "src"
+            shutil.copytree(self.src, src)
+            os.chmod(src, 0o755)
+            before_mode = src.stat().st_mode
+            # dest defaults to <source>/methodfactory.sqlite3
+            migrate_store(src)
+            after_mode = src.stat().st_mode
+            self.assertEqual(before_mode, after_mode)
+            self.assertTrue((src / "methodfactory.sqlite3").is_file())
+
+    def test_receipt_without_db_is_not_success(self):
+        """A fault after receipt publication but before DB publication leaves
+        no PASS receipt behind and raises (never success)."""
+        old = migrate_module.FAULT_HOOK
+        try:
+            def hook(s):
+                if s == "before_db_replace":
+                    raise StorageError("fault before db replace")
+            migrate_module.FAULT_HOOK = hook
+            with tempfile.TemporaryDirectory() as td:
+                dest = Path(td) / "methodfactory.sqlite3"
+                with self.assertRaises(MethodFactoryError):
+                    migrate_store(self.src, dest)
+                self.assertFalse(dest.exists())
+                self.assertFalse(
+                    dest.with_name(dest.name + ".receipt.json").exists()
+                )
+        finally:
+            migrate_module.FAULT_HOOK = old
+
+    def test_export_no_clobber_raced(self):
+        """Export must not overwrite a destination that already exists."""
+        src = _generate("standard", standard_workflow)
+        with tempfile.TemporaryDirectory() as td:
+            dest = Path(td) / "methodfactory.sqlite3"
+            migrate_store(src, dest)
+            out = Path(td) / "out.jsonl"
+            export_events(Path(td), out, fmt=EVENTS_V1_FORMAT)
+            self.assertEqual(len(out.read_text().splitlines()), 7)
+            # Existing destination: fail closed, content untouched.
+            with self.assertRaises(StorageError):
+                export_events(Path(td), out, fmt=EVENTS_V1_FORMAT)
+            self.assertEqual(len(out.read_text().splitlines()), 7)
+            # A *different* path that appears after the exists-check is
+            # protected by the no-clobber link.
+            raced = Path(td) / "raced.jsonl"
+            raced.write_text("existing", encoding="utf-8")
+            with self.assertRaises(StorageError):
+                export_events(Path(td), raced, fmt=EVENTS_V1_FORMAT)
+            self.assertEqual(raced.read_text(), "existing")
 
     def test_destination_exists(self):
         with tempfile.TemporaryDirectory() as td:
@@ -719,6 +868,42 @@ class ExportDeterminismTests(unittest.TestCase):
         from methodfactory.migrations.v012_jsonl import legacy_canonical_json
         self.assertIn(b"\\u00e9", legacy_canonical_json(ev))
         self.assertNotIn(b'"b": "', legacy_canonical_json(ev))
+
+    def test_legacy_export_revalidates_under_frozen_reader(self):
+        """bug-o1 regression: the exported legacy journal must pass the
+        frozen v0.1.2 reader's own validation (chain + hashes), proving the
+        snapshot previous_manifest_sha256 is in LEGACY hash space."""
+        out = Path(self.td.name) / "revalidate.jsonl"
+        export_events(self.root, out, fmt=LEGACY_JSONL_FORMAT)
+        # Reconstruct a legacy store layout from the export + migrated blobs.
+        legacy_root = Path(self.td.name) / "legacy-revalidate"
+        (legacy_root / "events").mkdir(parents=True, exist_ok=True)
+        (legacy_root / "packages").mkdir(parents=True, exist_ok=True)
+        (legacy_root / "artifacts" / "blobs").mkdir(parents=True, exist_ok=True)
+        shutil.copy(out, legacy_root / "events/pkg_demo_001.events.jsonl")
+        for blob in (self.root / "blobs").iterdir():
+            shutil.copy(blob, legacy_root / "artifacts" / "blobs" / blob.name)
+        ls = LegacySource(legacy_root)
+        ls.validate()  # must not raise
+
+    def test_legacy_export_revalidates_non_ascii(self):
+        """Same regression for a store with non-ASCII content (ensure_ascii
+        divergence affects every legacy hash)."""
+        src = _generate("non_ascii", non_ascii_workflow)
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            migrate_store(src, root / "methodfactory.sqlite3")
+            out = root / "legacy.jsonl"
+            export_events(root, out, fmt=LEGACY_JSONL_FORMAT)
+            legacy_root = root / "legacy-revalidate"
+            (legacy_root / "events").mkdir(parents=True, exist_ok=True)
+            (legacy_root / "packages").mkdir(parents=True, exist_ok=True)
+            (legacy_root / "artifacts" / "blobs").mkdir(parents=True, exist_ok=True)
+            shutil.copy(out, legacy_root / "events/pkg_unicode_001.events.jsonl")
+            for blob in (root / "blobs").iterdir():
+                shutil.copy(blob, legacy_root / "artifacts" / "blobs" / blob.name)
+            ls = LegacySource(legacy_root)
+            ls.validate()  # must not raise
 
     def test_export_no_mutation(self):
         before = _inventory(self.root)
