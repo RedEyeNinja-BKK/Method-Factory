@@ -426,21 +426,29 @@ One authoritative validator (owned by the storage layer, exercised on every tran
 
 ### G. Canonical action hash semantics (item 7)
 
-`action_sha256` covers the complete normalized semantic request used for idempotency:
+`action_sha256` covers the complete normalized semantic request used for
+idempotency. It is the hash of the canonical semantic-action object produced
+by the single `semantic_action` construction primitive
+(`methodfactory/storage/serialization.semantic_action`), which is exactly:
 
 ```python
-action_sha256 = sha256_hex(canonical_json({
+{
+    "protocol_version": protocol_version,
     "action": action,
     "package_id": package_id,
     "action_id": action_id,
     "basis": basis,
     "payload": payload,
-}))
+}
 ```
 
 - It includes every field that could change the requested outcome.
 - It excludes **only** `expected_revision` (optimistic-concurrency/transport metadata, not part of the requested outcome).
 - Same `action_id` + same hash → idempotent replay. Same `action_id` + different hash → `ACTION_ID_CONFLICT`. Never infer idempotency from `action_id` alone.
+
+This definition is internally consistent with the migration/export amendment
+(rev>0 legacy action hashes covered the same six fields under the legacy
+serializer).
 
 ### H. Artifact write boundary and orphan safety (item 8)
 
@@ -615,9 +623,9 @@ silent normalization.
 | `intent.clarified` | engine does not populate it (remains `None`) | must be string or null | Non-null legacy `clarified` is **non-reconstructable historical state** → fail closed (see §5) |
 | `record_input.content` | any string, no length limit | `MAX_CONTENT_CHARS` (characters) + persisted UTF-8 blob byte limit (`MAX_ARTIFACT_BYTES`) | C if legacy exceeds either applicable boundary |
 | `record_draft_artifact.content` | any string, no length limit | `MAX_CONTENT_CHARS` (characters) + artifact/blob byte limit (`MAX_ARTIFACT_BYTES`) | C if legacy exceeds either applicable boundary |
-| `statement` | any string | `MAX_STATEMENT_CHARS` (16 KiB) | C if legacy exceeds |
-| `desired_outcomes` | list of str, no count/length limit | `MAX_OUTCOMES` (100) + ≤16 KiB each | C if legacy exceeds |
-| `reason` (exclusion/cancel) | str or None, no length limit | `MAX_REASON_CHARS` (1 KiB) + control-char | C if legacy exceeds |
+| `statement` | any string | `MAX_STATEMENT_CHARS` = 16,384 characters | C if legacy exceeds |
+| `desired_outcomes` | list of str, no count/length limit | `MAX_OUTCOMES` (100) + entry limit 16,384 characters each | C if legacy exceeds |
+| `reason` (exclusion/cancel) | str or None, no length limit | `MAX_REASON_CHARS` = 1,024 characters + control-char | C if legacy exceeds |
 | control characters | not validated in legacy envelope | validated on ids/kinds/reasons/statements/outcomes/preview | C where legacy carried control chars in a now-checked field |
 | Unicode / lone surrogate | legacy accepted any str | current rejects lone surrogates at several boundaries | A for well-formed Unicode (hash differs - recomputed); C only if legacy persisted a lone surrogate |
 | `event_id` | `evt_<uuid4hex>` (36 chars) | `validate_identifier` + global UNIQUE | A for legacy format |
@@ -645,6 +653,37 @@ The frozen migration reader preserves the public crash-tolerance semantics:
 
 Do not tighten this into `cache == last event`; that would reject legitimate
 public v0.1.2 crash states.
+
+### 4a. Legacy `.lock` and semantic source-identity semantics
+
+`events/<package_id>.lock` is **transient v0.1.2 coordination state** and is
+**NOT** part of canonical historical package evidence. It must be excluded
+from:
+
+- migration receipt source hashes;
+- semantic source identity;
+- before/after source-equivalence hashes.
+
+The frozen **semantic source set** is the existing canonical/preserved files:
+
+- `events/*.events.jsonl`;
+- existing `packages/*.json` cache files;
+- `artifacts/blobs/*`.
+
+Migration must not revive:
+
+- lock acquisition;
+- stale-lock recovery;
+- PID interpretation;
+- lock repair;
+- automatic lock deletion.
+
+**Conservative operational behavior when a legacy `.lock` file is present at
+migration time (preferred):** refuse to start migration using the existing
+`CONCURRENCY`/concurrency error semantics, report the lock path, do not
+mutate or delete it, and leave operator investigation/removal outside
+migration. The lock file itself remains outside semantic source identity
+either way.
 
 ### 5. Non-reconstructable historical state
 
