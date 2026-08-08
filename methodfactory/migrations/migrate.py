@@ -18,22 +18,15 @@ Frozen algorithm (ADR-0012 amendment §7-§15):
         event_id=legacy event_id, created_at=legacy event.at);
      e. semantic equivalence check vs legacy snapshot (exclusions only);
 7. calculate destination + temporary destination (same directory);
-8. fail if final destination exists (DESTINATION_EXISTS);
-9. build new SQLite store at temp destination;
-10. insert deterministic transformed events/blobs (immutable blobs
-    pre-written, orphan-safe);
-11. PRAGMA integrity_check;
-12. full current chain validation (validate_chain, verify_artifacts=True);
-13. close/sync SQLite cleanly;
-14. generate migration receipt data;
-15. durably write temp receipt;
-16. FINAL source inventory/hash (AFTER) — require exact equality with step 3;
-17. ONLY THEN enter publication:
+15. generate migration receipt data;
+16. durably write temp receipt;
+17. FINAL source inventory/hash (AFTER) — require exact equality with step 3;
+18. ONLY THEN enter publication:
      a. durable final receipt publication (no-clobber os.link temp -> final;
         dir fsync);
      b. durable atomic final DB publication (no-clobber os.link temp DB ->
         final; dir fsync);
-18. final read-only verification (binds the published receipt to the DB).
+19. final read-only verification (binds the published receipt to the DB).
 
 A receipt alone is NOT success. Success requires: final DB exists; matching
 final receipt exists; same migration identity; final read-only validation
@@ -354,9 +347,9 @@ def migrate_store(
     src = Path(source_root)
     final_dest = Path(dest) if dest is not None else (src / DB_FILENAME)
     # Reject a symlinked destination ROOT before resolving: resolve() would
-    # follow the link and the lstat gate below would never see it. (Leaf-only
-    # policy, mirroring the source-side reader; ancestor symlinks are
-    # documented as accepted.)
+    # follow the link and the lstat gate below would never see it. Only the
+    # destination root leaf is gated (mirroring the source-side reader);
+    # ancestor symlinks are intentionally not rejected here.
     dest_parent = final_dest.parent
     if dest_parent.is_symlink():
         raise StorageError(
@@ -392,6 +385,11 @@ def migrate_store(
     # publishing an unreopenable store.
     final_root = final_dest.parent
     root_existed = final_root.is_dir()
+    # Atomically claim the destination root leaf and pin its inode.
+    # An unconditional lstat/S_ISLNK/S_ISDIR/mode gate runs for BOTH
+    # existing and freshly-created roots: never trust a path that could
+    # have been swapped between mkdir and chmod (chmod follows symlinks).
+    root_fd: int | None = None
     try:
         if root_existed:
             # Leaf already exists; exist_ok=True no-ops (kept for the
@@ -405,47 +403,76 @@ def migrate_store(
             except FileExistsError:
                 root_existed = True
             if not root_existed:
-                # mkdir(mode=0o700) is umask-masked; chmod the leaf we
-                # created so the 0700 guarantee holds under ANY umask. Only
-                # ever chmod a directory this call actually created.
-                os.chmod(final_root, 0o700)
+                # mkdir(mode=0o700) is umask-masked; pin the inode we
+                # created and fchmod it so the 0700 guarantee holds under
+                # ANY umask WITHOUT a path-based chmod that could follow a
+                # swapped symlink.
+                root_fd = os.open(
+                    final_root, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW
+                )
+                os.fchmod(root_fd, 0o700)
     except OSError as exc:
+        if root_fd is not None:
+            os.close(root_fd)
         raise StorageError(
             f"cannot create destination parent directory: {exc}"
         ) from exc
     # Reject a non-directory or symlinked destination root. is_dir() follows
     # symlinks; the mode gate below must not bless a file or a link.
-    if root_existed:
-        try:
-            st = final_root.lstat()
-        except OSError as exc:
-            raise StorageError(
-                f"cannot stat destination root {final_root}: {exc}"
-            ) from exc
-        if stat.S_ISLNK(st.st_mode):
-            raise StorageError(
-                f"destination root {final_root} must not be a symlink"
-            )
-        if not stat.S_ISDIR(st.st_mode):
-            raise StorageError(
-                f"destination root {final_root} exists but is not a directory"
-            )
-        root_mode = st.st_mode & 0o777
-        if root_mode != 0o700:
-            raise StorageError(
-                f"destination root {final_root} has mode {root_mode:03o}, "
-                "expected 0700 (ADR-0012 §D store-root invariant). Fix the "
-                "root permissions or pass an explicit --dest under a private "
-                "root; the legacy source root is never chmod'd by migration."
-            )
+    try:
+        st = final_root.lstat()
+    except OSError as exc:
+        if root_fd is not None:
+            os.close(root_fd)
+        raise StorageError(
+            f"cannot stat destination root {final_root}: {exc}"
+        ) from exc
+    if stat.S_ISLNK(st.st_mode):
+        if root_fd is not None:
+            os.close(root_fd)
+        raise StorageError(
+            f"destination root {final_root} must not be a symlink"
+        )
+    if not stat.S_ISDIR(st.st_mode):
+        if root_fd is not None:
+            os.close(root_fd)
+        raise StorageError(
+            f"destination root {final_root} exists but is not a directory"
+        )
+    root_mode = st.st_mode & 0o777
+    if root_mode != 0o700:
+        if root_fd is not None:
+            os.close(root_fd)
+        raise StorageError(
+            f"destination root {final_root} has mode {root_mode:03o}, "
+            "expected 0700 (ADR-0012 §D store-root invariant). Fix the "
+            "root permissions or pass an explicit --dest under a private "
+            "root; the legacy source root is never chmod'd by migration."
+        )
+    if root_fd is not None:
+        os.close(root_fd)
     temp_root = final_root / f".{final_dest.name}.tmp.{uuid.uuid4().hex}"
-    # Pre-create the temp root private (umask-immune). open_database's own
-    # root.mkdir() is umask-masked; a hostile umask would otherwise leave
-    # the temp dir without owner-execute and SQLite could not open it.
+    # Pre-create the temp root private (umask-immune) with fd-pinned fchmod.
+    # open_database's own root.mkdir() is umask-masked; a hostile umask
+    # would otherwise leave the temp dir without owner-execute and SQLite
+    # could not open it.
     try:
         os.mkdir(temp_root, mode=0o700)
-        os.chmod(temp_root, 0o700)
+        _fault("after_temp_root_mkdir")
+        tfd = os.open(
+            temp_root, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW
+        )
+        try:
+            os.fchmod(tfd, 0o700)
+        finally:
+            os.close(tfd)
     except OSError as exc:
+        # Failure before use: remove the created temp dir so no orphan
+        # accumulates under the destination root.
+        try:
+            temp_root.rmdir()
+        except OSError:
+            pass
         raise StorageError(
             f"cannot create temporary store root {temp_root}: {exc}"
         ) from exc
@@ -454,9 +481,10 @@ def migrate_store(
     # (orphan-safe on failure; ADR-0012 §11), while the DB builds at temp_root.
     # chmod_existing=False: the default destination root IS the legacy source
     # root; its permissions must not be mutated (ADR-0012 §12 source
-    # immutability).
-    artifacts = ArtifactStore(final_root, chmod_existing=False)
+    # immutability). ArtifactStore init is INSIDE the try so its failure also
+    # cleans up temp_root (no orphan accumulates).
     try:
+        artifacts = ArtifactStore(final_root, chmod_existing=False)
         _fault("before_build_store")
         _build_store(temp_root, source, artifacts)
         _fault("after_build_store")

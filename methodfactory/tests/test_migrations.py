@@ -64,11 +64,10 @@ from methodfactory.storage.errors import (
     LegacyChainInvalidError,
     LegacySourceInvalidError,
     MigrationIncompatibleError,
-    MigrationPublishFailedError,
     SourceChangedError,
     StorageError,
 )
-from methodfactory.storage.serialization import digest_bytes, sha256_hex
+from methodfactory.storage.serialization import digest_bytes
 
 from ._fixtures import (
     all_action_families_workflow,
@@ -437,10 +436,10 @@ class MigrationFailClosedTests(unittest.TestCase):
             def mut(evs):
                 # Duplicate event_id of rev0 onto rev1 (event_id is part of
                 # the snapshot transition, so the chain is recomputed below).
-                assert evs[0]["action"] == "create_package"
-                assert evs[1]["action"] == "record_input"
-                evs[1]["event_id"] = evs[0]["event_id"]
-                evs[1]["manifest_snapshot"]["transition"]["last_event_id"] = evs[0]["event_id"]
+                ev0 = next(e for e in evs if e["action"] == "create_package")
+                ev1 = next(e for e in evs if e["action"] == "record_input")
+                ev1["event_id"] = ev0["event_id"]
+                ev1["manifest_snapshot"]["transition"]["last_event_id"] = ev0["event_id"]
             _rewrite_journal(src, mut)
             with self.assertRaises(MigrationIncompatibleError):
                 migrate_store(src, Path(td) / "methodfactory.sqlite3")
@@ -487,8 +486,8 @@ class MigrationFailClosedTests(unittest.TestCase):
             src = Path(td) / "src"
             shutil.copytree(self.src, src)
             def mut(evs):
-                assert evs[1]["action"] == "record_input"
-                evs[1]["manifest_snapshot"]["inputs"] = []
+                ev = next(e for e in evs if e["action"] == "record_input")
+                ev["manifest_snapshot"]["inputs"] = []
             _rewrite_journal(src, mut)
             with self.assertRaises(LegacyChainInvalidError):
                 migrate_store(src, Path(td) / "methodfactory.sqlite3")
@@ -500,8 +499,10 @@ class MigrationFailClosedTests(unittest.TestCase):
             src = Path(td) / "src"
             shutil.copytree(self.src, src)
             def mut(evs):
-                assert evs[5]["action"] == "record_draft_artifact"
-                evs[5]["manifest_snapshot"]["artifacts"] = []
+                ev = next(
+                    e for e in evs if e["action"] == "record_draft_artifact"
+                )
+                ev["manifest_snapshot"]["artifacts"] = []
             _rewrite_journal(src, mut)
             with self.assertRaises(LegacyChainInvalidError):
                 migrate_store(src, Path(td) / "methodfactory.sqlite3")
@@ -515,8 +516,10 @@ class MigrationFailClosedTests(unittest.TestCase):
                     src = Path(td) / "src"
                     shutil.copytree(self.src, src)
                     def mut(evs):
-                        assert evs[3]["action"] == "prepare_summary"
-                        evs[3]["manifest_snapshot"]["summary"]["content"] = bad
+                        ev = next(
+                            e for e in evs if e["action"] == "prepare_summary"
+                        )
+                        ev["manifest_snapshot"]["summary"]["content"] = bad
                     _rewrite_journal(src, mut)
                     with self.assertRaises(LegacyChainInvalidError):
                         migrate_store(src, Path(td) / "methodfactory.sqlite3")
@@ -529,8 +532,10 @@ class MigrationFailClosedTests(unittest.TestCase):
             src = Path(td) / "src"
             shutil.copytree(self.src, src)
             def mut(evs):
-                assert evs[3]["action"] == "prepare_summary"
-                evs[3]["manifest_snapshot"]["summary"]["content"] = "bad\ud800"
+                ev = next(
+                    e for e in evs if e["action"] == "prepare_summary"
+                )
+                ev["manifest_snapshot"]["summary"]["content"] = "bad\ud800"
             _rewrite_journal(src, mut)
             with self.assertRaises(LegacyChainInvalidError):
                 migrate_store(src, Path(td) / "methodfactory.sqlite3")
@@ -568,6 +573,25 @@ class MigrationFailClosedTests(unittest.TestCase):
             with self.assertRaises(StorageError):
                 migrate_store(self.src, dest)
             self.assertFalse((target / "methodfactory.sqlite3").exists())
+
+    def test_temp_root_failure_leaves_no_orphan(self):
+        """A fault after temp-root mkdir (before use) must leave no orphan
+        directory under the destination root."""
+        old = migrate_module.FAULT_HOOK
+        try:
+            def hook(s):
+                if s == "after_temp_root_mkdir":
+                    raise OSError("fault at temp root")
+            migrate_module.FAULT_HOOK = hook
+            with tempfile.TemporaryDirectory() as td:
+                dest = Path(td) / "methodfactory.sqlite3"
+                with self.assertRaises(StorageError):
+                    migrate_store(self.src, dest)
+                leftovers = [p for p in Path(td).iterdir() if ".tmp." in p.name]
+                self.assertEqual(leftovers, [])
+                self.assertFalse(dest.exists())
+        finally:
+            migrate_module.FAULT_HOOK = old
 
     def test_dest_root_permissions_untouched(self):
         """Default destination root is the legacy source root; its mode must
