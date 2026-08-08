@@ -352,6 +352,15 @@ def migrate_store(
     # Destination default: <source>/methodfactory.sqlite3
     src = Path(source_root)
     final_dest = Path(dest) if dest is not None else (src / DB_FILENAME)
+    # Reject a symlinked destination ROOT before resolving: resolve() would
+    # follow the link and the lstat gate below would never see it.
+    import stat as _stat
+
+    dest_parent = final_dest.parent
+    if dest_parent.is_symlink():
+        raise StorageError(
+            f"destination root {dest_parent} must not be a symlink"
+        )
     final_dest = final_dest.resolve()
     if final_dest.exists():
         raise DestinationExistsError(f"migration destination exists: {final_dest}")
@@ -384,7 +393,9 @@ def migrate_store(
     root_existed = final_root.is_dir()
     try:
         if root_existed:
-            final_root.mkdir(parents=True, exist_ok=True)  # no-op; parents may be missing
+            # Leaf already exists; exist_ok=True no-ops (kept for the
+            # remove-between-check-and-mkdir race).
+            final_root.mkdir(parents=True, exist_ok=True)
         else:
             # Atomically claim the leaf; a racer's leaf is treated as
             # pre-existing (never chmod a directory we did not create).
@@ -392,19 +403,30 @@ def migrate_store(
                 final_root.mkdir(parents=True, mode=0o700)
             except FileExistsError:
                 root_existed = True
-        if not root_existed:
-            os.chmod(final_root, 0o700)
     except OSError as exc:
         raise StorageError(
             f"cannot create destination parent directory: {exc}"
         ) from exc
+    # Reject a non-directory or symlinked destination root. is_dir() follows
+    # symlinks; the mode gate below must not bless a file or a link.
     if root_existed:
         try:
-            root_mode = final_root.stat().st_mode & 0o777
+            st = final_root.lstat()
         except OSError as exc:
             raise StorageError(
                 f"cannot stat destination root {final_root}: {exc}"
             ) from exc
+        import stat as _stat
+
+        if _stat.S_ISLNK(st.st_mode):
+            raise StorageError(
+                f"destination root {final_root} must not be a symlink"
+            )
+        if not _stat.S_ISDIR(st.st_mode):
+            raise StorageError(
+                f"destination root {final_root} exists but is not a directory"
+            )
+        root_mode = st.st_mode & 0o777
         if root_mode != 0o700:
             raise StorageError(
                 f"destination root {final_root} has mode {root_mode:03o}, "

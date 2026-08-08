@@ -437,6 +437,8 @@ class MigrationFailClosedTests(unittest.TestCase):
             def mut(evs):
                 # Duplicate event_id of rev0 onto rev1 (event_id is part of
                 # the snapshot transition, so the chain is recomputed below).
+                assert evs[0]["action"] == "create_package"
+                assert evs[1]["action"] == "record_input"
                 evs[1]["event_id"] = evs[0]["event_id"]
                 evs[1]["manifest_snapshot"]["transition"]["last_event_id"] = evs[0]["event_id"]
             _rewrite_journal(src, mut)
@@ -485,6 +487,7 @@ class MigrationFailClosedTests(unittest.TestCase):
             src = Path(td) / "src"
             shutil.copytree(self.src, src)
             def mut(evs):
+                assert evs[1]["action"] == "record_input"
                 evs[1]["manifest_snapshot"]["inputs"] = []
             _rewrite_journal(src, mut)
             with self.assertRaises(LegacyChainInvalidError):
@@ -497,6 +500,7 @@ class MigrationFailClosedTests(unittest.TestCase):
             src = Path(td) / "src"
             shutil.copytree(self.src, src)
             def mut(evs):
+                assert evs[5]["action"] == "record_draft_artifact"
                 evs[5]["manifest_snapshot"]["artifacts"] = []
             _rewrite_journal(src, mut)
             with self.assertRaises(LegacyChainInvalidError):
@@ -509,10 +513,71 @@ class MigrationFailClosedTests(unittest.TestCase):
             src = Path(td) / "src"
             shutil.copytree(self.src, src)
             def mut(evs):
+                assert evs[3]["action"] == "prepare_summary"
                 evs[3]["manifest_snapshot"]["summary"]["content"] = 42
             _rewrite_journal(src, mut)
             with self.assertRaises(LegacyChainInvalidError):
                 migrate_store(src, Path(td) / "methodfactory.sqlite3")
+
+    def test_summary_content_dict_fails_typed(self):
+        """A dict summary.content (non-str, non-null) fails typed."""
+        with tempfile.TemporaryDirectory() as td:
+            src = Path(td) / "src"
+            shutil.copytree(self.src, src)
+            def mut(evs):
+                assert evs[3]["action"] == "prepare_summary"
+                evs[3]["manifest_snapshot"]["summary"]["content"] = {"a": 1}
+            _rewrite_journal(src, mut)
+            with self.assertRaises(LegacyChainInvalidError):
+                migrate_store(src, Path(td) / "methodfactory.sqlite3")
+
+    def test_summary_content_lone_surrogate_fails_typed(self):
+        """A lone surrogate in summary.content passes isinstance(str) but
+        cannot be UTF-8 encoded; must fail typed LegacyChainInvalidError,
+        never leak raw UnicodeEncodeError."""
+        with tempfile.TemporaryDirectory() as td:
+            src = Path(td) / "src"
+            shutil.copytree(self.src, src)
+            def mut(evs):
+                assert evs[3]["action"] == "prepare_summary"
+                evs[3]["manifest_snapshot"]["summary"]["content"] = "bad\ud800"
+            _rewrite_journal(src, mut)
+            with self.assertRaises(LegacyChainInvalidError):
+                migrate_store(src, Path(td) / "methodfactory.sqlite3")
+
+    def test_fresh_dest_root_created_0700(self):
+        """--dest under a fresh directory: root created with mode 0700,
+        migration succeeds."""
+        with tempfile.TemporaryDirectory() as td:
+            dest = Path(td) / "newroot" / "methodfactory.sqlite3"
+            migrate_store(self.src, dest)
+            self.assertTrue(dest.is_file())
+            self.assertEqual(dest.parent.stat().st_mode & 0o777, 0o700)
+
+    def test_dest_root_file_fails_closed(self):
+        """A destination root that is a regular FILE fails closed with a
+        typed error (never a misleading artifact-store error)."""
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td) / "rootfile"
+            root.write_text("not a dir", encoding="utf-8")
+            os.chmod(root, 0o700)
+            dest = root / "methodfactory.sqlite3"
+            with self.assertRaises(StorageError):
+                migrate_store(self.src, dest)
+
+    def test_dest_root_symlink_fails_closed(self):
+        """A symlinked destination root fails closed (mirrors source-side
+        symlink policy); nothing is published through the link."""
+        with tempfile.TemporaryDirectory() as td:
+            target = Path(td) / "target"
+            target.mkdir()
+            os.chmod(target, 0o700)
+            link = Path(td) / "link"
+            link.symlink_to(target)
+            dest = link / "methodfactory.sqlite3"
+            with self.assertRaises(StorageError):
+                migrate_store(self.src, dest)
+            self.assertFalse((target / "methodfactory.sqlite3").exists())
 
     def test_dest_root_permissions_untouched(self):
         """Default destination root is the legacy source root; its mode must

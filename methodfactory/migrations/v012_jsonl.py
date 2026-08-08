@@ -513,6 +513,17 @@ class LegacySource:
                     f"legacy snapshot for {package_id} at event index {index} "
                     "summary.content must be a string or null"
                 )
+            if isinstance(summary.get("content"), str):
+                try:
+                    summary["content"].encode("utf-8")
+                except UnicodeEncodeError as exc:
+                    # A lone surrogate passes isinstance(str) but cannot be
+                    # encoded; the equivalence check would leak a raw
+                    # UnicodeEncodeError. Fail typed at the boundary.
+                    raise LegacyChainInvalidError(
+                        f"legacy snapshot for {package_id} at event index "
+                        f"{index} summary.content is not valid UTF-8"
+                    ) from exc
             conf = summary.get("confirmation")
             if not isinstance(conf, dict):
                 raise LegacyChainInvalidError(

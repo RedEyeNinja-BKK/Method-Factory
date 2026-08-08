@@ -39,7 +39,7 @@ _BOUNDARY_NATIVES = (
 
 
 def _fail(err: MethodFactoryError) -> int:
-    print(err.as_dict(), file=sys.stderr)
+    print(json.dumps(err.as_dict(), sort_keys=True), file=sys.stderr)
     return 1
 
 
