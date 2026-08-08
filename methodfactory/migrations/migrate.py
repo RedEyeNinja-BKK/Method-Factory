@@ -18,15 +18,25 @@ Frozen algorithm (ADR-0012 amendment §7-§15):
         event_id=legacy event_id, created_at=legacy event.at);
      e. semantic equivalence check vs legacy snapshot (exclusions only);
 7. calculate destination + temporary destination (same directory);
-15. generate migration receipt data;
-16. durably write temp receipt;
-17. FINAL source inventory/hash (AFTER) — require exact equality with step 3;
-18. ONLY THEN enter publication:
+8. fail if final destination exists (DESTINATION_EXISTS);
+9. atomically claim the destination root (mkdir 0700 + fd-pinned fchmod;
+   unconditional lstat gate rejects symlink/non-dir/non-0700 roots);
+   refuse on legacy `.lock` presence (CONCURRENCY);
+10. pre-create the temp store root private (0700, umask-immune);
+11. build new SQLite store at temp destination;
+12. insert deterministic transformed events/blobs (immutable blobs
+    pre-written, orphan-safe); PRAGMA integrity_check; full current chain
+    validation (validate_chain, verify_artifacts=True); close/sync SQLite
+    cleanly;
+13. generate migration receipt data;
+14. durably write temp receipt;
+15. FINAL source inventory/hash (AFTER) — require exact equality with step 3;
+16. ONLY THEN enter publication:
      a. durable final receipt publication (no-clobber os.link temp -> final;
         dir fsync);
      b. durable atomic final DB publication (no-clobber os.link temp DB ->
         final; dir fsync);
-19. final read-only verification (binds the published receipt to the DB).
+17. final read-only verification (binds the published receipt to the DB).
 
 A receipt alone is NOT success. Success requires: final DB exists; matching
 final receipt exists; same migration identity; final read-only validation
@@ -412,8 +422,7 @@ def migrate_store(
                 )
                 os.fchmod(root_fd, 0o700)
     except OSError as exc:
-        if root_fd is not None:
-            os.close(root_fd)
+        _close_fd(root_fd)
         raise StorageError(
             f"cannot create destination parent directory: {exc}"
         ) from exc
@@ -422,35 +431,30 @@ def migrate_store(
     try:
         st = final_root.lstat()
     except OSError as exc:
-        if root_fd is not None:
-            os.close(root_fd)
+        _close_fd(root_fd)
         raise StorageError(
             f"cannot stat destination root {final_root}: {exc}"
         ) from exc
     if stat.S_ISLNK(st.st_mode):
-        if root_fd is not None:
-            os.close(root_fd)
+        _close_fd(root_fd)
         raise StorageError(
             f"destination root {final_root} must not be a symlink"
         )
     if not stat.S_ISDIR(st.st_mode):
-        if root_fd is not None:
-            os.close(root_fd)
+        _close_fd(root_fd)
         raise StorageError(
             f"destination root {final_root} exists but is not a directory"
         )
     root_mode = st.st_mode & 0o777
     if root_mode != 0o700:
-        if root_fd is not None:
-            os.close(root_fd)
+        _close_fd(root_fd)
         raise StorageError(
             f"destination root {final_root} has mode {root_mode:03o}, "
             "expected 0700 (ADR-0012 §D store-root invariant). Fix the "
             "root permissions or pass an explicit --dest under a private "
             "root; the legacy source root is never chmod'd by migration."
         )
-    if root_fd is not None:
-        os.close(root_fd)
+    _close_fd(root_fd)
     temp_root = final_root / f".{final_dest.name}.tmp.{uuid.uuid4().hex}"
     # Pre-create the temp root private (umask-immune) with fd-pinned fchmod.
     # open_database's own root.mkdir() is umask-masked; a hostile umask
@@ -963,3 +967,13 @@ def _fsync_dir(path: Path) -> None:
         os.fsync(dir_fd)
     finally:
         os.close(dir_fd)
+
+
+def _close_fd(fd: int | None) -> None:
+    """Close a possibly-None fd, suppressing a close error on exception
+    paths (a close failure must not mask the in-flight failure)."""
+    if fd is not None:
+        try:
+            os.close(fd)
+        except OSError:
+            pass
