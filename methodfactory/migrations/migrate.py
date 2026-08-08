@@ -383,8 +383,15 @@ def migrate_store(
     final_root = final_dest.parent
     root_existed = final_root.is_dir()
     try:
-        final_root.mkdir(parents=True, exist_ok=True)
-        # chmod only when this call actually created the root directory.
+        if root_existed:
+            final_root.mkdir(parents=True, exist_ok=True)  # no-op; parents may be missing
+        else:
+            # Atomically claim the leaf; a racer's leaf is treated as
+            # pre-existing (never chmod a directory we did not create).
+            try:
+                final_root.mkdir(parents=True, mode=0o700)
+            except FileExistsError:
+                root_existed = True
         if not root_existed:
             os.chmod(final_root, 0o700)
     except OSError as exc:

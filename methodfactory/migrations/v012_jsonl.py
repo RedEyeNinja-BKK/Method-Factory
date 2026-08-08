@@ -353,7 +353,7 @@ class LegacySource:
                     f"{index}: state_before does not match prior state_after"
                 )
             snap = ev.manifest_snapshot
-            self._validate_snapshot_shape(pkg.package_id, index, snap)
+            self._validate_snapshot_shape(pkg.package_id, index, ev.action, snap)
             if snap.get("state") != ev.state_after:
                 raise LegacyChainInvalidError(
                     f"legacy chain break for {pkg.package_id} at event index "
@@ -397,13 +397,14 @@ class LegacySource:
                 "journal snapshot"
             )
 
-    def _validate_snapshot_shape(self, package_id: str, index: int, snap: dict) -> None:
+    def _validate_snapshot_shape(self, package_id: str, index: int, action: str,
+                                 snap: dict) -> None:
         """Validate the public v0.1.2 manifest-snapshot container shape.
 
         Reconstruction (`migrate._reconstruct_*`) reads typed container keys
         from the snapshot; a chain-valid-but-malformed snapshot must fail
         here as a typed LegacyChainInvalidError, never leak a raw
-        KeyError/TypeError during migration.
+        KeyError/TypeError/IndexError/AttributeError during migration.
         """
         for key in ("package_id", "revision", "state", "schema_version",
                     "created_at", "updated_at", "intent", "inputs",
@@ -445,6 +446,20 @@ class LegacySource:
                 f"legacy snapshot for {package_id} at event index {index} "
                 "transition must be an object"
             )
+        # Action-aware container requirements: reconstruction subscripts
+        # snap["inputs"][-1] for record_input and snap["artifacts"][-1] for
+        # record_draft_artifact. An empty container for those actions would
+        # leak a raw IndexError; fail typed instead.
+        if action == "record_input" and not snap["inputs"]:
+            raise LegacyChainInvalidError(
+                f"legacy snapshot for {package_id} at event index {index} "
+                "record_input requires at least one input entry"
+            )
+        if action == "record_draft_artifact" and not snap["artifacts"]:
+            raise LegacyChainInvalidError(
+                f"legacy snapshot for {package_id} at event index {index} "
+                "record_draft_artifact requires at least one artifact entry"
+            )
         # Objective fields read by reconstruction (set_objective).
         if not isinstance(snap["objective"].get("statement"), str):
             raise LegacyChainInvalidError(
@@ -482,13 +497,21 @@ class LegacySource:
                         f"{index} artifact entry is missing string field "
                         f"{field!r}"
                     )
-        # Summary fields read by reconstruction (confirm_summary).
+        # Summary fields read by reconstruction (confirm_summary) and by the
+        # equivalence check (summary body byte comparison).
         summary = snap.get("summary")
         if isinstance(summary, dict):
             if not isinstance(summary.get("canonical_sha256"), str):
                 raise LegacyChainInvalidError(
                     f"legacy snapshot for {package_id} at event index {index} "
                     "summary.canonical_sha256 must be a string"
+                )
+            if summary.get("content") is not None and not isinstance(
+                summary.get("content"), str
+            ):
+                raise LegacyChainInvalidError(
+                    f"legacy snapshot for {package_id} at event index {index} "
+                    "summary.content must be a string or null"
                 )
             conf = summary.get("confirmation")
             if not isinstance(conf, dict):
