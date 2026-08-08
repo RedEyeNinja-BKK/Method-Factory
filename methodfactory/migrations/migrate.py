@@ -45,6 +45,7 @@ from __future__ import annotations
 import json
 import os
 import sqlite3
+import stat
 import uuid
 from pathlib import Path
 from typing import Any, Callable
@@ -353,9 +354,9 @@ def migrate_store(
     src = Path(source_root)
     final_dest = Path(dest) if dest is not None else (src / DB_FILENAME)
     # Reject a symlinked destination ROOT before resolving: resolve() would
-    # follow the link and the lstat gate below would never see it.
-    import stat as _stat
-
+    # follow the link and the lstat gate below would never see it. (Leaf-only
+    # policy, mirroring the source-side reader; ancestor symlinks are
+    # documented as accepted.)
     dest_parent = final_dest.parent
     if dest_parent.is_symlink():
         raise StorageError(
@@ -403,6 +404,11 @@ def migrate_store(
                 final_root.mkdir(parents=True, mode=0o700)
             except FileExistsError:
                 root_existed = True
+            if not root_existed:
+                # mkdir(mode=0o700) is umask-masked; chmod the leaf we
+                # created so the 0700 guarantee holds under ANY umask. Only
+                # ever chmod a directory this call actually created.
+                os.chmod(final_root, 0o700)
     except OSError as exc:
         raise StorageError(
             f"cannot create destination parent directory: {exc}"
@@ -416,13 +422,11 @@ def migrate_store(
             raise StorageError(
                 f"cannot stat destination root {final_root}: {exc}"
             ) from exc
-        import stat as _stat
-
-        if _stat.S_ISLNK(st.st_mode):
+        if stat.S_ISLNK(st.st_mode):
             raise StorageError(
                 f"destination root {final_root} must not be a symlink"
             )
-        if not _stat.S_ISDIR(st.st_mode):
+        if not stat.S_ISDIR(st.st_mode):
             raise StorageError(
                 f"destination root {final_root} exists but is not a directory"
             )
@@ -435,6 +439,16 @@ def migrate_store(
                 "root; the legacy source root is never chmod'd by migration."
             )
     temp_root = final_root / f".{final_dest.name}.tmp.{uuid.uuid4().hex}"
+    # Pre-create the temp root private (umask-immune). open_database's own
+    # root.mkdir() is umask-masked; a hostile umask would otherwise leave
+    # the temp dir without owner-execute and SQLite could not open it.
+    try:
+        os.mkdir(temp_root, mode=0o700)
+        os.chmod(temp_root, 0o700)
+    except OSError as exc:
+        raise StorageError(
+            f"cannot create temporary store root {temp_root}: {exc}"
+        ) from exc
 
     # Build the modern store. Blobs publish to the FINAL artifact store root
     # (orphan-safe on failure; ADR-0012 §11), while the DB builds at temp_root.
@@ -578,6 +592,16 @@ def _import_package(
             raise MigrationIncompatibleError(
                 f"legacy value for {pkg.package_id} rev {ev.revision} is "
                 f"current-invalid: {exc}"
+            ) from exc
+        except UnicodeEncodeError as exc:
+            # A journal-sourced field (intent, created_at, event_id, state,
+            # summary body, ...) that cannot be UTF-8 encoded (lone
+            # surrogate) must fail typed at the migration boundary, never
+            # leak a raw UnicodeEncodeError from canonicalization or the
+            # SQLite TEXT bind.
+            raise MigrationIncompatibleError(
+                f"legacy value for {pkg.package_id} rev {ev.revision} is "
+                f"not valid UTF-8: {exc}"
             ) from exc
         except sqlite3.IntegrityError as exc:
             # Duplicate event_id (global uniqueness) or other row-integrity

@@ -507,29 +507,19 @@ class MigrationFailClosedTests(unittest.TestCase):
                 migrate_store(src, Path(td) / "methodfactory.sqlite3")
 
     def test_summary_content_non_string_fails_typed(self):
-        """A truthy non-string summary.content must fail typed, never leak a
-        raw AttributeError from .encode()."""
-        with tempfile.TemporaryDirectory() as td:
-            src = Path(td) / "src"
-            shutil.copytree(self.src, src)
-            def mut(evs):
-                assert evs[3]["action"] == "prepare_summary"
-                evs[3]["manifest_snapshot"]["summary"]["content"] = 42
-            _rewrite_journal(src, mut)
-            with self.assertRaises(LegacyChainInvalidError):
-                migrate_store(src, Path(td) / "methodfactory.sqlite3")
-
-    def test_summary_content_dict_fails_typed(self):
-        """A dict summary.content (non-str, non-null) fails typed."""
-        with tempfile.TemporaryDirectory() as td:
-            src = Path(td) / "src"
-            shutil.copytree(self.src, src)
-            def mut(evs):
-                assert evs[3]["action"] == "prepare_summary"
-                evs[3]["manifest_snapshot"]["summary"]["content"] = {"a": 1}
-            _rewrite_journal(src, mut)
-            with self.assertRaises(LegacyChainInvalidError):
-                migrate_store(src, Path(td) / "methodfactory.sqlite3")
+        """Any non-str, non-null summary.content must fail typed, never leak
+        a raw AttributeError from .encode()."""
+        for bad in (42, {"a": 1}, True):
+            with self.subTest(bad=bad):
+                with tempfile.TemporaryDirectory() as td:
+                    src = Path(td) / "src"
+                    shutil.copytree(self.src, src)
+                    def mut(evs):
+                        assert evs[3]["action"] == "prepare_summary"
+                        evs[3]["manifest_snapshot"]["summary"]["content"] = bad
+                    _rewrite_journal(src, mut)
+                    with self.assertRaises(LegacyChainInvalidError):
+                        migrate_store(src, Path(td) / "methodfactory.sqlite3")
 
     def test_summary_content_lone_surrogate_fails_typed(self):
         """A lone surrogate in summary.content passes isinstance(str) but

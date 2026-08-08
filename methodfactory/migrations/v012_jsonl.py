@@ -501,21 +501,22 @@ class LegacySource:
         # equivalence check (summary body byte comparison).
         summary = snap.get("summary")
         if isinstance(summary, dict):
+            summary_content = summary.get("content")
             if not isinstance(summary.get("canonical_sha256"), str):
                 raise LegacyChainInvalidError(
                     f"legacy snapshot for {package_id} at event index {index} "
                     "summary.canonical_sha256 must be a string"
                 )
-            if summary.get("content") is not None and not isinstance(
-                summary.get("content"), str
+            if summary_content is not None and not isinstance(
+                summary_content, str
             ):
                 raise LegacyChainInvalidError(
                     f"legacy snapshot for {package_id} at event index {index} "
                     "summary.content must be a string or null"
                 )
-            if isinstance(summary.get("content"), str):
+            if isinstance(summary_content, str):
                 try:
-                    summary["content"].encode("utf-8")
+                    summary_content.encode("utf-8")
                 except UnicodeEncodeError as exc:
                     # A lone surrogate passes isinstance(str) but cannot be
                     # encoded; the equivalence check would leak a raw
