@@ -1,6 +1,6 @@
 # ADR-0012 — Persistence architecture reset: SQLite canonical store
 
-**Status:** Accepted in principle (2026-08-07 senior-review direction; operator-authorized controlled publication). Implementation pending ADR review from the pushed branch.
+**Status:** Accepted; implemented and released as `v2.0.0-rc.1` (2026-08-08). This ADR remains authoritative for persistence.
 **Supersedes:** the JSONL journal-first canonical-store decision in ADR-0008 (and the review-held `8a7e916` remediation branch).
 **Applies to:** Method Factory persistence layer, post-v0.1.x overhaul.
 

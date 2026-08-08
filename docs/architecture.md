@@ -1,5 +1,7 @@
 # Architecture
 
+> **Historical / superseded.** This document describes the Process Engine era. Current Method Factory architecture and release state: see [architecture-reset-status.md](architecture-reset-status.md) and [ADR-0012](adr/ADR-0012-persistence-architecture.md).
+
 Process Engine is an agent-skill framework: a persona, six skills, seven
 references, and six session templates that drive a gated authoring pipeline.
 It is **runtime-aware**: the same core content deploys three ways.

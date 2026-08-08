@@ -1,5 +1,7 @@
 # Migration from Process Engine
 
+> **Historical / superseded.** This document describes the Process Engine era. Current Method Factory architecture and release state: see [architecture-reset-status.md](architecture-reset-status.md) and [ADR-0012](adr/ADR-0012-persistence-architecture.md).
+
 **Date:** 2026-08-03  
 **Source:** [Process Engine](https://github.com/RedEyeNinja-BKK/Process-Engine) at tag `v1.9.1` — commit `240520e`  
 **Split point:** Process Engine at commit `69de7bc` — the version behind the [Etsy store case study](https://github.com/RedEyeNinja-BKK/Process-Engine/blob/main/evals/case-study-first-run.md)

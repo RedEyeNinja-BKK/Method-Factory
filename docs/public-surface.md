@@ -1,8 +1,7 @@
 # Public Surface and Stable Error Contract
 
-Phase 2 foundation closure (review 4879440857, Finding 4). This table is the
-authoritative public error boundary for the currently supported package and
-storage APIs.
+This table is the authoritative public error boundary for the currently
+supported package and storage APIs (RC1, package identity `2.0.0rc1`).
 
 **Boundary rule:** every supported public operation surfaces **only**
 `methodfactory.domain.errors.MethodFactoryError` subclasses (stable
@@ -38,9 +37,10 @@ exception contract and are not part of the supported surface.
 > with an explicitly DIFFERENT instant is `PACKAGE_EXISTS`; a retry that omits
 > `created_at` replays using the stored creation time. This is a deliberate
 > pre-release breaking change to the SQLite store format (revision-0
-> `action_json` payload now carries `created_at`); no released stores exist
-> (PR #1 Draft, v2.0.0a1), so no migration is required — any pre-A1 test store
-> must be recreated. The authoritative chain validator binds
+> `action_json` payload now carries `created_at`); no stores were released
+> under the earlier alpha format (the first release is `v2.0.0-rc.1`), so no
+> migration is required — any pre-A1 test store must be recreated. The
+> authoritative chain validator binds
 > `payload.created_at` to the indexed row `created_at`.
 | `SqliteManifestStore.apply(envelope)` | `dict` (parsed Action Envelope) | complete resulting manifest `dict` | `InvalidEnvelopeError` (`INVALID_ENVELOPE`), `InvalidPayloadError` (`INVALID_PAYLOAD`), `PackageNotFoundError` (`PACKAGE_NOT_FOUND`), `StaleActionError` (`STALE_ACTION`), `IllegalTransitionError` (`ILLEGAL_TRANSITION`), `GateUnsatisfiedError` (`GATE_UNSATISFIED`), `ActionIdConflictError` (`ACTION_ID_CONFLICT`), `SerializationError` (`SERIALIZATION`), `ArtifactVerificationError` (`ARTIFACT_VERIFICATION`), `ManifestInvalidError` (`MANIFEST_INVALID`), `ConcurrencyError` (`CONCURRENCY`), `StorageError` (`STORAGE_ERROR`) | `TypeError`/`ValueError`/`UnicodeError`/`RecursionError`, `OSError`, `sqlite3.Error` (incl. locked -> `CONCURRENCY`) |
 | `SqliteManifestStore.load(package_id)` | str | complete current manifest `dict` | `PackageNotFoundError` (`PACKAGE_NOT_FOUND`), `ManifestInvalidError` (`MANIFEST_INVALID`), `StorageError` (`STORAGE_ERROR`) | `TypeError`/`ValueError`/`UnicodeError`/`RecursionError`, `sqlite3.Error` |

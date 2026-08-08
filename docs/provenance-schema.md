@@ -1,5 +1,7 @@
 # Canonical Provenance Schema
 
+> **Historical / superseded.** This document describes the Process Engine era. Current Method Factory architecture and release state: see [architecture-reset-status.md](architecture-reset-status.md) and [ADR-0012](adr/ADR-0012-persistence-architecture.md).
+
 **Version:** 1.9.0
 
 This document defines the single authoritative provenance contract for an

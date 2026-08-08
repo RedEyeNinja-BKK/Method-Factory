@@ -1,5 +1,7 @@
 # First-Response Evaluator — FROZEN v1.9.1
 
+> **Historical / superseded.** This document describes the Process Engine era. Current Method Factory architecture and release state: see [architecture-reset-status.md](architecture-reset-status.md) and [ADR-0012](adr/ADR-0012-persistence-architecture.md).
+
 **Purpose:** Detect regressions in prompt binding, domain routing, operator control,
 non-authoring, non-deployment and critical workflow entry.
 
