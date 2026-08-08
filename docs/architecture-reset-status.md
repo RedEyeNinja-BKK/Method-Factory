@@ -35,7 +35,8 @@ fb5641c  remote main (published v0.1.2-integrity base)
 |---|---|
 | `775630eebdfb7c4b8357a4d1976505109b4b085b` | **Migration/export implementation head** — product implementation closed here (10 commits from `b9e46c1`); 7-pass code-reviewed (0 critical / 0 major); 420 tests green; literal-head CI green; PR evidence comment id `5224200252`. |
 | `c70a6f314b2329dc3e134546ad20b41519be98ab` | **Documentation/reporting head** — architecture-reset status marked the migration/export gate complete/stopped for senior review (docs-only commit). |
-| *(this branch head)* | **RC1 candidate** — prepared by the RC1 Candidate Preparation Gate: version identity `2.0.0rc1`, release metadata cleanup, clean package build + isolated install proof, release-gate CI strengthening, RC1 evidence. RC1 candidate — **pending independent senior acceptance and operator integration gate.** Not released. |
+| `a6aeb8ca9f0ac571ef06e3d8d5e8a1b032379e2a` | **RC1 candidate head** — prepared by the RC1 Candidate Preparation Gate: version identity `2.0.0rc1`, release metadata cleanup, clean package build + isolated install proof, release-gate CI strengthening (build + isolated install + packaged smoke steps), RC1 evidence. Literal-head CI run `31242827310` **SUCCESS** on this exact SHA (3.11 job `93066497291`, 3.12 job `93066497309`; all 10 steps green). RC1 candidate — **pending independent senior acceptance and operator integration gate.** Not released. |
+| *(final branch head)* | **Reporting head** — this document records the RC1 candidate head above and the gate evidence (docs-only commit). |
 
 Do not call the RC1 candidate "released". The eventual Git release/tag identity
 is `v2.0.0-rc.1`; the tag is NOT created in this gate.
@@ -94,27 +95,30 @@ clean-install/package proof, release-gate CI strengthening, RC1 evidence.
 No product-semantic changes were authorized; the product implementation
 remains frozen pending final senior review.
 
-- **RC1 candidate head:** *(recorded after the RC preparation commit exists —
-  see Head lineage table above.)*
+- **RC1 candidate head:** `a6aeb8ca9f0ac571ef06e3d8d5e8a1b032379e2a` (see Head
+  lineage table above).
 - Version identity: `2.0.0rc1` across `pyproject.toml`, `methodfactory/
   __init__.py`, packaging tests, and CLI version tests. Eventual Git tag
   identity `v2.0.0-rc.1` — NOT created in this gate.
 - Release metadata: `Development Status :: 3 - Alpha` → `4 - Beta`; stale
   "Phase 2 foundation" wording removed from the project description.
-- Clean package build: wheel (+ sdist if supported) built from the exact
-  candidate source in a disposable directory; filenames + SHA-256 recorded;
-  no artifacts committed or left in the worktree.
+- Clean package build: wheel + sdist built from the exact candidate source
+  (`a6aeb8c` via `git archive`) in a disposable directory; recorded locally
+  — wheel `methodfactory-2.0.0rc1-py3-none-any.whl`, sdist
+  `methodfactory-2.0.0rc1.tar.gz`; no artifacts committed or left in the
+  worktree.
 - Fresh-environment install: wheel installed into a disposable venv with no
-  editable checkout; import provenance, `__version__`, `mf --version`,
-  `python -m methodfactory --version`, and CLI surface verified.
+  editable checkout; import provenance (venv site-packages), `__version__`,
+  `mf --version`, `python -m methodfactory --version`, and CLI surface
+  verified.
 - Packaged functional smoke: canonical `fb5641c` fixture → installed
   `mf migrate-store` → authoritative validation → installed `mf export`
   (both formats) → legacy evidence export revalidated by the frozen
   legacy reader; source unchanged.
-- Release-gate CI: builds the distributable wheel, installs into an isolated
-  environment, proves `mf --version` = `2.0.0rc1`, runs installed
-  migration/export smoke on 3.11 and 3.12; tracked-worktree and artifact-scan
-  steps retained.
+- Release-gate CI: run `31242827310` on the exact candidate head `a6aeb8c`
+  **SUCCESS** on 3.11 and 3.12 — canonical tests, wheel+sdist build,
+  isolated wheel install + version proof, packaged migration/export smoke,
+  clean-worktree, artifact-scan all green.
 - RC1 candidate — **pending independent senior acceptance and operator
   integration gate.** Not released. No tag, no GitHub Release, no PyPI
   publication, no deployment.
