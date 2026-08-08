@@ -22,3 +22,22 @@ node_modules/
 # Trial workspaces (generated at trial time)
 workspace/
 iteration-*/
+
+# Python build artifacts
+*.egg-info/
+build/
+dist/
+
+# Method Factory runtime store (operator data)
+.mf/
+
+# SQLite store + sidecars + rollback journal (ADR-0012 §3, Finding 4 item 3)
+*.sqlite3
+*.sqlite
+*.db
+*.wal
+*.shm
+*.journal
+
+# Test caches
+.pytest_cache/

@@ -1,0 +1,33 @@
+[build-system]
+requires = ["setuptools==68.2.2"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "methodfactory"
+version = "2.0.0rc1"
+description = "Method Factory — deterministic prompt+code pipeline generator with SQLite canonical persistence"
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "MIT" }
+keywords = ["agents", "skills", "pipeline", "state-machine", "persistence"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+]
+
+[project.scripts]
+mf = "methodfactory.cli:main"
+
+[project.optional-dependencies]
+test = [
+    "hypothesis>=6",
+    "PyYAML>=6",
+]
+
+[tool.setuptools.packages.find]
+include = ["methodfactory*"]
+exclude = ["methodfactory.tests*"]
