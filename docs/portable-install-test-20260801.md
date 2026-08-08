@@ -1,5 +1,7 @@
 # Portable install test — 20260801
 
+> **Historical / superseded.** This document describes the Process Engine era. Current Method Factory architecture and release state: see [architecture-reset-status.md](architecture-reset-status.md) and [ADR-0012](adr/ADR-0012-persistence-architecture.md).
+
 **Status:** provisioned, not executed (operator deferred external-client testing 2026-08-01).
 
 ## Target

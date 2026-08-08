@@ -1,5 +1,7 @@
 # Governance Usage — Process Engine × Turnstone's Governance Surface
 
+> **Historical / superseded.** This document describes the Process Engine era. Current Method Factory architecture and release state: see [architecture-reset-status.md](architecture-reset-status.md) and [ADR-0012](adr/ADR-0012-persistence-architecture.md).
+
 > **Status:** PARTIALLY DEPLOYED (2026-08-01). Live: prompt policy
 > `process-engine-context` (content-only, priority 1) + heuristic rule
 > `process-engine-authoring` (advisory, review, low risk) + judge surface

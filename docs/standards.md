@@ -1,5 +1,7 @@
 # Process Engine standards
 
+> **Historical / superseded.** This document describes the Process Engine era. Current Method Factory architecture and release state: see [architecture-reset-status.md](architecture-reset-status.md) and [ADR-0012](adr/ADR-0012-persistence-architecture.md).
+
 This document summarizes the release-facing standards checklist. The canonical
 skill reference is [`../references/standards.md`](../references/standards.md).
 

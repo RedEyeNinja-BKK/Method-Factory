@@ -1,5 +1,7 @@
 # Portability test — Hermes + OpenClaw (executed 2026-08-02)
 
+> **Historical / superseded.** This document describes the Process Engine era. Current Method Factory architecture and release state: see [architecture-reset-status.md](architecture-reset-status.md) and [ADR-0012](adr/ADR-0012-persistence-architecture.md).
+
 **Status: EXECUTED — behavioral portability demonstrated on Hermes and OpenClaw.**
 
 This replaces the prior "provisioned, not executed" state. The six

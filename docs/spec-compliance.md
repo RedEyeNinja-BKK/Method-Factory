@@ -1,5 +1,7 @@
 # Spec compliance
 
+> **Historical / superseded.** This document describes the Process Engine era. Current Method Factory architecture and release state: see [architecture-reset-status.md](architecture-reset-status.md) and [ADR-0012](adr/ADR-0012-persistence-architecture.md).
+
 Every skill this engine generates complies with the
 [Agent Skills open format standard](https://github.com/agentskills/agentskills)
 (originally developed by Anthropic; code Apache-2.0, docs CC-BY-4.0).
