@@ -18,12 +18,33 @@ jobs:
       matrix:
         python-version: ["3.11", "3.12"]
     steps:
+      # Explicitly check out the ACTUAL pull-request HEAD SHA, not GitHub's
+      # synthetic merge ref (actions/checkout defaults to the merge ref on
+      # pull_request). This makes the CI evidence literal-commit proof: the
+      # tested tree is exactly the branch head, not a candidate-tree-
+      # equivalent merge.
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0 (pinned SHA)
         with:
+          ref: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}
           # Full history required: migration tests generate fixtures from the
           # exact public v0.1.2 commit fb5641c (tag v0.1.2-integrity), which
           # is not present in a depth-1 checkout of this branch.
           fetch-depth: 0
+
+      # Literal-commit identity assertion: the checked-out HEAD MUST equal the
+      # event's expected SHA. A mismatch fails CI. This is the proof that a
+      # successful run tested the exact commit, not a synthetic merge tree.
+      - name: Assert checkout identity
+        run: |
+          ACTUAL="$(git rev-parse HEAD)"
+          EXPECTED="${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}"
+          echo "actual HEAD:   $ACTUAL"
+          echo "expected SHA:  $EXPECTED"
+          if [ "$ACTUAL" != "$EXPECTED" ]; then
+            echo "::error::checkout identity mismatch (actual != expected)"; exit 1
+          fi
+          echo "checkout identity OK: tested tree is the exact expected commit"
+
       - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0 (pinned SHA)
         with:
           python-version: ${{ matrix.python-version }}
@@ -41,12 +62,13 @@ jobs:
           test "$(mf --version)" = "methodfactory 2.0.0rc1"
           test "$(python -m methodfactory --version)" = "methodfactory 2.0.0rc1"
 
-      # RC1 packaging proof — build the actual distributable wheel/sdist from
-      # the EXACT candidate source into a disposable directory OUTSIDE the
-      # repo, so the tracked-worktree and artifact-scan steps below stay
-      # clean. No new build dependency: pip wheel/download use the declared
-      # setuptools build backend.
-      - name: Build distributable package (wheel + sdist)
+      # RC1 packaging proof — build the distributable WHEEL from the EXACT
+      # candidate source into a disposable directory OUTSIDE the repo, so the
+      # tracked-worktree and artifact-scan steps below stay clean. No new
+      # build dependency: pip wheel uses the declared setuptools backend.
+      # (sdist is NOT claimed by CI; any sdist evidence is local-only
+      # supplemental unless independently CI-produced.)
+      - name: Build distributable wheel
         run: |
           set -euo pipefail
           export MF_DIST="$RUNNER_TEMP/mf-dist"
@@ -54,12 +76,13 @@ jobs:
           git archive HEAD | tar -x -C "$RUNNER_TEMP/mf-src"
           cd "$RUNNER_TEMP/mf-src"
           python -m pip wheel . --no-deps -w "$MF_DIST"
-          python -m pip download . --no-deps --no-binary :all: -d "$MF_DIST"
           ls -la "$MF_DIST"
           python - <<'EOF'
           import hashlib, os, pathlib
           dist = pathlib.Path(os.environ["MF_DIST"])
-          for p in sorted(dist.iterdir()):
+          wheels = sorted(dist.glob("methodfactory-2.0.0rc1-*.whl"))
+          assert len(wheels) == 1, f"expected exactly one rc1 wheel, got {[p.name for p in dist.iterdir()]}"
+          for p in wheels:
               print(p.name, hashlib.sha256(p.read_bytes()).hexdigest())
           EOF
 
