@@ -1,6 +1,6 @@
 # Architecture Reset — Project State (2026-08-08, Phase 3: migration/export)
 
-**Status:** SQLite architecture approved in principle; senior review `4878235332` on PR #1 completed the architecture review and directed the Phase 2 implementation order (commits 1–4) with a design-convergence stop gate. The Phase 2 stop gate was accepted, and the migration/export implementation gate (ADR-0012 amendment, frozen at `42ff7d9` + `b9e46c1`) is now implemented and under mandatory review. This document tracks the clean `feat/sqlite-persistence-reset` branch.
+**Status:** SQLite architecture approved in principle; senior review `4878235332` on PR #1 completed the architecture review and directed the Phase 2 implementation order (commits 1–4) with a design-convergence stop gate. The Phase 2 stop gate was accepted, and the migration/export implementation gate (ADR-0012 amendment, frozen at `42ff7d9` + `b9e46c1`) is **COMPLETE at `775630e`** — implemented, 7-pass code-reviewed (final verdict: 0 critical / 0 major), 420 tests green, literal-head CI green, evidence comment posted — and is now **STOPPED for independent senior review**. This document tracks the clean `feat/sqlite-persistence-reset` branch.
 
 ## Branch topology
 
@@ -36,22 +36,37 @@ Bounded implementation authorized by Vincent at canonical head `b9e46c1` on
 deterministic supported export, deterministic legacy-v0.1.2 evidence export,
 and the minimal CLI/error/test/documentation surface for those capabilities.
 
-Implemented (pending senior review):
+**Gate status: COMPLETE — STOPPED for independent senior review.**
+
+- Final head: `775630eebdfb7c4b8357a4d1976505109b4b085b` (10 commits,
+  fast-forward from `b9e46c1`; no force-push).
+- Local suite: **420 tests green** (356 baseline + 64 migration/export).
+- Code review: 7 passes of the mandatory family (bug/security/performance/
+  quality → verify → dedupe → sanity); final verdict 0 critical / 0 major.
+- Literal-head CI: run `31236027530` on `775630e` **SUCCESS** — 3.11 job
+  `93048557007` and 3.12 job `93048556968`, both `Ran 420 tests … OK`,
+  clean-worktree + artifact-scan steps success.
+- PR #1 evidence comment: id `5224200252` (32-point gate checklist).
+- CI fix: `release-gate.yml` now uses `fetch-depth: 0` so migration fixture
+  generation can reach the frozen public commit `fb5641c` (prior run
+  `31235850649` failed on a shallow checkout).
+
+Implemented:
 
 - `methodfactory/migrations/v012_jsonl.py` — frozen read-only v0.1.2 reader
   (exact `fb5641c` semantics; no CAS/lock/repair/append mechanics).
 - `methodfactory/migrations/migrate.py` — atomic migration: legacy validation,
   semantic-action reconstruction by legacy hash, current-engine transformation
   (`next_manifest` only), equivalence verification, source-stability proof,
-  temp-DB build + validation, durable receipt + DB publication, final
-  read-only verification, fault seams.
+  temp-DB build + validation, durable receipt + DB publication (no-clobber
+  `os.link`), final read-only verification, fault seams.
 - `methodfactory/migrations/export.py` — `method-factory-events-v1` and
   `legacy-v012-jsonl` deterministic exports (read-only, consistent read).
 - `methodfactory/cli.py` — bounded surface restored: `mf migrate-store` and
   `mf export`; lifecycle commands remain unavailable; `mf --version` unchanged.
 - Six new frozen migration error codes (see `docs/public-surface.md`).
 - `methodfactory/tests/_fixtures.py` + `test_migrations.py` — fb5641c-origin
-  fixtures and 44 focused tests (full suite 400 tests green).
+  fixtures and 64 focused tests.
 
 Not authorized / NOT implemented in this gate: merge, PR-ready, tag, release,
 `main`/forensic mutation, force-push, deployment, lifecycle expansion,
