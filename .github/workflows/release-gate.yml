@@ -70,6 +70,10 @@ jobs:
           export MF_DIST="$RUNNER_TEMP/mf-dist"
           python -m venv "$MF_VENV"
           "$MF_VENV/bin/python" -m pip install --no-deps "$MF_DIST"/*.whl
+          # Run OUTSIDE the repo: a heredoc through `python -` puts CWD on
+          # sys.path, which would shadow the installed package with the
+          # checkout copy and break the import-provenance proof.
+          cd "$RUNNER_TEMP"
           # import provenance: must resolve from the venv site-packages, not
           # the development checkout.
           "$MF_VENV/bin/python" - <<'EOF'
@@ -104,6 +108,8 @@ jobs:
           python - <<'EOF'
           # Generate the canonical fixture through the sanctioned mechanism
           # (exact public fb5641c code via the repo's disposable worktree).
+          # Runs from the checkout on purpose: the editable install provides
+          # methodfactory.tests._fixtures.
           import os, pathlib, shutil
           from methodfactory.tests._fixtures import generate_fixture, standard_workflow
           root = pathlib.Path(os.environ["MF_SMOKE"])
@@ -111,8 +117,12 @@ jobs:
           generate_fixture(str(root), workflow=standard_workflow)
           EOF
           mkdir -p "$MF_STORE"
+          chmod 700 "$MF_STORE"
           # source immutability baseline
           sha256sum "$MF_SMOKE"/events/*.events.jsonl > "$MF_STORE/source.before"
+          # Run the installed tooling OUTSIDE the repo (CWD on sys.path would
+          # shadow the installed package with the checkout copy).
+          cd "$RUNNER_TEMP"
           # installed migrate-store
           "$MF_VENV/bin/mf" migrate-store --source "$MF_SMOKE" --dest "$MF_STORE/methodfactory.sqlite3"
           # authoritative validation via installed primitives
