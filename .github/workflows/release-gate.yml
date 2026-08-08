@@ -19,6 +19,11 @@ jobs:
         python-version: ["3.11", "3.12"]
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0 (pinned SHA)
+        with:
+          # Full history required: migration tests generate fixtures from the
+          # exact public v0.1.2 commit fb5641c (tag v0.1.2-integrity), which
+          # is not present in a depth-1 checkout of this branch.
+          fetch-depth: 0
       - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0 (pinned SHA)
         with:
           python-version: ${{ matrix.python-version }}
