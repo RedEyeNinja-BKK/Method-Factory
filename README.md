@@ -8,6 +8,8 @@ It is the more rigorous successor to [Process Engine](https://github.com/RedEyeN
 
 > **Process Engine** remains the Turnstone-native, prompts-only reference implementation — active, not abandoned. Method Factory is the prompt+code evolution of the same idea. (More on the relationship below.)
 
+> **A note on where RC1 stands.** The deterministic pipeline foundation described below is real and tested, but `v2.0.0-rc.1` is an engineering release candidate: its packaged public interface currently exposes `migrate-store` and `export`. The full conversational authoring lifecycle is not yet a polished public entry point. See [What RC1 provides today](#what-rc1-provides-today).
+
 ---
 
 ## What it does
@@ -143,10 +145,16 @@ So the honest answer to "how can I use Method Factory today?" is: **as a determi
 
 ## Getting started
 
+**Install the RC1 wheel**
+
+`v2.0.0-rc.1` is not on PyPI. Download the wheel `methodfactory-2.0.0rc1-py3-none-any.whl` from the [GitHub Release](https://github.com/RedEyeNinja-BKK/Method-Factory/releases/tag/v2.0.0-rc.1), then install that local wheel:
+
 ```bash
-pip install methodfactory-2.0.0rc1-py3-none-any.whl   # or: pip install -e ".[test]"
+pip install ./methodfactory-2.0.0rc1-py3-none-any.whl
 mf --version                                          # methodfactory 2.0.0rc1
 ```
+
+> For development/contributor work, an editable install (`pip install -e ".[test]"`) is the right path — it is a developer workflow, not an equivalent public release installation.
 
 **Migrate an old v0.1.2 store:**
 
@@ -220,7 +228,7 @@ The full development gate history lives in [architecture-reset-status.md](docs/a
 
 ## Origin
 
-Method Factory is built from the domain knowledge captured in [Process Engine](https://github.com/RedEyeNinja-BKK/Process-Engine) — the pipeline design (Intent → Collect → Clarify → Objective → Summary Gate → Pattern → Review → Trial → Ship → Triage) that emerged from hundreds of prompt-only experiments and was validated in a [real end-to-end run](https://github.com/RedEyeNinja-BKK/Process-Engine/blob/main/evals/case-study-first-run.md).
+Method Factory is built from the domain knowledge captured in [Process Engine](https://github.com/RedEyeNinja-BKK/Process-Engine) — the pipeline design (Intent → Collect → Clarify → Objective → Summary Gate → Pattern → Review → Trial → Ship → Triage) that emerged from hundreds of prompt-only experiments and was validated in a [real end-to-end run](https://github.com/RedEyeNinja-BKK/Process-Engine/blob/main/case-study/case-study-first-run.md).
 
 The prompt-only phase was not a shortcut — it was the discovery method. We did not guess the architecture. We ran real interactions until the lifecycle proved itself. Now the guarantees are hardened into code.
 
