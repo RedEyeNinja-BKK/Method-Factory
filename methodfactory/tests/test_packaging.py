@@ -9,15 +9,15 @@ import methodfactory
 
 
 class PackagingTests(unittest.TestCase):
-    def test_version_is_2_0_0a1(self):
-        self.assertEqual(methodfactory.__version__, "2.0.0a1")
+    def test_version_is_2_0_0rc1(self):
+        self.assertEqual(methodfactory.__version__, "2.0.0rc1")
 
     def test_distribution_metadata_version_matches(self):
         try:
             dist = importlib.metadata.version("methodfactory")
         except importlib.metadata.PackageNotFoundError:
             self.skipTest("methodfactory not installed (not an editable install)")
-        self.assertEqual(dist, "2.0.0a1")
+        self.assertEqual(dist, "2.0.0rc1")
 
     def test_mf_entry_point_registered(self):
         eps = importlib.metadata.entry_points(group="console_scripts")

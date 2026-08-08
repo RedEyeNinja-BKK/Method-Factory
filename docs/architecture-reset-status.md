@@ -1,6 +1,6 @@
-# Architecture Reset — Project State (2026-08-08, Phase 3: migration/export)
+# Architecture Reset — Project State (2026-08-08, RC1 candidate preparation)
 
-**Status:** SQLite architecture approved in principle; senior review `4878235332` on PR #1 completed the architecture review and directed the Phase 2 implementation order (commits 1–4) with a design-convergence stop gate. The Phase 2 stop gate was accepted, and the migration/export implementation gate (ADR-0012 amendment, frozen at `42ff7d9` + `b9e46c1`) is **COMPLETE at `775630e`** — implemented, 7-pass code-reviewed (final verdict: 0 critical / 0 major), 420 tests green, literal-head CI green, evidence comment posted — and is now **STOPPED for independent senior review**. This document tracks the clean `feat/sqlite-persistence-reset` branch.
+**Status:** SQLite architecture approved in principle; senior review `4878235332` on PR #1 completed the architecture review and directed the Phase 2 implementation order (commits 1–4) with a design-convergence stop gate. The Phase 2 stop gate was accepted; the migration/export implementation gate (ADR-0012 amendment, frozen at `42ff7d9` + `b9e46c1`) closed at `775630e`; the documentation/reporting head is `c70a6f3`. **The current branch head is the RC1 candidate — pending independent senior acceptance and operator integration gate.** This document tracks the clean `feat/sqlite-persistence-reset` branch.
 
 ## Branch topology
 
@@ -29,6 +29,17 @@ fb5641c  remote main (published v0.1.2-integrity base)
 | Git bundle | `method-factory-8a7e916.bundle` (SHA-256 `92c0bb1026190f9fd5e1f61bb4cd5fc16a08605aecf77f81eb5bc93b3b504f63`; `git bundle verify` OK) |
 | Local archival | `persistence-reset` branch preserved locally (pre-revision ADR draft, not published) |
 
+## Head lineage (implementation vs documentation vs RC1 candidate)
+
+| Head | Role |
+|---|---|
+| `775630eebdfb7c4b8357a4d1976505109b4b085b` | **Migration/export implementation head** — product implementation closed here (10 commits from `b9e46c1`); 7-pass code-reviewed (0 critical / 0 major); 420 tests green; literal-head CI green; PR evidence comment id `5224200252`. |
+| `c70a6f314b2329dc3e134546ad20b41519be98ab` | **Documentation/reporting head** — architecture-reset status marked the migration/export gate complete/stopped for senior review (docs-only commit). |
+| *(this branch head)* | **RC1 candidate** — prepared by the RC1 Candidate Preparation Gate: version identity `2.0.0rc1`, release metadata cleanup, clean package build + isolated install proof, release-gate CI strengthening, RC1 evidence. RC1 candidate — **pending independent senior acceptance and operator integration gate.** Not released. |
+
+Do not call the RC1 candidate "released". The eventual Git release/tag identity
+is `v2.0.0-rc.1`; the tag is NOT created in this gate.
+
 ## Migration/export implementation gate (2026-08-08)
 
 Bounded implementation authorized by Vincent at canonical head `b9e46c1` on
@@ -36,9 +47,11 @@ Bounded implementation authorized by Vincent at canonical head `b9e46c1` on
 deterministic supported export, deterministic legacy-v0.1.2 evidence export,
 and the minimal CLI/error/test/documentation surface for those capabilities.
 
-**Gate status: COMPLETE — STOPPED for independent senior review.**
+**Gate status: COMPLETE — implementation closed at `775630e`, STOPPED for
+independent senior review (historical record; superseded by the RC1
+candidate preparation).**
 
-- Final head: `775630eebdfb7c4b8357a4d1976505109b4b085b` (10 commits,
+- Implementation head: `775630eebdfb7c4b8357a4d1976505109b4b085b` (10 commits,
   fast-forward from `b9e46c1`; no force-push).
 - Local suite: **420 tests green** (356 baseline + 64 migration/export).
 - Code review: 7 passes of the mandatory family (bug/security/performance/
@@ -72,6 +85,39 @@ Not authorized / NOT implemented in this gate: merge, PR-ready, tag, release,
 `main`/forensic mutation, force-push, deployment, lifecycle expansion,
 backup/restore, generic import, garbage collection, JSONL as canonical store,
 or 8a7e916 repair/CAS/locking mechanics.
+
+## RC1 candidate preparation gate (2026-08-08)
+
+Bounded release-preparation gate authorized by Vincent. Scope limited to:
+release-version identity (`2.0.0rc1`), stale release-status/metadata cleanup,
+clean-install/package proof, release-gate CI strengthening, RC1 evidence.
+No product-semantic changes were authorized; the product implementation
+remains frozen pending final senior review.
+
+- **RC1 candidate head:** *(recorded after the RC preparation commit exists —
+  see Head lineage table above.)*
+- Version identity: `2.0.0rc1` across `pyproject.toml`, `methodfactory/
+  __init__.py`, packaging tests, and CLI version tests. Eventual Git tag
+  identity `v2.0.0-rc.1` — NOT created in this gate.
+- Release metadata: `Development Status :: 3 - Alpha` → `4 - Beta`; stale
+  "Phase 2 foundation" wording removed from the project description.
+- Clean package build: wheel (+ sdist if supported) built from the exact
+  candidate source in a disposable directory; filenames + SHA-256 recorded;
+  no artifacts committed or left in the worktree.
+- Fresh-environment install: wheel installed into a disposable venv with no
+  editable checkout; import provenance, `__version__`, `mf --version`,
+  `python -m methodfactory --version`, and CLI surface verified.
+- Packaged functional smoke: canonical `fb5641c` fixture → installed
+  `mf migrate-store` → authoritative validation → installed `mf export`
+  (both formats) → legacy evidence export revalidated by the frozen
+  legacy reader; source unchanged.
+- Release-gate CI: builds the distributable wheel, installs into an isolated
+  environment, proves `mf --version` = `2.0.0rc1`, runs installed
+  migration/export smoke on 3.11 and 3.12; tracked-worktree and artifact-scan
+  steps retained.
+- RC1 candidate — **pending independent senior acceptance and operator
+  integration gate.** Not released. No tag, no GitHub Release, no PyPI
+  publication, no deployment.
 
 ## Senior review 4878235332 (2026-08-07) — accepted
 

@@ -5,7 +5,7 @@ canonical serialization implementation from storage.serialization (the legacy
 ensure_ascii=True variant is removed/legacy-scoped in manifest/hashing.py).
 """
 
-__version__ = "2.0.0a1"
+__version__ = "2.0.0rc1"
 
 # Reusable foundation (ADR-0012 §8 port list). Canonical serialization is the
 # single storage-layer implementation; manifest.hashing re-exports it.

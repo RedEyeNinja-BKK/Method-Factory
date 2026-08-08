@@ -1164,13 +1164,13 @@ class SurfaceBoundaryTests(unittest.TestCase):
 class CliBoundaryTests(unittest.TestCase):
     """`mf --version`, migrate-store, export through the real CLI."""
 
-    def test_version_unchanged(self):
+    def test_version_reports_rc1(self):
         result = subprocess.run(
             [sys.executable, "-m", "methodfactory.cli", "--version"],
             capture_output=True, text=True,
         )
         self.assertEqual(result.returncode, 0)
-        self.assertIn("methodfactory 2.0.0a1", result.stdout)
+        self.assertIn("methodfactory 2.0.0rc1", result.stdout)
 
     def test_no_lifecycle_commands(self):
         result = subprocess.run(

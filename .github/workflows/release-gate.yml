@@ -38,6 +38,121 @@ jobs:
         run: |
           mf --version
           python -m methodfactory --version
+          test "$(mf --version)" = "methodfactory 2.0.0rc1"
+          test "$(python -m methodfactory --version)" = "methodfactory 2.0.0rc1"
+
+      # RC1 packaging proof — build the actual distributable wheel/sdist from
+      # the EXACT candidate source into a disposable directory OUTSIDE the
+      # repo, so the tracked-worktree and artifact-scan steps below stay
+      # clean. No new build dependency: pip wheel/download use the declared
+      # setuptools build backend.
+      - name: Build distributable package (wheel + sdist)
+        run: |
+          set -euo pipefail
+          export MF_DIST="$RUNNER_TEMP/mf-dist"
+          mkdir -p "$MF_DIST" "$RUNNER_TEMP/mf-src"
+          git archive HEAD | tar -x -C "$RUNNER_TEMP/mf-src"
+          cd "$RUNNER_TEMP/mf-src"
+          python -m pip wheel . --no-deps -w "$MF_DIST"
+          python -m pip download . --no-deps --no-binary :all: -d "$MF_DIST"
+          ls -la "$MF_DIST"
+          python - <<'EOF'
+          import hashlib, os, pathlib
+          dist = pathlib.Path(os.environ["MF_DIST"])
+          for p in sorted(dist.iterdir()):
+              print(p.name, hashlib.sha256(p.read_bytes()).hexdigest())
+          EOF
+
+      - name: Isolated wheel install + version proof
+        run: |
+          set -euo pipefail
+          export MF_VENV="$RUNNER_TEMP/mf-venv"
+          export MF_DIST="$RUNNER_TEMP/mf-dist"
+          python -m venv "$MF_VENV"
+          "$MF_VENV/bin/python" -m pip install --no-deps "$MF_DIST"/*.whl
+          # import provenance: must resolve from the venv site-packages, not
+          # the development checkout.
+          "$MF_VENV/bin/python" - <<'EOF'
+          import methodfactory, os, pathlib
+          print("import file:", methodfactory.__file__)
+          venv = pathlib.Path(os.environ["MF_VENV"]).resolve()
+          assert pathlib.Path(methodfactory.__file__).resolve().is_relative_to(venv), \
+              "methodfactory resolved outside the isolated venv"
+          assert methodfactory.__version__ == "2.0.0rc1", methodfactory.__version__
+          EOF
+          test "$("$MF_VENV/bin/mf" --version)" = "methodfactory 2.0.0rc1"
+          test "$("$MF_VENV/bin/python" -m methodfactory --version)" = "methodfactory 2.0.0rc1"
+          # CLI surface: only migrate-store + export may be present.
+          "$MF_VENV/bin/mf" --help
+          for banned in create apply status summary review trial ship triage; do
+            if "$MF_VENV/bin/mf" --help | grep -qE "^\s+$banned\b"; then
+              echo "::error::forbidden lifecycle command exposed: $banned"; exit 1
+            fi
+          done
+
+      # Packaged functional smoke: canonical exact-fb5641c fixture -> installed
+      # mf migrate-store -> authoritative validation -> installed mf export
+      # (both formats) -> legacy evidence revalidated by the frozen reader;
+      # source must remain unchanged.
+      - name: Packaged migration/export smoke (isolated env)
+        run: |
+          set -euo pipefail
+          export MF_SMOKE="$RUNNER_TEMP/mf-smoke"
+          export MF_STORE="$RUNNER_TEMP/mf-store"
+          export MF_LEGACY_REVAL="$RUNNER_TEMP/mf-legacy-revalidate"
+          export MF_VENV="$RUNNER_TEMP/mf-venv"
+          python - <<'EOF'
+          # Generate the canonical fixture through the sanctioned mechanism
+          # (exact public fb5641c code via the repo's disposable worktree).
+          import os, pathlib, shutil
+          from methodfactory.tests._fixtures import generate_fixture, standard_workflow
+          root = pathlib.Path(os.environ["MF_SMOKE"])
+          shutil.rmtree(root, ignore_errors=True)
+          generate_fixture(str(root), workflow=standard_workflow)
+          EOF
+          mkdir -p "$MF_STORE"
+          # source immutability baseline
+          sha256sum "$MF_SMOKE"/events/*.events.jsonl > "$MF_STORE/source.before"
+          # installed migrate-store
+          "$MF_VENV/bin/mf" migrate-store --source "$MF_SMOKE" --dest "$MF_STORE/methodfactory.sqlite3"
+          # authoritative validation via installed primitives
+          "$MF_VENV/bin/python" - <<'EOF'
+          import os
+          from methodfactory.storage.store import SqliteManifestStore
+          store = SqliteManifestStore(os.environ["MF_STORE"])
+          try:
+              for pkg in store.list_package_ids():
+                  result = store.validate_chain(pkg, verify_artifacts=True)
+                  assert result["valid"], result
+                  print("validated", pkg, result)
+          finally:
+              store.close()
+          EOF
+          # installed exports (both formats)
+          "$MF_VENV/bin/mf" export --store "$MF_STORE" --output "$MF_STORE/events-v1.jsonl" --format method-factory-events-v1
+          "$MF_VENV/bin/mf" export --store "$MF_STORE" --output "$MF_STORE/legacy.jsonl" --format legacy-v012-jsonl
+          test -s "$MF_STORE/events-v1.jsonl"
+          test -s "$MF_STORE/legacy.jsonl"
+          # legacy evidence export revalidates under the frozen legacy reader
+          "$MF_VENV/bin/python" - <<'EOF'
+          import os, pathlib, shutil
+          from methodfactory.migrations.v012_jsonl import LegacySource
+          lr = pathlib.Path(os.environ["MF_LEGACY_REVAL"])
+          store = pathlib.Path(os.environ["MF_STORE"])
+          shutil.rmtree(lr, ignore_errors=True)
+          (lr / "events").mkdir(parents=True)
+          (lr / "packages").mkdir()
+          (lr / "artifacts" / "blobs").mkdir(parents=True)
+          shutil.copy(store / "legacy.jsonl", lr / "events" / "pkg_demo_001.events.jsonl")
+          for blob in (store / "blobs").iterdir():
+              shutil.copy(blob, lr / "artifacts" / "blobs" / blob.name)
+          LegacySource(lr).validate()
+          print("legacy evidence export revalidated OK")
+          EOF
+          # source unchanged after migration/export
+          sha256sum "$MF_SMOKE"/events/*.events.jsonl > "$MF_STORE/source.after"
+          diff "$MF_STORE/source.before" "$MF_STORE/source.after"
+          echo "source unchanged OK"
 
       # Honest terminology (Finding 4 item 2): this proves a CLEAN TRACKED
       # WORKTREE (no uncommitted/untracked tracked-tree changes). Generated
