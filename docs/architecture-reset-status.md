@@ -1,31 +1,44 @@
-# Architecture Reset — Project State (2026-08-08, RC1 candidate preparation)
+# Architecture Reset — Project State (2026-08-08, RC1 release)
 
-**Status:** SQLite architecture approved in principle; senior review `4878235332` on PR #1 completed the architecture review and directed the Phase 2 implementation order (commits 1–4) with a design-convergence stop gate. The Phase 2 stop gate was accepted; the migration/export implementation gate (ADR-0012 amendment, frozen at `42ff7d9` + `b9e46c1`) closed at `775630e`; the documentation/reporting head is `c70a6f3`. **The current branch head is the RC1 candidate — pending independent senior acceptance and operator integration gate.** This document tracks the clean `feat/sqlite-persistence-reset` branch.
+**Status (current):** The SQLite persistence reset is **integrated into `main`** and the RC1 release identity is
+`v2.0.0-rc.1`. GitHub tag/release state is authoritative in GitHub. This document preserves the historical
+evidence trail below; the current-state/topology section at the top records the integrated state.
 
-## Branch topology
+**Release identity:** `v2.0.0-rc.1` — GitHub tag/release state is authoritative in GitHub.
+
+## Branch topology (current, post-integration)
 
 ```text
-fb5641c  remote main (published v0.1.2-integrity base)
-├── review/jsonl-overhaul-8a7e916        # forensic — exact 8a7e916, review-held, non-releasable
+a4b0ba4  remote main (integrated RC1 lineage — merge of fb5641c + ac090e8)
+├── review/jsonl-overhaul-8a7e916        # forensic — exact 8a7e916, review-held, non-releasable, EXCLUDED from main
 │   └── ... twelve JSONL remediation commits ... → 8a7e916
 │
-└── feat/sqlite-persistence-reset       # clean product branch (this branch) — from origin/main
-    ├── ADR-0012 + architecture contracts   ← commits 1 (docs) — done
-    ├── package foundation (rename, CI, ignores)   ← commit 2
-    ├── storage protocol + canonical primitives    ← commit 3
-    ├── SQLite schema creation + identity + append-only guards ← commit 4 (Phase 2 stop gate — accepted)
-    ├── transactional apply + deterministic replay + chain validator   ← Phase 3 foundation
-    └── migration + deterministic exports + CLI (this gate)   ← committed for senior review
+└── feat/sqlite-persistence-reset       # product feature branch — retained unchanged at ac090e8
+    └── ... ADR-0012 + foundation + transactional persistence + invariant closure + migration/export + RC preparation ...
 ```
 
-## Identities (verified 2026-08-08)
+## Current release state (2026-08-08)
 
 | Item | Value |
 |---|---|
-| Remote main | `fb5641cc1a3f1f54b96bba3af88ec5a1b010f4e5` (untouched) |
+| `main` (integrated) | `a4b0ba48f0e15abfb6b615817689d96b42c7c311` |
+| Accepted candidate | `ac090e879beb737603527ad756a0206a752ff8a3` |
+| PR #1 | **merged** successfully; merge commit `a4b0ba48f0e15abfb6b615817689d96b42c7c311` |
+| Feature branch | `feat/sqlite-persistence-reset` = `ac090e879beb737603527ad756a0206a752ff8a3` (retained unchanged) |
+| Forensic branch | `review/jsonl-overhaul-8a7e916` = `8a7e9167d6ff77b3ccd32722683c9b42e4390687` (retained unchanged) |
+| Forensic lineage in `main` | **excluded** — `8a7e916…` is NOT an ancestor of `main` |
+| Integration post-merge CI | run `31246702202` **SUCCESS** — 3.11 job `93076401662`, 3.12 job `93076401675`; 420 tests green both; exact-main checkout identity proven |
+| Package identity | `2.0.0rc1` |
+| Release identity | `v2.0.0-rc.1` (GitHub tag/release state authoritative) |
+
+## Identities (historical evidence; see current release state above)
+
+| Item | Value |
+|---|---|
+| Remote main (pre-integration) | `fb5641cc1a3f1f54b96bba3af88ec5a1b010f4e5` |
 | Forensic branch | `review/jsonl-overhaul-8a7e916` = `8a7e9167d6ff77b3ccd32722683c9b42e4390687` |
-| Clean branch | `feat/sqlite-persistence-reset` (merge-base with origin/main = `fb5641c`; does **not** descend from 8a7e916) |
-| PR #1 | https://github.com/RedEyeNinja-BKK/Method-Factory/pull/1 — **actual GitHub Draft**, DO NOT MERGE |
+| Feature branch | `feat/sqlite-persistence-reset` (merge-base with origin/main = `fb5641c`; does **not** descend from 8a7e916) |
+| PR #1 (historical) | was **actual GitHub Draft** before the RC1 integration gate — now merged |
 | Git bundle | `method-factory-8a7e916.bundle` (SHA-256 `92c0bb1026190f9fd5e1f61bb4cd5fc16a08605aecf77f81eb5bc93b3b504f63`; `git bundle verify` OK) |
 | Local archival | `persistence-reset` branch preserved locally (pre-revision ADR draft, not published) |
 
@@ -37,10 +50,11 @@ fb5641c  remote main (published v0.1.2-integrity base)
 | `c70a6f314b2329dc3e134546ad20b41519be98ab` | **Documentation/reporting head** — architecture-reset status marked the migration/export gate complete/stopped for senior review (docs-only commit). |
 | `a9fafbfd80dfe0d431930b0be772a703db3fd55f` | **RC1 preparation commit** — version identity `2.0.0rc1`, release metadata cleanup, candidate-head documentation, release-gate CI strengthening. |
 | `a6aeb8ca9f0ac571ef06e3d8d5e8a1b032379e2a` | **RC preparation head** — CI-only correction (isolated-venv import provenance; CWD shadowing fix). PR-event run `31242827310` **SUCCESS** on the candidate-equivalent tree (3.11 job `93066497291`, 3.12 job `93066497309`). NOTE: that run used actions/checkout's default PR synthetic-merge ref — candidate-tree-equivalent, NOT literal-commit identity proof. |
-| *(current branch head)* | **RC1 candidate** — pending independent senior acceptance. The exact final SHA of this evidence-closure commit is recorded in the post-CI evidence report / PR comment, not hard-coded into this document (avoids a self-referential commit). RC1 candidate — **pending independent senior acceptance and operator integration gate.** Not released. |
+| `ac090e879beb737603527ad756a0206a752ff8a3` | **Accepted RC1 candidate** — evidence closure + senior acceptance (`RC1_CANDIDATE_ACCEPTED`); literal-head CI run `31246134092` SUCCESS (3.11 `93074940397`, 3.12 `93074940382`). |
+| `a4b0ba48f0e15abfb6b615817689d96b42c7c311` | **Integration merge commit** — PR #1 merged into `main`; parents `fb5641c` + `ac090e8`; candidate tree == merge tree (zero content delta); post-merge `main` CI run `31246702202` SUCCESS (3.11 `93076401662`, 3.12 `93076401675`). |
+| `v2.0.0-rc.1` (tag) | **RC1 release identity** — annotated tag on the final release-seal `main` SHA. GitHub tag/release state is authoritative in GitHub. |
 
-Do not call the RC1 candidate "released". The eventual Git release/tag identity
-is `v2.0.0-rc.1`; the tag is NOT created in this gate.
+Release identity: `v2.0.0-rc.1`. GitHub tag/release state is authoritative in GitHub.
 
 ## Migration/export implementation gate (2026-08-08)
 
@@ -128,9 +142,7 @@ remains frozen pending final senior review.
   CI-backed. The sdist `methodfactory-2.0.0rc1.tar.gz` is LOCAL supplemental
   evidence only (not independently CI-produced; RC1's required distributable
   proof is the wheel).
-- RC1 candidate — **pending independent senior acceptance and operator
-  integration gate.** Not released. No tag, no GitHub Release, no PyPI
-  publication, no deployment.
+- RC1 candidate — **accepted (`RC1_CANDIDATE_ACCEPTED`) and integrated into `main` at `a4b0ba4…`** during the RC1 Integration Gate. Release identity `v2.0.0-rc.1`; GitHub tag/release state is authoritative in GitHub.
 
 ## RC1 evidence & documentation closure gate (2026-08-08)
 
@@ -174,9 +186,10 @@ checkout identity, wheel/sdist claim accuracy, stale status wording).
 **Progression (current):**
 1. ✅ Foundation accepted (Phase 2 stop gate, senior review `4878235332`).
 2. ✅ Transactional persistence accepted (invariant closure, senior review `4885538290`).
-3. ✅ Migration/export implemented + 7-pass reviewed (implementation head `775630e`; verdict 0 critical / 0 major) — accepted pending this final evidence closure.
-4. ⏳ RC1 candidate (`2.0.0rc1`) pending independent senior acceptance.
-5. ⏳ Merge / tag / release — operator-gated; NOT authorized by any gate so far.
+3. ✅ Migration/export implemented + 7-pass reviewed (implementation head `775630e`; verdict 0 critical / 0 major) — accepted.
+4. ✅ RC1 candidate (`2.0.0rc1`) accepted (`RC1_CANDIDATE_ACCEPTED`) and **integrated into `main`** at `a4b0ba4…` (PR #1 merged).
+5. ✅ Release identity `v2.0.0-rc.1` — RC1 release sealed; GitHub tag/release state authoritative.
+6. ⏳ Final `2.0.0` release — operator-gated; NOT authorized by any gate so far.
 
 ## ADR-0012 amendment (commit 1, done)
 
@@ -206,6 +219,7 @@ The amendment closes all 12 review items:
 2. ✅ Operator GO to proceed with foundation + SQLite implementation (Phase 2 authorization).
 3. ✅ Phase 2 stop gate: commits 1–4 + CI evidence + PR comment; senior reviewer acceptance (accepted).
 4. ✅ Transactional persistence + invariant closure accepted (senior review 4885538290).
-5. ✅ Migration/export implementation accepted pending final evidence closure (implementation head 775630e; 7-pass review, 0 critical / 0 major).
-6. ⏳ RC1 candidate (`2.0.0rc1`) pending independent senior acceptance (evidence closure complete).
-7. ⏳ Operator approval to merge / tag / release (not currently authorized).
+5. ✅ Migration/export implementation accepted (implementation head 775630e; 7-pass review, 0 critical / 0 major).
+6. ✅ RC1 candidate (`2.0.0rc1`) accepted (`RC1_CANDIDATE_ACCEPTED`) and integrated into `main` (PR #1 merged at `a4b0ba4…`).
+7. ✅ RC1 release identity `v2.0.0-rc.1` sealed (GitHub tag/release state authoritative).
+8. ⏳ Final `2.0.0` release — operator-gated; NOT authorized by any gate so far.
