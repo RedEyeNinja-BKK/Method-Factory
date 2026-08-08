@@ -35,8 +35,9 @@ fb5641c  remote main (published v0.1.2-integrity base)
 |---|---|
 | `775630eebdfb7c4b8357a4d1976505109b4b085b` | **Migration/export implementation head** — product implementation closed here (10 commits from `b9e46c1`); 7-pass code-reviewed (0 critical / 0 major); 420 tests green; literal-head CI green; PR evidence comment id `5224200252`. |
 | `c70a6f314b2329dc3e134546ad20b41519be98ab` | **Documentation/reporting head** — architecture-reset status marked the migration/export gate complete/stopped for senior review (docs-only commit). |
-| `a6aeb8ca9f0ac571ef06e3d8d5e8a1b032379e2a` | **RC1 candidate head** — prepared by the RC1 Candidate Preparation Gate: version identity `2.0.0rc1`, release metadata cleanup, clean package build + isolated install proof, release-gate CI strengthening (build + isolated install + packaged smoke steps), RC1 evidence. Literal-head CI run `31242827310` **SUCCESS** on this exact SHA (3.11 job `93066497291`, 3.12 job `93066497309`; all 10 steps green). RC1 candidate — **pending independent senior acceptance and operator integration gate.** Not released. |
-| *(final branch head)* | **Reporting head** — this document records the RC1 candidate head above and the gate evidence (docs-only commit). |
+| `a9fafbfd80dfe0d431930b0be772a703db3fd55f` | **RC1 preparation commit** — version identity `2.0.0rc1`, release metadata cleanup, candidate-head documentation, release-gate CI strengthening. |
+| `a6aeb8ca9f0ac571ef06e3d8d5e8a1b032379e2a` | **RC preparation head (CI-proven)** — CI-only correction (isolated-venv import provenance; CWD shadowing fix). Literal-head CI run `31242827310` **SUCCESS** on this exact SHA (3.11 job `93066497291`, 3.12 job `93066497309`; all 10 steps green). |
+| *(final branch head of this gate)* | **RC1 candidate head** — the exact final branch head produced by the RC1 Candidate Preparation Gate (this reporting commit and its parent RC preparation commits). RC1 candidate — **pending independent senior acceptance and operator integration gate.** Not released. |
 
 Do not call the RC1 candidate "released". The eventual Git release/tag identity
 is `v2.0.0-rc.1`; the tag is NOT created in this gate.
@@ -95,8 +96,9 @@ clean-install/package proof, release-gate CI strengthening, RC1 evidence.
 No product-semantic changes were authorized; the product implementation
 remains frozen pending final senior review.
 
-- **RC1 candidate head:** `a6aeb8ca9f0ac571ef06e3d8d5e8a1b032379e2a` (see Head
-  lineage table above).
+- **RC1 candidate head:** the exact final branch head of this gate (RC
+  preparation commits `a9fafbf` + `a6aeb8c` + this reporting commit; the
+  CI-proven RC preparation head is `a6aeb8c`, see Head lineage table above).
 - Version identity: `2.0.0rc1` across `pyproject.toml`, `methodfactory/
   __init__.py`, packaging tests, and CLI version tests. Eventual Git tag
   identity `v2.0.0-rc.1` — NOT created in this gate.
